@@ -1,6 +1,16 @@
-<?php
-
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
+
+// Emergency Database Repair Route
+Route::get('/force-seed', function () {
+    try {
+        Artisan::call('migrate', ['--force' => true]);
+        Artisan::call('db:seed', ['--force' => true]);
+        return '<h1>✅ Database Repair Successful!</h1><p>The Admin and sample data have been created.</p><a href="/login">Go to Login</a>';
+    } catch (\Exception $e) {
+        return '<h1>❌ Error:</h1><pre>' . $e->getMessage() . '</pre>';
+    }
+});
 use App\Http\Controllers\Web\HomeController;
 use App\Http\Controllers\Web\AuthController;
 use App\Http\Controllers\Web\StudentController;
