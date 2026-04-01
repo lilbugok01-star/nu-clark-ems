@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/force-seed', function () {
     set_time_limit(0);
     try {
-        Artisan::call('migrate', ['--force' => true]);
+        Artisan::call('migrate:fresh', ['--force' => true]);
         Artisan::call('db:seed', ['--class' => 'DatabaseSeeder', '--force' => true]);
         $userCount = \App\Models\User::count();
         $eventCount = \App\Models\Event::count();
