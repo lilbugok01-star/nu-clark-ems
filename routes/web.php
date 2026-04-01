@@ -3,22 +3,6 @@
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 
-// Emergency Database Repair Route
-Route::get('/force-seed', function () {
-    set_time_limit(0);
-    try {
-        Artisan::call('migrate:fresh', ['--force' => true]);
-        Artisan::call('db:seed', ['--class' => 'DatabaseSeeder', '--force' => true]);
-        $userCount = \App\Models\User::count();
-        $eventCount = \App\Models\Event::count();
-        return "<h1>✅ Database Repair Successful!</h1>
-                <p>Created/Verified <b>$userCount</b> users and <b>$eventCount</b> events.</p>
-                <p>The Admin, Executive Director, Dean, and staff are now ready.</p>
-                <a href='/login'>Go to Login</a>";
-    } catch (\Exception $e) {
-        return '<h1>❌ Error:</h1><pre>' . $e->getMessage() . '</pre>';
-    }
-});
 use App\Http\Controllers\Web\HomeController;
 use App\Http\Controllers\Web\AuthController;
 use App\Http\Controllers\Web\StudentController;
