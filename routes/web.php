@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 
 // Emergency Database Repair Route
 Route::get('/force-seed', function () {
+    set_time_limit(0);
     try {
         Artisan::call('migrate', ['--force' => true]);
         Artisan::call('db:seed', ['--force' => true]);
