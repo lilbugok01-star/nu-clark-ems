@@ -19,8 +19,8 @@ class StudentDepartmentController extends Controller implements HasMiddleware
         return [
             'auth',
             new Middleware(function ($request, $next) {
-                if (Auth::user()->role !== 'student_department') {
-                    abort(403, 'Access denied. Student Department only.');
+                if (!in_array(Auth::user()->role, ['student_department', 'organizer'])) {
+                    abort(403, 'Access denied. Authorized personnel only.');
                 }
                 return $next($request);
             }),

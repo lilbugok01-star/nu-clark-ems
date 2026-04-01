@@ -212,7 +212,7 @@
             <div class="col-12">
                 <div class="alert-nu rounded-3">
                     <i class="bi bi-info-circle me-2" style="color:var(--nu-blue)"></i>
-                    <strong>Venue Reservation:</strong> After creating this event, you can submit a formal venue reservation request under <a href="{{ route('organizer.venue.index') }}" style="color:var(--nu-blue)">My Venue Reservations</a>. Admin approval required for Gymnasium and Auditorium.
+                    <strong>Venue Reservation:</strong> After creating this event, you can submit a formal venue reservation request under <a href="{{ route('student_department.dashboard') }}" style="color:var(--nu-blue)">My Venue Reservations</a>. Admin approval required for Gymnasium and Auditorium.
                 </div>
             </div>
 
