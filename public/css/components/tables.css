@@ -1,0 +1,20 @@
+/* ═══ TABLES ════════════════════════════════════════ */
+.nu-table { font-size: .85rem; border-collapse: separate; border-spacing: 0; width: 100%; }
+.nu-table thead th {
+    background: var(--nu-blue);
+    color: #fff;
+    font-weight: 600;
+    font-size: .72rem;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    padding: .75rem 1rem;
+    border: none;
+    white-space: nowrap;
+}
+.nu-table thead th:first-child { border-radius: 8px 0 0 0; }
+.nu-table thead th:last-child  { border-radius: 0 8px 0 0; }
+.nu-table tbody tr { border-bottom: 1px solid var(--gray-100); transition: var(--transition); }
+.nu-table tbody tr:hover { background: var(--gray-50); }
+.nu-table tbody td { padding: .75rem 1rem; vertical-align: middle; border: none; }
+.nu-table tbody tr:last-child td { border-bottom: none; }
+

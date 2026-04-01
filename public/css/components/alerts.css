@@ -1,0 +1,9 @@
+/* ═══ ALERT / NOTICE ═══════════════════════════════════ */
+.alert-nu {
+    background: rgba(0,48,135,.06);
+    border-left: 4px solid var(--nu-blue);
+    border-radius: var(--radius-sm);
+    padding: .9rem 1.1rem;
+    border-top: none; border-right: none; border-bottom: none;
+}
+

@@ -1,0 +1,19 @@
+/* ═══ FOOTER ══════════════════════════════════════════ */
+.nu-footer {
+    background: linear-gradient(135deg, var(--nu-blue-dk) 0%, var(--nu-blue) 100%);
+    border-top: 3px solid var(--nu-gold);
+}
+
+/* ═══ FOOTER LINKS ════════════════════════════════════ */
+.footer-link {
+    color: rgba(255,255,255,.5);
+    font-size: .83rem;
+    text-decoration: none;
+    transition: color .2s;
+}
+.footer-link:hover { color: var(--nu-gold); }
+.footer-link-static {
+    color: rgba(255,255,255,.45);
+    font-size: .83rem;
+}
+

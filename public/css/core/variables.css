@@ -1,0 +1,25 @@
+/* ─── CSS VARIABLES ────────────────────────────────── */
+:root {
+    --nu-blue:        #003087;
+    --nu-blue-dk:     #002060;
+    --nu-blue-lt:     #1a4faa;
+    --nu-gold:        #FFB800;
+    --nu-gold-dk:     #e6a500;
+    --nu-gold-lt:     #ffd166;
+    --nu-navy:        #001242;
+    --gray-50:        #f7f8fc;
+    --gray-100:       #eef0f7;
+    --gray-200:       #dde1ef;
+    --gray-400:       #9aa3b8;
+    --gray-600:       #5a6480;
+    --gray-800:       #2d3452;
+    --white:          #ffffff;
+    --shadow-sm:      0 2px 12px rgba(0,48,135,.08);
+    --shadow:         0 4px 24px rgba(0,48,135,.12);
+    --shadow-lg:      0 12px 48px rgba(0,48,135,.18);
+    --radius-sm:      8px;
+    --radius:         12px;
+    --radius-lg:      18px;
+    --transition:     all .22s cubic-bezier(.4,0,.2,1);
+}
+

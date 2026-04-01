@@ -1,0 +1,5 @@
+/* ═══ NOTIFICATIONS ═══════════════════════════════════ */
+.notif-dropdown { max-height: 360px; overflow-y: auto; }
+.notif-dropdown::-webkit-scrollbar { width: 4px; }
+.notif-dropdown::-webkit-scrollbar-thumb { background: var(--gray-200); border-radius: 4px; }
+

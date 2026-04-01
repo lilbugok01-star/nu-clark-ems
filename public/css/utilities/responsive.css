@@ -1,0 +1,11 @@
+/* ═══ RESPONSIVE ═══════════════════════════════════════ */
+@media (max-width: 991px) {
+    .dashboard-sidebar { position: static; }
+}
+@media (max-width: 767px) {
+    .nu-hero { min-height: 70vh; padding: 4rem 0; }
+    .stat-value { font-size: 1.7rem; }
+    .section-title { font-size: 1.3rem; }
+    .auth-card { padding: 2rem 1.5rem; }
+}
+

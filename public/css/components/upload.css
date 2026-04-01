@@ -1,0 +1,13 @@
+/* ═══ FILE UPLOAD AREA ════════════════════════════════ */
+.upload-area {
+    border: 2px dashed var(--gray-200);
+    border-radius: var(--radius);
+    padding: 2rem;
+    text-align: center;
+    transition: var(--transition);
+    background: var(--gray-50);
+    cursor: pointer;
+}
+.upload-area:hover,
+.upload-area.dragover { border-color: var(--nu-blue); background: rgba(0,48,135,.04); }
+

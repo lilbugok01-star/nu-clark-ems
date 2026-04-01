@@ -1,0 +1,108 @@
+/* ═══ AUTH LAYOUT (Official NU Style) ══════════════════ */
+.auth-wrapper {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--nu-navy);
+    padding: 0;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Background Gradients & Glows */
+.auth-bg-overlay {
+    position: absolute;
+    inset: 0;
+    background: 
+        radial-gradient(circle at 10% 20%, rgba(255,184,0,0.05) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(255,184,0,0.05) 0%, transparent 40%);
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Center Form Area */
+.auth-center-content {
+    flex: 1;
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+}
+
+/* Left Sidebar: Branding */
+.auth-left-branding {
+    width: 30%;
+    height: 100vh;
+    padding: 4rem;
+    z-index: 5;
+    align-items: center;
+}
+.nu-brand-title {
+    font-size: 5rem;
+    line-height: 0.85;
+    letter-spacing: -3px;
+}
+.nu-brand-divider {
+    width: 320px;
+    height: 8px;
+    background: var(--nu-gold);
+}
+.nu-brand-tagline {
+    font-size: 2.2rem;
+    font-style: italic;
+    letter-spacing: -0.5px;
+    opacity: 0.95;
+}
+
+/* Right Sidebar: Campus Listing */
+.auth-right-listing {
+    width: 30%;
+    height: 100vh;
+    padding: 4rem;
+    z-index: 5;
+    align-items: center;
+    justify-content: flex-end;
+}
+.campus-list {
+    font-size: 1.85rem;
+    font-weight: 800;
+    line-height: 1.15;
+    color: rgba(255,255,255,0.6);
+}
+.campus-list li {
+    margin-bottom: 0.15rem;
+    transition: var(--transition);
+}
+.campus-list li:hover {
+    color: white;
+    transform: translateX(-5px);
+}
+
+/* Card Styling */
+.auth-card {
+    background: var(--white);
+    border-radius: 4px; /* NU login is very sharp-edged or slightly rounded */
+    box-shadow: 0 40px 100px rgba(0,0,0,0.4);
+    padding: 3rem 2.5rem;
+    width: 100%;
+    max-width: 440px;
+    border-top: 5px solid var(--nu-gold);
+}
+
+/* Mobile Optimizations */
+@media (max-width: 991.98px) {
+    .auth-wrapper {
+        justify-content: center;
+    }
+    .auth-center-content {
+        width: 100%;
+        padding: 1.5rem;
+    }
+    .auth-card {
+        padding: 2rem 1.5rem;
+    }
+}
+

@@ -1,0 +1,21 @@
+/* ═══ LIVE EVENT TOAST ═══════════════════════════════ */
+.live-toast-wrap {
+    position: fixed;
+    bottom: 1.5rem; right: 1.5rem;
+    z-index: 9999;
+    max-width: 340px;
+    width: calc(100vw - 3rem);
+}
+.live-toast {
+    background: var(--white);
+    border-radius: var(--radius);
+    border-left: 5px solid var(--nu-gold);
+    box-shadow: 0 20px 60px rgba(0,0,0,.22);
+    padding: 1.2rem 1.4rem;
+    animation: slideInUp .35s cubic-bezier(.4,0,.2,1);
+}
+@keyframes slideInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+

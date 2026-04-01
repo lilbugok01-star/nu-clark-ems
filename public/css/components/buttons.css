@@ -1,0 +1,47 @@
+/* ═══ BUTTONS ═══════════════════════════════════════ */
+.btn-gold {
+    background: linear-gradient(135deg, var(--nu-gold) 0%, var(--nu-gold-dk) 100%);
+    color: var(--nu-blue) !important;
+    font-weight: 700;
+    border: none;
+    border-radius: var(--radius-sm);
+    transition: var(--transition);
+    box-shadow: 0 2px 8px rgba(255,184,0,.3);
+}
+.btn-gold:hover {
+    background: linear-gradient(135deg, var(--nu-gold-dk) 0%, #cc9200 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(255,184,0,.38);
+    color: var(--nu-blue) !important;
+}
+
+.btn-outline-gold {
+    border: 2px solid var(--nu-gold);
+    color: var(--nu-gold) !important;
+    background: transparent;
+    font-weight: 600;
+    border-radius: var(--radius-sm);
+    transition: var(--transition);
+}
+.btn-outline-gold:hover {
+    background: var(--nu-gold);
+    color: var(--nu-blue) !important;
+    transform: translateY(-1px);
+}
+
+.btn-nu-blue {
+    background: linear-gradient(135deg, var(--nu-blue-lt) 0%, var(--nu-blue) 100%);
+    color: #fff !important;
+    font-weight: 600;
+    border: none;
+    border-radius: var(--radius-sm);
+    transition: var(--transition);
+    box-shadow: 0 2px 8px rgba(0,48,135,.22);
+}
+.btn-nu-blue:hover {
+    background: linear-gradient(135deg, var(--nu-blue) 0%, var(--nu-blue-dk) 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(0,48,135,.3);
+    color: #fff !important;
+}
+

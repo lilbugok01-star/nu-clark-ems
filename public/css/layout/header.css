@@ -1,0 +1,9 @@
+/* ═══ PAGE HEADER ════════════════════════════════════ */
+.page-header {
+    background: var(--white);
+    border-bottom: 1px solid var(--gray-200);
+    padding: 1.25rem 0;
+    margin-bottom: 2rem;
+    box-shadow: var(--shadow-sm);
+}
+

@@ -1,0 +1,22 @@
+/* ═══ SECTION HELPERS ════════════════════════════════ */
+.section-label {
+    font-size: .7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--nu-gold);
+    margin-bottom: .4rem;
+}
+.section-title {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--nu-blue);
+    line-height: 1.2;
+}
+.section-divider {
+    width: 44px; height: 4px;
+    background: linear-gradient(90deg, var(--nu-gold), var(--nu-gold-lt));
+    border-radius: 4px;
+    margin: .6rem 0 1.5rem;
+}
+

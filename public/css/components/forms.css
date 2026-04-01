@@ -1,0 +1,24 @@
+/* ═══ FORMS ═════════════════════════════════════════ */
+.form-control, .form-select {
+    border: 1.5px solid var(--gray-200);
+    border-radius: var(--radius-sm);
+    padding: .55rem .85rem;
+    font-size: .875rem;
+    transition: var(--transition);
+    background: var(--white);
+    color: var(--gray-800);
+}
+.form-control:focus, .form-select:focus {
+    border-color: var(--nu-blue);
+    box-shadow: 0 0 0 3px rgba(0,48,135,.1);
+    outline: none;
+}
+.form-control::placeholder { color: var(--gray-400); }
+.form-label { font-weight: 600; font-size: .82rem; color: var(--gray-800); margin-bottom: 5px; }
+.input-group-text {
+    background: var(--gray-100);
+    border: 1.5px solid var(--gray-200);
+    color: var(--gray-600);
+    font-size: .875rem;
+}
+

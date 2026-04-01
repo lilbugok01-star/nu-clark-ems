@@ -1,0 +1,211 @@
+<?php
+
+namespace App\Http\Controllers\Web;
+
+use App\Http\Controllers\Controller;
+use App\Models\Event;
+use App\Models\Registration;
+use App\Models\Attendance;
+use App\Models\AppNotification;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
+
+class StudentController extends Controller
+{
+    public function dashboard(Request $request)
+    {
+        $user            = Auth::user()->load('course', 'section');
+        $upcoming        = Registration::with('event')
+            ->where('user_id', $user->id)
+            ->whereHas('event', fn($q) => $q->where('event_date', '>=', now()->toDateString())->where('status', 'published'))
+            ->where('status', 'confirmed')
+            ->orderBy('created_at', 'desc')
+            ->take(3)->get();
+
+        $totalRegistered = Registration::where('user_id', $user->id)->where('status', 'confirmed')->count();
+        $totalAttended   = Registration::where('user_id', $user->id)
+            ->whereHas('attendance', fn($q) => $q->where('status', 'verified'))->count();
+
+        $unreadCount = AppNotification::where('user_id', $user->id)->whereNull('read_at')->count();
+        $notifications = AppNotification::where('user_id', $user->id)->orderByDesc('created_at')->take(5)->get();
+
+        return view('student.dashboard', compact('user', 'upcoming', 'totalRegistered', 'totalAttended', 'unreadCount', 'notifications'));
+    }
+
+    public function events(Request $request)
+    {
+        $query = Event::with('organizer')->upcoming();
+        if ($request->search)   $query->search($request->search);
+        if ($request->category) $query->where('category', $request->category);
+
+        $events     = $query->paginate(12);
+        $categories = Event::published()->whereNotNull('category')->distinct()->pluck('category');
+
+        // Check which ones the student is already registered for
+        $registeredIds = Registration::where('user_id', Auth::id())
+            ->where('status', '!=', 'cancelled')->pluck('event_id');
+
+        return view('student.events', compact('events', 'categories', 'registeredIds'));
+    }
+
+    public function myEvents()
+    {
+        $registrations = Registration::with(['event', 'attendance'])
+            ->where('user_id', Auth::id())
+            ->orderByDesc('registered_at')
+            ->get();
+
+        return view('student.my-events', compact('registrations'));
+    }
+
+    public function qrCode($registrationId)
+    {
+        $registration = Registration::with('event')
+            ->where('user_id', Auth::id())
+            ->findOrFail($registrationId);
+
+        $qrContent = json_encode([
+            'token'    => $registration->qr_token,
+            'event_id' => $registration->event_id,
+            'user_id'  => $registration->user_id,
+        ]);
+
+        $qrCode = QrCode::format('svg')->size(250)->errorCorrection('H')->generate($qrContent);
+
+        return view('student.qr-code', compact('registration', 'qrCode'));
+    }
+
+    public function history()
+    {
+        $registrations = Registration::with(['event', 'attendance'])
+            ->where('user_id', Auth::id())
+            ->whereHas('event', fn($q) => $q->where('event_date', '<', now()->toDateString()))
+            ->orderByDesc('registered_at')
+            ->get();
+
+        return view('student.history', compact('registrations'));
+    }
+
+    public function profile()
+    {
+        $user = Auth::user()->load('course', 'section');
+        $stats = [
+            'registered' => Registration::where('user_id', $user->id)->where('status', 'confirmed')->count(),
+            'attended'   => Registration::where('user_id', $user->id)
+                ->whereHas('attendance', fn($q) => $q->where('status', 'verified'))->count(),
+        ];
+        return view('student.profile', compact('user', 'stats'));
+    }
+
+    public function register(Request $request, $eventId)
+    {
+        $event = Event::findOrFail($eventId);
+
+        if ($event->isFull()) {
+            return back()->with('error', 'Sorry, this event is already at full capacity.');
+        }
+
+        if (Registration::where('user_id', Auth::id())->where('event_id', $eventId)->where('status', '!=', 'cancelled')->exists()) {
+            return back()->with('error', 'You are already registered for this event.');
+        }
+
+        $qrToken = Registration::generateQrToken(Auth::id(), $eventId);
+        $expires = \Carbon\Carbon::parse($event->event_date->format('Y-m-d') . ' ' . $event->end_time)->addDay();
+
+        Registration::create([
+            'user_id'       => Auth::id(),
+            'event_id'      => $eventId,
+            'qr_token'      => $qrToken,
+            'qr_expires_at' => $expires,
+            'status'        => 'confirmed',
+            'registered_at' => now(),
+        ]);
+
+        AppNotification::create([
+            'user_id' => Auth::id(),
+            'type'    => 'registration_confirmation',
+            'title'   => 'Registered: ' . $event->title,
+            'message' => "You have successfully registered for {$event->title}. Your QR code is ready.",
+            'data'    => ['event_id' => $eventId],
+        ]);
+
+        return redirect()->route('student.my-events')->with('success', 'Successfully registered! Check your QR code.');
+    }
+
+    public function cancel(Request $request, $id)
+    {
+        $reg = Registration::where('user_id', Auth::id())->findOrFail($id);
+        if ($reg->event->event_date <= now()->toDateString()) {
+            return back()->with('error', 'Cannot cancel past event registrations.');
+        }
+        $reg->update(['status' => 'cancelled']);
+        return back()->with('success', 'Registration cancelled.');
+    }
+
+    public function checkin(Request $request)
+    {
+        $request->validate([
+            'qr_token'   => 'required|string',
+            'photo'      => 'nullable|image|max:5120',
+            'photo_data' => 'nullable|string',
+        ]);
+
+        $registration = Registration::with('event')->where('qr_token', $request->qr_token)->first();
+
+        if (!$registration) {
+            return back()->with('error', 'Invalid QR code.');
+        }
+
+        if ($registration->isExpired()) {
+            return back()->with('error', 'QR code has expired.');
+        }
+
+        // ── Live-window check ──────────────────────────────────────────────
+        $event      = $registration->event;
+        $now        = now();
+        $today      = $now->toDateString();
+        $currentTime = $now->format('H:i:s');
+
+        if ($event->event_date->toDateString() !== $today) {
+            return back()->with('error', 'Attendance can only be submitted on the day of the event (' . $event->event_date->format('M d, Y') . ').');
+        }
+
+        if ($currentTime < $event->start_time || $currentTime > $event->end_time) {
+            $start = \Carbon\Carbon::parse($event->start_time)->format('h:i A');
+            $end   = \Carbon\Carbon::parse($event->end_time)->format('h:i A');
+            return back()->with('error', "Attendance is only open during the event window ({$start} – {$end}).");
+        }
+        // ────────────────────────────────────────────────────────────────────
+
+        if ($registration->attendance) {
+            return back()->with('info', 'Attendance already recorded.');
+        }
+
+        $photoPath = null;
+        if ($request->hasFile('photo')) {
+            $photoPath = $request->file('photo')->store('attendance-photos/' . $registration->event_id, 'public');
+        } elseif ($request->filled('photo_data')) {
+            $image_parts = explode(';base64,', $request->photo_data);
+            if (count($image_parts) >= 2) {
+                $image_type_aux = explode('image/', $image_parts[0]);
+                if (count($image_type_aux) >= 2) {
+                    $image_type = $image_type_aux[1];
+                    $image_base64 = base64_decode($image_parts[1]);
+                    $fileName = 'attendance-photos/' . $registration->event_id . '/' . uniqid() . '.' . $image_type;
+                    \Illuminate\Support\Facades\Storage::disk('public')->put($fileName, $image_base64);
+                    $photoPath = $fileName;
+                }
+            }
+        }
+
+        Attendance::create([
+            'registration_id' => $registration->id,
+            'photo_path'      => $photoPath,
+            'checked_in_at'   => now(),
+            'status'          => 'pending',
+        ]);
+
+        return redirect()->route('student.my-events')->with('success', 'Attendance recorded! Awaiting verification.');
+    }
+}

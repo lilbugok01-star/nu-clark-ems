@@ -1,0 +1,4 @@
+/* ═══ PAGINATION ═══════════════════════════════════════ */
+.pagination .page-link { color: var(--nu-blue); border-color: var(--gray-200); border-radius: 6px !important; margin: 0 2px; }
+.pagination .page-item.active .page-link { background: var(--nu-blue); border-color: var(--nu-blue); color: #fff; }
+

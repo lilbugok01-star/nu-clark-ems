@@ -1,0 +1,26 @@
+/* ─── TYPOGRAPHY ───────────────────────────────────── */
+h1, h2, h3, h4, h5, h6 { font-weight: 700; color: var(--nu-blue); line-height: 1.25; margin-bottom: .5rem; }
+p  { margin-bottom: .75rem; }
+a  { color: var(--nu-blue); text-decoration: none; transition: var(--transition); }
+a:hover { color: var(--nu-gold-dk); }
+
+.text-gold      { color: var(--nu-gold)   !important; }
+.text-nu-blue   { color: var(--nu-blue)   !important; }
+.text-white-70  { color: rgba(255,255,255,.7) !important; }
+.fw-600         { font-weight: 600 !important; }
+.fw-700         { font-weight: 700 !important; }
+.fw-800         { font-weight: 800 !important; }
+.fw-900         { font-weight: 900 !important; }
+.ls-wide        { letter-spacing: .06em; }
+.lh-1           { line-height: 1 !important; }
+
+/* Status dot (active/inactive indicator in tables) */
+.status-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    vertical-align: middle;
+    margin-right: 4px;
+}
+

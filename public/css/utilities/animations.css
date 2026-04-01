@@ -1,0 +1,10 @@
+/* ═══ ANIMATIONS ══════════════════════════════════════ */
+.fade-in-up { animation: fadeUp .5s ease both; }
+.stagger-1  { animation-delay: .08s; }
+.stagger-2  { animation-delay: .16s; }
+.stagger-3  { animation-delay: .24s; }
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
