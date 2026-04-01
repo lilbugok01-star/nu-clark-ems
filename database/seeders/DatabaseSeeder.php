@@ -346,5 +346,7 @@ class DatabaseSeeder extends Seeder
                 }
             }
         }
+
+        $this->call(VenueApproversSeeder::class);
     }
 }

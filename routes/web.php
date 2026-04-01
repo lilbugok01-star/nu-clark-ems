@@ -8,8 +8,13 @@ Route::get('/force-seed', function () {
     set_time_limit(0);
     try {
         Artisan::call('migrate', ['--force' => true]);
-        Artisan::call('db:seed', ['--force' => true]);
-        return '<h1>✅ Database Repair Successful!</h1><p>The Admin and sample data have been created.</p><a href="/login">Go to Login</a>';
+        Artisan::call('db:seed', ['--class' => 'DatabaseSeeder', '--force' => true]);
+        $userCount = \App\Models\User::count();
+        $eventCount = \App\Models\Event::count();
+        return "<h1>✅ Database Repair Successful!</h1>
+                <p>Created/Verified <b>$userCount</b> users and <b>$eventCount</b> events.</p>
+                <p>The Admin, Executive Director, Dean, and staff are now ready.</p>
+                <a href='/login'>Go to Login</a>";
     } catch (\Exception $e) {
         return '<h1>❌ Error:</h1><pre>' . $e->getMessage() . '</pre>';
     }
