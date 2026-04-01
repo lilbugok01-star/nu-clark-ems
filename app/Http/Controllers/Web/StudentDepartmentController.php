@@ -36,7 +36,7 @@ class StudentDepartmentController extends Controller implements HasMiddleware
             ->get();
             
         $activeReservations = $allReservations->filter(fn($r) => str_starts_with($r->status, 'pending_'));
-        $historyReservations = $allReservations->filter(fn($r) => in_array($r->status, ['approved', 'rejected']));
+        $historyReservations = $allReservations->filter(fn($r) => in_array($r->status, ['approved', 'rejected', 'cancelled']));
 
         // Fetch user's approved/published events to link reservations if needed.
         $myEvents = Event::where('organizer_id', $user->id)
@@ -151,8 +151,9 @@ class StudentDepartmentController extends Controller implements HasMiddleware
         if (!str_starts_with($res->status, 'pending_')) {
             return back()->with('error', 'Only pending requests can be cancelled.');
         }
-        $res->delete();
-        return back()->with('success', 'Reservation request deleted.');
+        $res->status = 'cancelled';
+        $res->save();
+        return back()->with('success', 'Reservation request cancelled successfully.');
     }
 
     public function showPermissionForm($id)

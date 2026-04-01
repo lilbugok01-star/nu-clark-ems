@@ -258,6 +258,8 @@
                                 </div>
                             @elseif($res->status === 'rejected')
                                 <span class="badge bg-danger px-3 py-2 rounded-pill"><i class="bi bi-x-circle me-1"></i>Declined</span>
+                            @elseif($res->status === 'cancelled')
+                                <span class="badge bg-secondary px-3 py-2 rounded-pill"><i class="bi bi-slash-circle me-1"></i>Cancelled</span>
                             @endif
                         </div>
                     </div>
