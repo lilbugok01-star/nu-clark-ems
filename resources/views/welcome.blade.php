@@ -119,8 +119,8 @@
         <div class="row g-0 align-items-stretch justify-content-center">
             @php
             $steps = [
-                ['01','bi-search','var(--nu-blue)','Browse Events','Explore all upcoming NU Clark campus events. Filter by category, venue, or date and find what interests you.'],
-                ['02','bi-person-check','var(--nu-gold)','Register','Secure your slot with one click. The system tracks capacity in real time so you never miss out.'],
+                ['01','bi-search','#003087','Browse Events','Explore all upcoming NU Clark campus events. Filter by category, venue, or date and find what interests you.'],
+                ['02','bi-person-check','#FFB800','Register','Secure your slot with one click. The system tracks capacity in real time so you never miss out.'],
                 ['03','bi-qr-code','#6f42c1','Get Your QR Code','After registering, your personal QR code is generated instantly and available any time from your dashboard.'],
                 ['04','bi-camera-fill','#0d9488','Check In on the Day','Scan your QR code at the door or submit a selfie photo as proof of attendance at the event venue.'],
                 ['05','bi-patch-check-fill','#e11d48','Get Verified','The organizer approves your check-in. Your attendance record is saved automatically to your profile history.'],
@@ -163,8 +163,8 @@
         </div>
         <div class="row g-4 justify-content-center">
             @foreach([
-                ['bi-mortarboard-fill','var(--nu-blue)','Students','Browse and register for campus events, receive your QR code, check in via QR or photo, and view your full attendance history — all from your personal dashboard.', ['Browse Events','QR Check-In','Photo Attendance','Attendance History']],
-                ['bi-megaphone-fill','var(--nu-gold)','Organizers','Create and manage events from start to finish. Review QR scans and photo submissions, track registrations in real time, and export verified attendance reports as PDF or Excel.', ['Create Events','Verify Check-Ins','Live Registrations','Export Reports']],
+                ['bi-mortarboard-fill','#003087','Students','Browse and register for campus events, receive your QR code, check in via QR or photo, and view your full attendance history — all from your personal dashboard.', ['Browse Events','QR Check-In','Photo Attendance','Attendance History']],
+                ['bi-megaphone-fill','#FFB800','Organizers','Create and manage events from start to finish. Review QR scans and photo submissions, track registrations in real time, and export verified attendance reports as PDF or Excel.', ['Create Events','Verify Check-Ins','Live Registrations','Export Reports']],
                 ['bi-file-earmark-check-fill','#0d9488','Approvers','Review and digitally sign venue reservation requests as part of the structured File Hunting approval chain — from Student Department, Program Chair, up to the Office of the Dean.', ['Review Requests','E-Signature','Approval Chain','Real-Time Status']],
                 ['bi-shield-lock-fill','#7c3aed','Administrators','Oversee the entire system — manage users, maintain event records, configure the approval signatories, import student data via CSV, and monitor full system analytics.', ['User Management','System Analytics','CSV Import','Venue Control']],
             ] as [$icon,$color,$role,$desc,$tags])
