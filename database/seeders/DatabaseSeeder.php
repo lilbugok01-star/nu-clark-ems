@@ -30,11 +30,14 @@ class DatabaseSeeder extends Seeder
             ['code' => 'BSARCH',   'name' => 'Bachelor of Science in Architecture'],
         ];
 
-        // Deactivate all existing courses first
-        Course::where('is_active', true)->update(['is_active' => false]);
+        // Force-deactivate all courses first to ensure old ones are hidden
+        Course::query()->update(['is_active' => false]);
 
         foreach ($courses as $c) {
-            Course::updateOrCreate(['code' => $c['code']], array_merge($c, ['is_active' => true]));
+            Course::updateOrCreate(
+                ['code' => $c['code']],
+                array_merge($c, ['is_active' => true])
+            );
         }
 
         // ── Sections ─────────────────────────────
