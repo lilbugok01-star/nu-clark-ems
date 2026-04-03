@@ -1,0 +1,9 @@
+[build]
+installCommand = "composer install --no-dev --optimize-autoloader && npm install && npm run build"
+
+[setup]
+# Run migrations and seeders on every deployment
+postInstall = "php artisan migrate --force && php artisan db:seed --force"
+
+[start]
+command = "php artisan serve --host=0.0.0.0 --port=$PORT"
