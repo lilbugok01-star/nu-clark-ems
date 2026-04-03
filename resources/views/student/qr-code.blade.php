@@ -18,7 +18,7 @@
                 <!-- QR Card -->
                 <div class="qr-container mb-4">
                     <div class="nu-logo-wrap mx-auto mb-3" style="background:none;box-shadow:none">
-                        <img src="{{ asset('assets/img/nu-logo.png') }}" alt="NU Logo">
+                        <img src="{{ asset('assets/img/NU_shield.png') }}" alt="NU Logo">
                     </div>
                     <h5 class="fw-800 text-center mb-1" style="color:var(--nu-blue)">{{ $registration->event->title }}</h5>
                     <div class="text-center text-muted small mb-4">
@@ -130,7 +130,7 @@
 
         async function startCamera() {
             try {
-                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
+                stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
                 document.getElementById('cameraPreview').srcObject = stream;
                 document.getElementById('cameraPreview').classList.remove('d-none');
                 document.getElementById('cameraPlaceholder').classList.add('d-none');
