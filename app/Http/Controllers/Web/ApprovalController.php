@@ -290,4 +290,23 @@ class ApprovalController extends Controller implements HasMiddleware
 
         return back()->with('success', 'Venue reservation rejected.');
     }
+
+    public function showPermissionForm($id)
+    {
+        $res = \App\Models\VenueReservation::with(['event', 'reservedBy', 'approvals.approver'])->findOrFail($id);
+        
+        $user = Auth::user();
+        
+        // Authorization check: Only approvers who are somehow involved can view it
+        // Check if the user has an approval record for this venue, or is admin
+        $hasApproval = \App\Models\VenueReservationApproval::where('venue_reservation_id', $id)
+            ->where('approver_id', $user->id)
+            ->exists();
+            
+        if (!$hasApproval && $user->role !== 'admin' && $user->role !== 'student_department' && $user->role !== 'organizer') {
+            abort(403, 'Unauthorized access to this document.');
+        }
+
+        return view('student_department.permission-form', compact('res'));
+    }
 }

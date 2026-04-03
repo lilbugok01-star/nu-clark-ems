@@ -104,6 +104,7 @@ Route::middleware(['auth'])->prefix('approver')->name('approver.')->group(functi
     Route::post('/events/{id}/approve',   [ApprovalController::class, 'approveEvent'])->name('events.approve');
     Route::post('/events/{id}/reject',    [ApprovalController::class, 'rejectEvent'])->name('events.reject');
     Route::post('/venues/{id}/open',      [ApprovalController::class, 'openDocument'])->name('venues.open');
+    Route::get('/venues/{id}/form',       [ApprovalController::class, 'showPermissionForm'])->name('venues.form');
     Route::post('/venues/{id}/approve',   [ApprovalController::class, 'approveVenue'])->name('venues.approve');
     Route::post('/venues/{id}/reject',    [ApprovalController::class, 'rejectVenue'])->name('venues.reject');
 });

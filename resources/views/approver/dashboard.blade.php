@@ -163,6 +163,9 @@
                                                 <div class="mb-2 text-warning fw-bold text-center" style="font-size:0.7rem; background:rgba(255,193,7,.1); padding:4px; border-radius:4px;">
                                                     <i class="bi bi-clock-history"></i> Opened {{ $myApproval->opened_at->diffForHumans() }}
                                                 </div>
+                                                <a href="{{ route('approver.venues.form', $venue->id) }}" target="_blank" class="btn btn-sm btn-outline-primary w-100 fw-bold mb-2" title="View Permission Document">
+                                                    <i class="bi bi-file-earmark-text me-1"></i> View Form
+                                                </a>
                                                 <form action="{{ route('approver.venues.approve', $venue->id) }}" method="POST" class="mb-1" onsubmit="return confirm('Approve this venue reservation using your E-Signature?')">
                                                     @csrf
                                                     <button class="btn btn-sm btn-success w-100 fw-bold mb-1" {{ !$user->e_signature_path ? 'disabled' : '' }}>

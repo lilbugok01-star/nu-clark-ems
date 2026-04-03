@@ -16,13 +16,12 @@
         body { background: #f8f9fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #333; }
         .permission-form { background: white; padding: 50px; border-radius: 0; box-shadow: 0 0 20px rgba(0,0,0,0.1); max-width: 850px; margin: 30px auto; min-height: 1050px; position: relative; border: 1px solid #ddd; }
         .nu-header { border-bottom: 3px solid #003087; padding-bottom: 20px; margin-bottom: 30px; }
-        .nu-logo { width: 80px; height: 80px; background: #003087; color: white; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 2rem; border-radius: 8px; }
         .form-title { color: #003087; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; }
         .info-label { font-weight: 700; color: #555; width: 180px; display: inline-block; font-size: 0.9rem; }
-        .info-value { font-weight: 400; color: #000; border-bottom: 1px solid #eee; display: inline-block; width: calc(100% - 190px); padding-bottom: 2px; }
-        .signature-box { border-bottom: 1px solid #333; min-height: 80px; position: relative; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 5px; margin-top: 15px; }
-        .signature-img { position: absolute; max-height: 70px; max-width: 150px; bottom: 10px; object-fit: contain; }
-        .signer-name { font-weight: 700; font-size: 0.85rem; text-transform: uppercase; margin-top: 5px; }
+        .info-value { font-weight: 600; color: #222; border-bottom: 2px solid #ccc; display: inline-block; width: calc(100% - 190px); padding-bottom: 2px; }
+        .signature-box { border-bottom: 2px solid #333; min-height: 80px; position: relative; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 5px; margin-top: 15px; }
+        .signature-img { position: absolute; max-height: 70px; max-width: 150px; bottom: 5px; object-fit: contain; }
+        .signer-name { font-weight: 800; font-size: 0.85rem; text-transform: uppercase; margin-top: 5px; color: #111; }
         .signer-role { font-size: 0.75rem; color: #666; text-transform: capitalize; }
         .watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg); font-size: 8rem; opacity: 0.05; font-weight: 900; pointer-events: none; color: #003087; }
     </style>
@@ -33,9 +32,9 @@
     <button onclick="window.print()" class="btn btn-primary px-4 fw-bold shadow-sm">
         <i class="bi bi-printer me-2"></i>Print Permission Form
     </button>
-    <a href="{{ route('student_department.dashboard') }}" class="btn btn-outline-secondary px-4 ms-2">
-        <i class="bi bi-arrow-left me-2"></i>Back to Tracker
-    </a>
+    <button onclick="window.close()" class="btn btn-outline-secondary px-4 ms-2">
+        <i class="bi bi-x-circle me-2"></i>Close Tab
+    </button>
 </div>
 
 <div class="permission-form shadow">
@@ -43,9 +42,9 @@
 
     <!-- Header -->
     <div class="nu-header d-flex align-items-center gap-4">
-        <div class="nu-logo">NU</div>
+        <img src="{{ asset('assets/img/NU_shield.png') }}" alt="NU Logo" style="width: 85px; height: 85px; object-fit: contain;">
         <div>
-            <h2 class="mb-1" style="color:#003087; font-weight: 900;">NATIONAL UNIVERSITY</h2>
+            <h2 class="mb-1" style="color:#003087; font-weight: 900; font-family: 'Arial Black', sans-serif;">NATIONAL UNIVERSITY</h2>
             <h5 class="mb-0 text-muted fw-bold">CLARK CAMPUS</h5>
         </div>
         <div class="ms-auto text-end">
