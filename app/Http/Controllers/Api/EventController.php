@@ -8,6 +8,7 @@ use App\Models\AppNotification;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Gate;
 
 class EventController extends Controller
 {
@@ -50,7 +51,7 @@ class EventController extends Controller
             ...$validated,
             'organizer_id' => $request->user()->id,
             'poster_path'  => $poster_path,
-            'status'       => 'published',
+            'status'       => 'pending_adviser',
         ]);
 
         // Notify all students of new event
@@ -72,7 +73,7 @@ class EventController extends Controller
     {
         $event = Event::findOrFail($id);
 
-        $this->authorize('update', $event);
+        Gate::authorize('update', $event);
 
         $validated = $request->validate([
             'title'       => 'sometimes|string|max:255',
@@ -101,7 +102,7 @@ class EventController extends Controller
     public function destroy($id)
     {
         $event = Event::findOrFail($id);
-        $this->authorize('delete', $event);
+        Gate::authorize('delete', $event);
         $event->delete();
         return response()->json(['message' => 'Event deleted successfully']);
     }
