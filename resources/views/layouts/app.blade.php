@@ -365,21 +365,6 @@
                         </div>
                     </div>
 
-                    {{-- University Links --}}
-                    <div class="col-lg-3 col-md-6">
-                        <h6 class="footer-heading">University Links</h6>
-                        <ul class="list-unstyled mb-0">
-                            <li class="mb-2"><a href="{{ route('home') }}" class="footer-link-new">Home</a></li>
-                            <li class="mb-2"><a href="{{ route('events') }}" class="footer-link-new">Browse Events</a></li>
-                            @auth
-                                <li class="mb-2"><a href="{{ Auth::user()->role === 'student' ? route('student.dashboard') : route('home') }}" class="footer-link-new">My Dashboard</a></li>
-                            @else
-                                <li class="mb-2"><a href="{{ route('login') }}" class="footer-link-new">Student Login</a></li>
-                            @endauth
-                            <li class="mb-2"><a href="https://national-u.edu.ph/nu-clark/" target="_blank" class="footer-link-new">NU Clark Website</a></li>
-                        </ul>
-                    </div>
-
 
                     {{-- Contact & Hours --}}
                     <div class="col-lg-3 col-md-6">
