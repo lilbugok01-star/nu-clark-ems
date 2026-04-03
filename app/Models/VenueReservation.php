@@ -36,17 +36,22 @@ class VenueReservation extends Model
 
     public static function venueNames(): array
     {
-        return [
+        $venues = [
             'NU Clark Gymnasium',
             'NU Clark Auditorium',
-            'AVR 1',
-            'AVR 2',
-            'Conference Room A',
-            'Conference Room B',
-            'Function Hall',
-            'Open Court',
-            'Other',
+            'NU Clark Library',
+            'Mini Chapel',
         ];
+
+        // Systematically add classrooms (4th to 8th Floor)
+        foreach ([4, 5, 6, 7, 8] as $floor) {
+            for ($i = 1; $i <= 23; $i++) {
+                $venues[] = 'Room ' . $floor . sprintf('%02d', $i);
+            }
+        }
+        
+        $venues[] = 'Other';
+        return $venues;
     }
 
     /**

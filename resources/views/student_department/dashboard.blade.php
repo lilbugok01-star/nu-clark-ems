@@ -9,13 +9,22 @@
         </div>
     </div>
 
-    <!-- Available Venues Info -->
+    <!-- Facility Overview -->
     <div class="row g-3 mb-4">
-        @foreach(['NU Clark Gymnasium','NU Clark Auditorium','AVR 1','AVR 2','Conference Room A','Conference Room B','Function Hall','Open Court'] as $vn)
+        @foreach([
+            ['name' => 'NU Clark Gymnasium', 'icon' => 'trophy'],
+            ['name' => 'NU Clark Auditorium', 'icon' => 'mic'],
+            ['name' => 'NU Clark Library',    'icon' => 'book'],
+            ['name' => 'Mini Chapel',         'icon' => 'moon-stars'],
+            ['name' => '4th Floor Rooms',     'icon' => 'door-open'],
+            ['name' => '5th Floor Rooms',     'icon' => 'door-open'],
+            ['name' => '6th Floor Rooms',     'icon' => 'door-open'],
+            ['name' => '7th & 8th Floor',     'icon' => 'door-open']
+        ] as $vn)
         <div class="col-md-3 col-6">
             <div class="venue-card text-center">
-                <i class="bi bi-{{ str_contains($vn,'Gym') ? 'trophy' : (str_contains($vn,'Aud') ? 'mic' : (str_contains($vn,'AVR') ? 'projector' : (str_contains($vn,'Court') ? 'dribbble' : 'building'))) }} mb-2" style="font-size:1.6rem;color:var(--nu-blue)"></i>
-                <div class="fw-600 small">{{ $vn }}</div>
+                <i class="bi bi-{{ $vn['icon'] }} mb-2" style="font-size:1.6rem;color:var(--nu-blue)"></i>
+                <div class="fw-600 small">{{ $vn['name'] }}</div>
             </div>
         </div>
         @endforeach
