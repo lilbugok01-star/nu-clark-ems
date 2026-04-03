@@ -4,7 +4,7 @@
 }
 
 .footer-heading {
-    color: #ffffff;
+    color: #ffffff !important;
     font-size: .85rem;
     font-weight: 700;
     text-transform: uppercase;
@@ -20,7 +20,7 @@
 }
 
 .footer-link-new {
-    color: #ffffff;
+    color: #ffffff !important;
     font-size: .82rem;
     text-decoration: none;
     transition: all 0.2s ease;
@@ -28,7 +28,7 @@
 }
 
 .footer-link-new:hover {
-    color: var(--nu-gold);
+    color: var(--nu-gold) !important;
     transform: translateX(4px);
 }
 
@@ -36,7 +36,7 @@
     width: 36px;
     height: 36px;
     background: rgba(255, 255, 255, 0.15);
-    color: #ffffff;
+    color: #ffffff !important;
     border-radius: 8px;
     display: inline-flex;
     align-items: center;
@@ -56,7 +56,7 @@
 }
 
 .footer-link-static {
-    color: #ffffff;
+    color: #ffffff !important;
     font-size: .83rem;
 }
 
