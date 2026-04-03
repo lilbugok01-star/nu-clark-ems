@@ -352,7 +352,7 @@
                                 <div style="color:#ffffff;font-size:.72rem;font-weight:600;letter-spacing:.06em">CLARK CAMPUS · EMS</div>
                             </div>
                         </div>
-                        <p class="footer-description">
+                        <p class="footer-description" style="color:#ffffff !important">
                             The official Event Management System of National University Clark. Dedicated to streamlining campus activities and student engagement.
                         </p>
                         <div class="d-flex gap-2 mt-4">
@@ -380,16 +380,6 @@
                         </ul>
                     </div>
 
-                    {{-- Governance & Policies --}}
-                    <div class="col-lg-3 col-md-6">
-                        <h6 class="footer-heading">Governance & Policies</h6>
-                        <ul class="list-unstyled mb-0">
-                            <li class="mb-2"><a href="#" class="footer-link-new">About Us</a></li>
-                            <li class="mb-2"><a href="#" class="footer-link-new">Privacy Policy</a></li>
-                            <li class="mb-2"><a href="#" class="footer-link-new">Data Privacy</a></li>
-                            <li class="mb-2"><a href="#" class="footer-link-new">Send Feedback</a></li>
-                        </ul>
-                    </div>
 
                     {{-- Contact & Hours --}}
                     <div class="col-lg-3 col-md-6">
