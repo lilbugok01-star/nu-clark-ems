@@ -30,6 +30,35 @@
         @endforeach
     </div>
 
+    <style>
+        .fc .fc-button-primary {
+            background-color: var(--nu-blue) !important;
+            border-color: var(--nu-blue) !important;
+            font-size: 0.85rem !important;
+            font-weight: 700 !important;
+            padding: 0.4rem 0.8rem !important;
+            transition: all 0.2s ease !important;
+        }
+        .fc .fc-button-primary:hover {
+            background-color: var(--nu-blue-dk) !important;
+            border-color: var(--nu-blue-dk) !important;
+            transform: translateY(-1px);
+        }
+        .fc .fc-button-active {
+            background-color: var(--nu-gold) !important;
+            border-color: var(--nu-gold) !important;
+            color: var(--nu-blue) !important;
+        }
+        .fc .fc-toolbar-title {
+            font-size: 1.1rem !important;
+            font-weight: 800 !important;
+            color: var(--nu-blue);
+        }
+        .fc-icon {
+            font-size: 1.25em !important;
+        }
+    </style>
+
     <!-- Venue Availability Calendar -->
     <div class="nu-card p-4 mb-4">
         <h6 class="fw-700 mb-3"><i class="bi bi-calendar3 me-2" style="color:var(--nu-gold)"></i>Venue Availability Calendar</h6>
@@ -47,6 +76,14 @@
                     left: 'prev,next today',
                     center: 'title',
                     right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
+                buttonText: {
+                    today: 'Today',
+                    month: 'Month',
+                    week: 'Week',
+                    day: 'Day',
+                    prev: 'Prev',
+                    next: 'Next'
                 },
                 slotMinTime: '06:00:00',
                 slotMaxTime: '23:00:00',
@@ -272,11 +309,12 @@
                     </div>
 
                     @if($res->status === 'rejected' && $res->approvals->where('status', 'rejected')->isNotEmpty())
+                        @php $rejectedNode = $res->approvals->where('status', 'rejected')->last(); @endphp
                         <div class="alert alert-danger mb-0 border-0 rounded-3 d-flex align-items-start gap-3 p-3">
                             <i class="bi bi-exclamation-triangle-fill fs-5 mt-1"></i>
                             <div>
-                                <div class="fw-bold text-danger">Declined by Approver</div>
-                                <p class="mb-0 small text-danger">{{ $res->approvals->where('status', 'rejected')->last()->comments }}</p>
+                                <div class="fw-bold text-danger">Declined by {{ $rejectedNode->approver->name ?? 'Approver' }}</div>
+                                <p class="mb-0 small text-danger">{{ $rejectedNode->comments ?? 'No comment provided.' }}</p>
                             </div>
                         </div>
                     @else
