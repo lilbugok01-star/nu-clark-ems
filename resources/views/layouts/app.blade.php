@@ -365,6 +365,28 @@
                         </div>
                     </div>
 
+                    {{-- System Features --}}
+                    <div class="col-lg-3 col-md-6">
+                        <h6 class="footer-heading" style="color:#ffffff !important">System Features</h6>
+                        <ul class="list-unstyled mb-0">
+                            <li class="mb-2"><span class="footer-link-static d-flex align-items-center" style="color:#ffffff !important;font-size:.82rem;"><i class="bi bi-qr-code-scan me-2 text-gold"></i>QR Attendance</span></li>
+                            <li class="mb-2"><span class="footer-link-static d-flex align-items-center" style="color:#ffffff !important;font-size:.82rem;"><i class="bi bi-file-earmark-check me-2 text-gold"></i>File Hunting Approvals</span></li>
+                            <li class="mb-2"><span class="footer-link-static d-flex align-items-center" style="color:#ffffff !important;font-size:.82rem;"><i class="bi bi-building me-2 text-gold"></i>Venue Reservations</span></li>
+                            <li class="mb-2"><span class="footer-link-static d-flex align-items-center" style="color:#ffffff !important;font-size:.82rem;"><i class="bi bi-bar-chart-line me-2 text-gold"></i>Real-time Analytics</span></li>
+                        </ul>
+                    </div>
+
+                    {{-- User Portals --}}
+                    <div class="col-lg-3 col-md-6">
+                        <h6 class="footer-heading" style="color:#ffffff !important">Quick Access</h6>
+                        <ul class="list-unstyled mb-0">
+                            <li class="mb-2"><a href="{{ route('login') }}" class="footer-link-new" style="color:#ffffff !important;"><i class="bi bi-mortarboard me-2"></i>Student Portal</a></li>
+                            <li class="mb-2"><a href="{{ route('login') }}" class="footer-link-new" style="color:#ffffff !important;"><i class="bi bi-person-badge me-2"></i>Organizer Access</a></li>
+                            <li class="mb-2"><a href="{{ route('login') }}" class="footer-link-new" style="color:#ffffff !important;"><i class="bi bi-shield-check me-2"></i>Approver Login</a></li>
+                            <li class="mb-2"><a href="{{ route('home') }}" class="footer-link-new" style="color:#ffffff !important;"><i class="bi bi-house me-2"></i>Back to Home</a></li>
+                        </ul>
+                    </div>
+
 
                     {{-- Contact & Hours --}}
                     <div class="col-lg-3 col-md-6">
