@@ -16,6 +16,13 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/events', [HomeController::class, 'events'])->name('events');
 Route::get('/events/{id}', [HomeController::class, 'showEvent'])->name('event.show');
 
+// Force sync database (Temporary fallback for Railway)
+Route::get('/force-sync-database', function () {
+    \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+    \Illuminate\Support\Facades\Artisan::call('db:seed', ['--force' => true]);
+    return "Database forced sync successful! Go back to <a href='/register'>Register</a>";
+});
+
 // ── Auth Routes (guests only) ─────────────────────────────────────────────────
 Route::middleware('guest')->group(function () {
     Route::get('/login',    [AuthController::class, 'showLogin'])->name('login');
