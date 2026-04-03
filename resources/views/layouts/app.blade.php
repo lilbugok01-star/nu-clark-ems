@@ -349,7 +349,7 @@
                             </div>
                             <div>
                                 <div class="text-white fw-700" style="font-size:1rem;line-height:1.2">National University</div>
-                                <div style="color:var(--nu-gold);font-size:.72rem;font-weight:600;letter-spacing:.06em">CLARK CAMPUS · EMS</div>
+                                <div style="color:#ffffff;font-size:.72rem;font-weight:600;letter-spacing:.06em">CLARK CAMPUS · EMS</div>
                             </div>
                         </div>
                         <p class="footer-description">
@@ -396,7 +396,7 @@
                         <h6 class="footer-heading">Contact Us</h6>
                         <div class="mb-4">
                             <div class="d-flex gap-2 text-white">
-                                <i class="bi bi-geo-alt-fill text-gold flex-shrink-0 mt-1"></i>
+                                <i class="bi bi-geo-alt-fill text-white flex-shrink-0 mt-1"></i>
                                 <span style="font-size:.82rem;line-height:1.5">
                                     Clark Tech Hub 8, SM City Clark Expansion, Clark-Mabalacat-Angeles Road, Barangay Dau, Mabalacat City, Pampanga, 2010 Philippines
                                 </span>
@@ -405,7 +405,7 @@
                         <div>
                             <h6 class="text-white fw-600 mb-2" style="font-size:.78rem;letter-spacing:.03em">Office Hours</h6>
                             <div class="d-flex gap-2 text-white">
-                                <i class="bi bi-clock-fill text-gold flex-shrink-0 mt-1"></i>
+                                <i class="bi bi-clock-fill text-white flex-shrink-0 mt-1"></i>
                                 <div style="font-size:.82rem;line-height:1.5">
                                     Monday to Friday (8:30AM - 5:30PM)<br>
                                     Saturday (8:30AM - 12:30PM)
