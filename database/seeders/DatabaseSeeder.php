@@ -16,13 +16,18 @@ class DatabaseSeeder extends Seeder
     {
         // ── Courses ──────────────────────────────
         $courses = [
-            ['code' => 'BSIT',  'name' => 'Bachelor of Science in Information Technology'],
-            ['code' => 'BSCS',  'name' => 'Bachelor of Science in Computer Science'],
-            ['code' => 'BSBA',  'name' => 'Bachelor of Science in Business Administration'],
-            ['code' => 'BSHM',  'name' => 'Bachelor of Science in Hospitality Management'],
-            ['code' => 'BSEDU', 'name' => 'Bachelor of Secondary Education'],
-            ['code' => 'BSN',   'name' => 'Bachelor of Science in Nursing'],
-            ['code' => 'BSARCH','name' => 'Bachelor of Science in Architecture'],
+            ['code' => 'BSIT-MWA', 'name' => 'Bachelor of Science in Information Technology with specialization in Mobile and Web Applications'],
+            ['code' => 'BSA',      'name' => 'Bachelor of Science in Accountancy'],
+            ['code' => 'BSTM',     'name' => 'Bachelor of Science in Tourism Management'],
+            ['code' => 'BSIT',     'name' => 'Bachelor of Science in Information Technology'],
+            ['code' => 'BSP',      'name' => 'Bachelor of Science in Psychology'],
+            ['code' => 'BACOMM',   'name' => 'Bachelor of Arts in Communication'],
+            ['code' => 'BAPOLSCI', 'name' => 'Bachelor of Arts in Political Science'],
+            ['code' => 'BSCPE',    'name' => 'Bachelor of Science in Computer Engineering'],
+            ['code' => 'BSCE',     'name' => 'Bachelor of Science in Civil Engineering'],
+            ['code' => 'BSMA',     'name' => 'Bachelor of Science in Management Accounting'],
+            ['code' => 'BSBA-MM',  'name' => 'Bachelor of Science in Business Administration Major in Marketing Management'],
+            ['code' => 'BSARCH',   'name' => 'Bachelor of Science in Architecture'],
         ];
 
         foreach ($courses as $c) {
@@ -30,16 +35,19 @@ class DatabaseSeeder extends Seeder
         }
 
         // ── Sections ─────────────────────────────
-        // Convention: [PREFIX]-[YEAR][SECTION_NUMBER]
-        // e.g. BSIT → prefix ITE, year 1 sections: ITE-101 to ITE-105
         $courseMap = [
-            'BSIT'  => ['prefix' => 'ITE', 'years' => 4, 'sections_per_year' => 5],
-            'BSCS'  => ['prefix' => 'CSE', 'years' => 4, 'sections_per_year' => 5],
-            'BSBA'  => ['prefix' => 'BAE', 'years' => 4, 'sections_per_year' => 5],
-            'BSHM'  => ['prefix' => 'HME', 'years' => 4, 'sections_per_year' => 5],
-            'BSEDU' => ['prefix' => 'EDE', 'years' => 4, 'sections_per_year' => 5],
-            'BSN'   => ['prefix' => 'NSE', 'years' => 4, 'sections_per_year' => 5],
-            'BSARCH'=> ['prefix' => 'ARE', 'years' => 5, 'sections_per_year' => 3],
+            'BSIT-MWA' => ['prefix' => 'MWA', 'years' => 4, 'sections_per_year' => 5],
+            'BSA'      => ['prefix' => 'ACC', 'years' => 4, 'sections_per_year' => 5],
+            'BSTM'     => ['prefix' => 'TRM', 'years' => 4, 'sections_per_year' => 5],
+            'BSIT'     => ['prefix' => 'ITE', 'years' => 4, 'sections_per_year' => 5],
+            'BSP'      => ['prefix' => 'PSY', 'years' => 4, 'sections_per_year' => 5],
+            'BACOMM'   => ['prefix' => 'COM', 'years' => 4, 'sections_per_year' => 5],
+            'BAPOLSCI' => ['prefix' => 'POL', 'years' => 4, 'sections_per_year' => 5],
+            'BSCPE'    => ['prefix' => 'CPE', 'years' => 4, 'sections_per_year' => 5],
+            'BSCE'     => ['prefix' => 'CVE', 'years' => 4, 'sections_per_year' => 5],
+            'BSMA'     => ['prefix' => 'MAC', 'years' => 4, 'sections_per_year' => 5],
+            'BSBA-MM'  => ['prefix' => 'MKT', 'years' => 4, 'sections_per_year' => 5],
+            'BSARCH'   => ['prefix' => 'ARE', 'years' => 4, 'sections_per_year' => 5],
         ];
 
         foreach ($courseMap as $code => $config) {
