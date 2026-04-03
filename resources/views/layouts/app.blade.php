@@ -397,16 +397,16 @@
                         <div class="mb-4">
                             <div class="d-flex gap-2 text-white">
                                 <i class="bi bi-geo-alt-fill text-white flex-shrink-0 mt-1"></i>
-                                <span style="font-size:.82rem;line-height:1.5">
+                                <span style="font-size:.82rem;line-height:1.5;color:#ffffff">
                                     Clark Tech Hub 8, SM City Clark Expansion, Clark-Mabalacat-Angeles Road, Barangay Dau, Mabalacat City, Pampanga, 2010 Philippines
                                 </span>
                             </div>
                         </div>
                         <div>
-                            <h6 class="text-white fw-600 mb-2" style="font-size:.78rem;letter-spacing:.03em">Office Hours</h6>
+                            <h6 class="text-white fw-600 mb-2" style="font-size:.78rem;letter-spacing:.03em;color:#ffffff">Office Hours</h6>
                             <div class="d-flex gap-2 text-white">
                                 <i class="bi bi-clock-fill text-white flex-shrink-0 mt-1"></i>
-                                <div style="font-size:.82rem;line-height:1.5">
+                                <div style="font-size:.82rem;line-height:1.5;color:#ffffff">
                                     Monday to Friday (8:30AM - 5:30PM)<br>
                                     Saturday (8:30AM - 12:30PM)
                                 </div>
@@ -422,10 +422,10 @@
         <div style="border-top:1px solid rgba(255,255,255,.1);padding:.9rem 1.5rem">
             <div class="container-fluid">
                 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
-                    <span style="color:rgba(255,255,255,.4);font-size:.78rem">
+                    <span style="color:rgba(255,255,255,.8);font-size:.78rem">
                         &copy; {{ date('Y') }} National University Clark. All rights reserved.
                     </span>
-                    <span style="color:rgba(255,255,255,.3);font-size:.72rem">
+                    <span style="color:rgba(255,255,255,.65);font-size:.72rem">
                         NU Clark Event Management System · Built with Laravel
                     </span>
                 </div>
