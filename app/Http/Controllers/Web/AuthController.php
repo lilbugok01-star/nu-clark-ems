@@ -40,9 +40,11 @@ class AuthController extends Controller
         }
 
         return match ($user->role) {
-            'admin'     => redirect()->route('admin.dashboard'),
-            'organizer' => redirect()->route('organizer.dashboard'),
-            default     => redirect()->route('student.dashboard'),
+            'admin'              => redirect()->route('admin.dashboard'),
+            'organizer'          => redirect()->route('organizer.dashboard'),
+            'student_department' => redirect()->route('student_department.dashboard'),
+            'student'            => redirect()->route('student.dashboard'),
+            default              => redirect()->route('approver.dashboard'),
         };
     }
 
@@ -55,7 +57,7 @@ class AuthController extends Controller
             'student_id' => 'required|string|unique:users,student_id',
             'course_id'  => 'required|exists:courses,id',
             'section_id' => 'required|exists:sections,id',
-            'phone'      => 'nullable|string',
+            'phone'      => ['nullable', 'string', 'regex:/^[0-9+\-\s()]{7,20}$/'],
         ]);
 
         $user = User::create([
