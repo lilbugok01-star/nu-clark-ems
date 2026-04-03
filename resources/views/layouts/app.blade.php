@@ -368,7 +368,7 @@
 
                     {{-- Contact & Hours --}}
                     <div class="col-lg-3 col-md-6">
-                        <h6 class="footer-heading">Contact Us</h6>
+                        <h6 class="footer-heading" style="color:#ffffff !important">Contact Us</h6>
                         <div class="mb-4">
                             <div class="d-flex gap-2 text-white">
                                 <i class="bi bi-geo-alt-fill text-white flex-shrink-0 mt-1"></i>
