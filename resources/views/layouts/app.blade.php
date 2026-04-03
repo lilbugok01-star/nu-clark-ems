@@ -352,7 +352,7 @@
                                 <div style="color:var(--nu-gold);font-size:.72rem;font-weight:600;letter-spacing:.06em">CLARK CAMPUS · EMS</div>
                             </div>
                         </div>
-                        <p style="color:rgba(255,255,255,.5);font-size:.82rem;line-height:1.7;max-width:260px">
+                        <p class="footer-description">
                             The official Event Management System of National University Clark. Dedicated to streamlining campus activities and student engagement.
                         </p>
                         <div class="d-flex gap-2 mt-4">
@@ -395,7 +395,7 @@
                     <div class="col-lg-3 col-md-6">
                         <h6 class="footer-heading">Contact Us</h6>
                         <div class="mb-4">
-                            <div class="d-flex gap-2 text-white-50">
+                            <div class="d-flex gap-2 text-white-75">
                                 <i class="bi bi-geo-alt-fill text-gold flex-shrink-0 mt-1"></i>
                                 <span style="font-size:.82rem;line-height:1.5">
                                     Clark Tech Hub 8, SM City Clark Expansion, Clark-Mabalacat-Angeles Road, Barangay Dau, Mabalacat City, Pampanga, 2010 Philippines
@@ -404,7 +404,7 @@
                         </div>
                         <div>
                             <h6 class="text-white fw-600 mb-2" style="font-size:.78rem;letter-spacing:.03em">Office Hours</h6>
-                            <div class="d-flex gap-2 text-white-50">
+                            <div class="d-flex gap-2 text-white-75">
                                 <i class="bi bi-clock-fill text-gold flex-shrink-0 mt-1"></i>
                                 <div style="font-size:.82rem;line-height:1.5">
                                     Monday to Friday (8:30AM - 5:30PM)<br>

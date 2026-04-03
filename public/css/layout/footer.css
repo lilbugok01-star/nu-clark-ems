@@ -12,8 +12,15 @@
     margin-bottom: 1.5rem;
 }
 
+.footer-description {
+    color: rgba(255, 255, 255, 0.85) !important;
+    font-size: .82rem;
+    line-height: 1.7;
+    max-width: 260px;
+}
+
 .footer-link-new {
-    color: rgba(255, 255, 255, 0.5);
+    color: rgba(255, 255, 255, 0.8);
     font-size: .82rem;
     text-decoration: none;
     transition: all 0.2s ease;
@@ -28,8 +35,8 @@
 .footer-social-link {
     width: 36px;
     height: 36px;
-    background: rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.7);
+    background: rgba(255, 255, 255, 0.15);
+    color: rgba(255, 255, 255, 0.9);
     border-radius: 8px;
     display: inline-flex;
     align-items: center;
@@ -49,7 +56,7 @@
 }
 
 .footer-link-static {
-    color: rgba(255,255,255,.45);
+    color: rgba(255,255,255,0.75);
     font-size: .83rem;
 }
 
