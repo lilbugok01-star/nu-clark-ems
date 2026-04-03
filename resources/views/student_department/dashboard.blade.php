@@ -117,23 +117,21 @@
                         </div>
                         <div class="text-end">
                             <span class="badge bg-warning text-dark px-3 py-2 rounded-pill"><i class="bi bi-hourglass-split me-1"></i>Processing</span>
-                            <div class="mt-2">
+                            <div class="mt-2 d-flex justify-content-end gap-2">
                                 <a href="{{ route('student_department.venue.form', $res->id) }}" class="btn btn-sm btn-outline-secondary fw-bold px-3 py-1 rounded-pill" style="font-size: 0.7rem;">
                                     <i class="bi bi-eye me-1"></i> View Form
                                 </a>
+                                @if(str_starts_with($res->status, 'pending_'))
+                                <form action="{{ route('student_department.venue.delete', $res->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to cancel and delete this request?')">
+                                    @csrf @method('DELETE')
+                                    <button type="submit" class="btn btn-sm btn-outline-danger fw-bold px-3 py-1 rounded-pill" style="font-size: 0.7rem;" title="Cancel Request">
+                                        <i class="bi bi-trash me-1"></i> Cancel
+                                    </button>
+                                </form>
+                                @endif
                             </div>
                         </div>
                     </div>
-
-                    <!-- Delete Button for Pending -->
-                    @if(str_starts_with($res->status, 'pending_'))
-                    <form action="{{ route('student_department.venue.delete', $res->id) }}" method="POST" class="position-absolute" style="top: 15px; right: 15px;" onsubmit="return confirm('Are you sure you want to cancel and delete this request?')">
-                        @csrf @method('DELETE')
-                        <button type="submit" class="btn btn-sm btn-outline-danger border-0" title="Cancel Request">
-                            <i class="bi bi-trash fs-6"></i>
-                        </button>
-                    </form>
-                    @endif
 
                     <!-- Shopee-style Tracker Integration (Dynamic File Hunting) -->
                     @php
