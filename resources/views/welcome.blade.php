@@ -110,19 +110,19 @@
 <section class="py-5">
     <div class="container">
         <div class="text-center mb-5">
-            <div class="section-label">What We Offer</div>
-            <div class="section-title">Everything You Need</div>
+            <div class="section-label">Built for NU Clark</div>
+            <div class="section-title">One System, Every Campus Event</div>
             <div class="section-divider mx-auto"></div>
-            <p class="text-muted" style="max-width:500px;margin:0 auto">A complete campus event experience from registration to verified attendance tracking.</p>
+            <p class="text-muted" style="max-width:540px;margin:0 auto">From organizing school activities to tracking student attendance — NU Clark EMS streamlines every step of the campus event lifecycle.</p>
         </div>
         <div class="row g-4">
             @foreach([
-                ['bi-calendar-plus','var(--nu-blue)','Event Management','Organizers can create events with venue booking, capacity limits, posters, and categories.'],
-                ['bi-qr-code-scan','var(--nu-gold)','QR Code Attendance','Students get a unique QR code per event for fast, contactless check-in during the event window.'],
-                ['bi-camera','#6f42c1','Photo Check-in','Submit a selfie as proof of attendance. Organizers verify or reject with one click.'],
-                ['bi-building','#0d9488','Venue Reservation','Reserve Gymnasium, Auditorium, AVR rooms, Conference Rooms, or Function Hall with conflict detection.'],
-                ['bi-bell-fill','#e11d48','Live Notifications','When an event starts, students get an automatic pop-up alert via real-time JS polling.'],
-                ['bi-bar-chart-line','#7c3aed','Reports & Analytics','Export attendance as PDF or Excel. Admins get full system stats with monthly charts.'],
+                ['bi-calendar-plus','var(--nu-blue)','Event Management','Organizers plan and publish school events with full details — venue, capacity, category, schedules, and event posters — all in one place.'],
+                ['bi-qr-code-scan','var(--nu-gold)','QR Code Check-In','Every registered student gets a personal QR code. Scan at the door for instant, contactless attendance verification during active event hours.'],
+                ['bi-camera','#6f42c1','Photo Attendance','Students submit a selfie as proof of presence. Organizers review each photo submission and approve or reject with a single click.'],
+                ['bi-file-earmark-check','#0d9488','File Hunting & Approvals','Venue reservations follow a structured digital approval chain — from Student Department to Dean — with e-signatures and real-time status tracking.'],
+                ['bi-bell-fill','#e11d48','Real-Time Notifications','Students receive instant pop-up alerts the moment an event goes live, keeping the whole campus informed without checking manually.'],
+                ['bi-bar-chart-line','#7c3aed','Reports & Analytics','Generate PDF and Excel attendance reports per event. Admins view system-wide stats, monthly trends, and participation data at a glance.'],
             ] as [$icon,$color,$title,$desc])
             <div class="col-md-4 col-sm-6">
                 <div class="feature-card h-100">
