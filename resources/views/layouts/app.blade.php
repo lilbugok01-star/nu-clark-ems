@@ -341,115 +341,77 @@
             <div class="container-fluid">
                 <div class="row gy-4">
 
-                    {{-- Brand column --}}
-                    <div class="col-lg-4 col-md-6">
+                    {{-- Brand Column --}}
+                    <div class="col-lg-3 col-md-6">
                         <div class="d-flex align-items-center gap-3 mb-3">
-                            <div class="nu-logo-wrap"
-                                style="width:50px;height:50px;border-radius:0;background:none;box-shadow:none">
+                            <div class="nu-logo-wrap" style="width:50px;height:50px;border-radius:0;background:none;box-shadow:none">
                                 <img src="{{ asset('assets/img/NU_shield.png') }}" alt="NU Logo">
                             </div>
                             <div>
-                                <div class="text-white fw-700" style="font-size:1rem;line-height:1.2">National
-                                    University</div>
-                                <div style="color:var(--nu-gold);font-size:.72rem;font-weight:600;letter-spacing:.06em">
-                                    CLARK CAMPUS · EMS</div>
+                                <div class="text-white fw-700" style="font-size:1rem;line-height:1.2">National University</div>
+                                <div style="color:var(--nu-gold);font-size:.72rem;font-weight:600;letter-spacing:.06em">CLARK CAMPUS · EMS</div>
                             </div>
                         </div>
-                        <p style="color:rgba(255,255,255,.5);font-size:.82rem;line-height:1.7;max-width:300px">
-                            The official event management platform for NU Clark students, organizers, and
-                            administrators. Powered by QR and photo-based attendance.
+                        <p style="color:rgba(255,255,255,.5);font-size:.82rem;line-height:1.7;max-width:260px">
+                            The official Event Management System of National University Clark. Dedicated to streamlining campus activities and student engagement.
                         </p>
-                        <div class="d-flex gap-2 mt-3">
-                            <a href="#" class="d-flex align-items-center justify-content-center rounded-2"
-                                style="width:34px;height:34px;background:rgba(255,255,255,.1);color:rgba(255,255,255,.7);transition:all .2s"
-                                onmouseover="this.style.background='rgba(255,184,0,.2)';this.style.color='var(--nu-gold)'"
-                                onmouseout="this.style.background='rgba(255,255,255,.1)';this.style.color='rgba(255,255,255,.7)'">
-                                <i class="bi bi-facebook" style="font-size:.9rem"></i>
+                        <div class="d-flex gap-2 mt-4">
+                            <a href="https://www.facebook.com/NationalUniversityClark" target="_blank" class="footer-social-link">
+                                <i class="bi bi-facebook"></i>
                             </a>
-                            <a href="#" class="d-flex align-items-center justify-content-center rounded-2"
-                                style="width:34px;height:34px;background:rgba(255,255,255,.1);color:rgba(255,255,255,.7);transition:all .2s"
-                                onmouseover="this.style.background='rgba(255,184,0,.2)';this.style.color='var(--nu-gold)'"
-                                onmouseout="this.style.background='rgba(255,255,255,.1)';this.style.color='rgba(255,255,255,.7)'">
-                                <i class="bi bi-instagram" style="font-size:.9rem"></i>
+                            <a href="https://www.instagram.com/nationaluniversityclark" target="_blank" class="footer-social-link">
+                                <i class="bi bi-instagram"></i>
                             </a>
                         </div>
                     </div>
 
-                    {{-- Quick Links --}}
-                    <div class="col-lg-2 col-md-3 col-6">
-                        <h6 class="fw-700 mb-3"
-                            style="color:var(--nu-gold);font-size:.78rem;letter-spacing:.08em;text-transform:uppercase">
-                            Quick Links</h6>
+                    {{-- University Links --}}
+                    <div class="col-lg-3 col-md-6">
+                        <h6 class="footer-heading">University Links</h6>
                         <ul class="list-unstyled mb-0">
-                            <li class="mb-2"><a href="{{ route('home') }}" class="footer-link"><i
-                                        class="bi bi-chevron-right me-1" style="font-size:.65rem"></i>Home</a></li>
-                            <li class="mb-2"><a href="{{ route('events') }}" class="footer-link"><i
-                                        class="bi bi-chevron-right me-1" style="font-size:.65rem"></i>Events</a></li>
+                            <li class="mb-2"><a href="{{ route('home') }}" class="footer-link-new">Home</a></li>
+                            <li class="mb-2"><a href="{{ route('events') }}" class="footer-link-new">Browse Events</a></li>
                             @auth
-                                @if(Auth::user()->role === 'student')
-                                    <li class="mb-2"><a href="{{ route('student.dashboard') }}" class="footer-link"><i
-                                                class="bi bi-chevron-right me-1" style="font-size:.65rem"></i>Dashboard</a></li>
-                                    <li class="mb-2"><a href="{{ route('student.my-events') }}" class="footer-link"><i
-                                                class="bi bi-chevron-right me-1" style="font-size:.65rem"></i>My Events</a></li>
-                                @elseif(Auth::user()->role === 'organizer')
-                                    <li class="mb-2"><a href="{{ route('organizer.dashboard') }}" class="footer-link"><i
-                                                class="bi bi-chevron-right me-1" style="font-size:.65rem"></i>Dashboard</a></li>
-                                    <li class="mb-2"><a href="{{ route('organizer.events') }}" class="footer-link"><i
-                                                class="bi bi-chevron-right me-1" style="font-size:.65rem"></i>My Events</a></li>
-                                @elseif(Auth::user()->role === 'admin')
-                                    <li class="mb-2"><a href="{{ route('admin.dashboard') }}" class="footer-link"><i
-                                                class="bi bi-chevron-right me-1" style="font-size:.65rem"></i>Dashboard</a></li>
-                                    <li class="mb-2"><a href="{{ route('admin.users') }}" class="footer-link"><i
-                                                class="bi bi-chevron-right me-1" style="font-size:.65rem"></i>Users</a></li>
-                                @endif
+                                <li class="mb-2"><a href="{{ Auth::user()->role === 'student' ? route('student.dashboard') : route('home') }}" class="footer-link-new">My Dashboard</a></li>
                             @else
-                                <li class="mb-2"><a href="{{ route('login') }}" class="footer-link"><i
-                                            class="bi bi-chevron-right me-1" style="font-size:.65rem"></i>Login</a></li>
-                                <li class="mb-2"><a href="{{ route('register') }}" class="footer-link"><i
-                                            class="bi bi-chevron-right me-1" style="font-size:.65rem"></i>Register</a></li>
+                                <li class="mb-2"><a href="{{ route('login') }}" class="footer-link-new">Student Login</a></li>
                             @endauth
+                            <li class="mb-2"><a href="https://national-u.edu.ph/nu-clark/" target="_blank" class="footer-link-new">NU Clark Website</a></li>
                         </ul>
                     </div>
 
-                    {{-- Features --}}
-                    <div class="col-lg-2 col-md-3 col-6">
-                        <h6 class="fw-700 mb-3"
-                            style="color:var(--nu-gold);font-size:.78rem;letter-spacing:.08em;text-transform:uppercase">
-                            Features</h6>
+                    {{-- Governance & Policies --}}
+                    <div class="col-lg-3 col-md-6">
+                        <h6 class="footer-heading">Governance & Policies</h6>
                         <ul class="list-unstyled mb-0">
-                            <li class="mb-2"><span class="footer-link-static"><i class="bi bi-qr-code me-1"></i>QR
-                                    Attendance</span></li>
-                            <li class="mb-2"><span class="footer-link-static"><i class="bi bi-camera me-1"></i>Photo
-                                    Check-in</span></li>
-                            <li class="mb-2"><span class="footer-link-static"><i class="bi bi-building me-1"></i>Venue
-                                    Booking</span></li>
-                            <li class="mb-2"><span class="footer-link-static"><i
-                                        class="bi bi-bar-chart me-1"></i>Analytics</span></li>
-                            <li class="mb-2"><span class="footer-link-static"><i class="bi bi-upload me-1"></i>CSV
-                                    Import</span></li>
+                            <li class="mb-2"><a href="#" class="footer-link-new">About Us</a></li>
+                            <li class="mb-2"><a href="#" class="footer-link-new">Privacy Policy</a></li>
+                            <li class="mb-2"><a href="#" class="footer-link-new">Data Privacy</a></li>
+                            <li class="mb-2"><a href="#" class="footer-link-new">Send Feedback</a></li>
                         </ul>
                     </div>
 
-                    {{-- Contact --}}
-                    <div class="col-lg-4 col-md-6">
-                        <h6 class="fw-700 mb-3"
-                            style="color:var(--nu-gold);font-size:.78rem;letter-spacing:.08em;text-transform:uppercase">
-                            NU Clark Campus</h6>
-                        <ul class="list-unstyled mb-0">
-                            <li class="mb-3 d-flex gap-2">
-                                <i class="bi bi-geo-alt flex-shrink-0 mt-1" style="color:var(--nu-gold)"></i>
-                                <span style="color:rgba(255,255,255,.5);font-size:.82rem">Clark Freeport Zone, Pampanga,
-                                    Philippines</span>
-                            </li>
-                            <li class="mb-3 d-flex gap-2">
-                                <i class="bi bi-envelope flex-shrink-0 mt-1" style="color:var(--nu-gold)"></i>
-                                <span style="color:rgba(255,255,255,.5);font-size:.82rem">info@nu-clark.edu.ph</span>
-                            </li>
-                            <li class="d-flex gap-2">
-                                <i class="bi bi-globe flex-shrink-0 mt-1" style="color:var(--nu-gold)"></i>
-                                <span style="color:rgba(255,255,255,.5);font-size:.82rem">www.nu-clark.edu.ph</span>
-                            </li>
-                        </ul>
+                    {{-- Contact & Hours --}}
+                    <div class="col-lg-3 col-md-6">
+                        <h6 class="footer-heading">Contact Us</h6>
+                        <div class="mb-4">
+                            <div class="d-flex gap-2 text-white-50">
+                                <i class="bi bi-geo-alt-fill text-gold flex-shrink-0 mt-1"></i>
+                                <span style="font-size:.82rem;line-height:1.5">
+                                    Clark Tech Hub 8, SM City Clark Expansion, Clark-Mabalacat-Angeles Road, Barangay Dau, Mabalacat City, Pampanga, 2010 Philippines
+                                </span>
+                            </div>
+                        </div>
+                        <div>
+                            <h6 class="text-white fw-600 mb-2" style="font-size:.78rem;letter-spacing:.03em">Office Hours</h6>
+                            <div class="d-flex gap-2 text-white-50">
+                                <i class="bi bi-clock-fill text-gold flex-shrink-0 mt-1"></i>
+                                <div style="font-size:.82rem;line-height:1.5">
+                                    Monday to Friday (8:30AM - 5:30PM)<br>
+                                    Saturday (8:30AM - 12:30PM)
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                 </div>{{-- end row --}}

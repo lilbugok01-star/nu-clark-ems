@@ -67,8 +67,7 @@
                     <li>NU Las Piñas</li>
                 </ul>
                 <div class="contact-info mt-auto">
-                    <small class="d-block text-white-50">www.national-u.edu.ph</small>
-                    <small class="d-block text-white-50">Phone: (02) 8712-1900</small>
+                    <small class="d-block text-white-50">https://national-u.edu.ph/nu-clark/</small>
                 </div>
             </div>
         </div>
