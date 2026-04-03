@@ -67,8 +67,15 @@ class AdminController extends Controller implements HasMiddleware
     public function users(Request $request)
     {
         $query = User::with('course', 'section');
-        if ($request->role)   $query->where('role', $request->role);
-        if ($request->search) $query->where(fn($q) => $q->where('name', 'like', "%{$request->search}%")->orWhere('email', 'like', "%{$request->search}%"));
+        if ($request->role) $query->where('role', $request->role);
+        
+        if ($request->search) {
+            $search = trim($request->search);
+            // Replace percent and underscore to prevent LIKE wildcards abuse
+            $search = str_replace(['%', '_'], ['\%', '\_'], $search);
+            $query->where(fn($q) => $q->where('name', 'like', "%{$search}%")->orWhere('email', 'like', "%{$search}%"));
+        }
+        
         $users   = $query->paginate(20);
         $courses = Course::where('is_active', true)->get();
         $sections= Section::where('is_active', true)->with('course')->get();
@@ -173,8 +180,8 @@ class AdminController extends Controller implements HasMiddleware
     {
         $v = $request->validate([
             'role'    => 'nullable|in:admin,organizer,student',
-            'title'   => 'required|string',
-            'message' => 'required|string',
+            'title'   => 'required|string|max:255',
+            'message' => 'required|string|max:2000',
         ]);
 
         $query = User::query();
@@ -216,12 +223,13 @@ class AdminController extends Controller implements HasMiddleware
         $v = $request->validate(['status' => 'required|in:approved,rejected', 'notes' => 'nullable|string']);
         $res->update(['status' => $v['status'], 'notes' => $v['notes'] ?? null]);
         $msg = $v['status'] === 'approved' ? 'approved ✓' : 'rejected ✗';
+        $safeNotes = strip_tags($v['notes'] ?? '');
         // Notify organizer
         AppNotification::create([
             'user_id' => $res->reserved_by,
             'type'    => 'venue_reservation',
             'title'   => "Venue Reservation {$msg}: {$res->venue_name}",
-            'message' => $v['notes'] ?? "Your reservation for {$res->venue_name} on {$res->reserved_date->format('M d')} has been {$v['status']}.",
+            'message' => $safeNotes ? "Your reservation for {$res->venue_name} on {$res->reserved_date->format('M d')} has been {$v['status']}. Notes: {$safeNotes}" : "Your reservation for {$res->venue_name} on {$res->reserved_date->format('M d')} has been {$v['status']}.",
         ]);
         return back()->with('success', "Venue reservation {$msg}!");
     }

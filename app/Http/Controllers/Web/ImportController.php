@@ -60,55 +60,7 @@ class ImportController extends Controller implements HasMiddleware
         return response()->stream($callback, 200, $headers);
     }
 
-    /**
-     * Preview CSV before importing (AJAX-friendly — returns JSON)
-     */
-    public function previewCsv(Request $request)
-    {
-        $request->validate(['csv_file' => 'required|file|mimes:csv,txt|max:5120']);
-
-        $path    = $request->file('csv_file')->getRealPath();
-        $rows    = [];
-        $errors  = [];
-        $rowNum  = 0;
-
-        if (($handle = fopen($path, 'r')) !== false) {
-            $header = fgetcsv($handle); // skip header
-            while (($line = fgetcsv($handle)) !== false) {
-                $rowNum++;
-                if (count($line) < 5) {
-                    $errors[] = "Row {$rowNum}: not enough columns (expected at least 5).";
-                    continue;
-                }
-                [$name, $email, $studentId, $courseCode, $sectionName] = array_map('trim', $line);
-                $rowErrors = [];
-                if (!$name)      $rowErrors[] = 'Name required';
-                if (!filter_var($email, FILTER_VALIDATE_EMAIL)) $rowErrors[] = 'Invalid email';
-                if (User::where('email', $email)->exists()) $rowErrors[] = 'Email already exists';
-                if ($studentId && User::where('student_id', $studentId)->exists()) $rowErrors[] = 'Student ID already exists';
-
-                $course  = Course::where('code', $courseCode)->first();
-                $section = Section::where('name', $sectionName)->first();
-
-                $rows[] = [
-                    'row'          => $rowNum,
-                    'name'         => $name,
-                    'email'        => $email,
-                    'student_id'   => $studentId,
-                    'course_code'  => $courseCode,
-                    'section_name' => $sectionName,
-                    'course_found' => (bool)$course,
-                    'section_found'=> (bool)$section,
-                    'errors'       => $rowErrors,
-                    'ok'           => empty($rowErrors),
-                ];
-            }
-            fclose($handle);
-        }
-
-        session(['import_preview' => $rows]);
-        return redirect()->back()->with('preview', true);
-    }
+    // previewCsv route has been removed.
 
     /**
      * Actually run the import
@@ -117,7 +69,7 @@ class ImportController extends Controller implements HasMiddleware
     {
         $request->validate([
             'csv_file'         => 'required|file|mimes:csv,txt|max:5120',
-            'default_password' => 'required|string|min:8',
+            'default_password' => 'required|string|min:8|max:72',
             'default_role'     => 'required|in:student',
             'skip_errors'      => 'nullable|boolean',
         ]);

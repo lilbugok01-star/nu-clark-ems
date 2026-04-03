@@ -1,6 +1,5 @@
 <?php
 
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\Web\HomeController;
@@ -9,20 +8,22 @@ use App\Http\Controllers\Web\StudentController;
 use App\Http\Controllers\Web\OrganizerController;
 use App\Http\Controllers\Web\AdminController;
 use App\Http\Controllers\Web\ImportController;
+use App\Http\Controllers\Web\StudentDepartmentController;
+use App\Http\Controllers\Web\ApprovalController;
 
-// Public
+// ── Public Routes ────────────────────────────────────────────────────────────
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/events', [HomeController::class, 'events'])->name('events');
 Route::get('/events/{id}', [HomeController::class, 'showEvent'])->name('event.show');
 
-// Auth
+// ── Auth Routes (guests only) ─────────────────────────────────────────────────
 Route::middleware('guest')->group(function () {
     Route::get('/login',    [AuthController::class, 'showLogin'])->name('login');
-    Route::post('/login',   [AuthController::class, 'login']);
+    Route::post('/login',   [AuthController::class, 'login'])->middleware('throttle:login');
     Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
-    Route::post('/register',[AuthController::class, 'register']);
+    Route::post('/register',[AuthController::class, 'register'])->middleware('throttle:register');
     Route::get('/forgot-password',  [AuthController::class, 'showForgot'])->name('password.request');
-    Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->name('password.email');
+    Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->name('password.email')->middleware('throttle:forgot-password');
 });
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
@@ -58,7 +59,6 @@ Route::middleware(['auth'])->prefix('organizer')->name('organizer.')->group(func
 });
 
 // Student Department (Venue Reservations)
-use App\Http\Controllers\Web\StudentDepartmentController;
 Route::middleware(['auth'])->prefix('student-department')->name('student_department.')->group(function () {
     Route::get('/dashboard',                [StudentDepartmentController::class, 'dashboard'])->name('dashboard');
     Route::get('/venue-reservations/events',[StudentDepartmentController::class, 'calendarEvents'])->name('venue.events.json');
@@ -96,7 +96,6 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
 });
 
 // Approver Flow
-use App\Http\Controllers\Web\ApprovalController;
 
 Route::middleware(['auth'])->prefix('approver')->name('approver.')->group(function () {
     Route::get('/dashboard',              [ApprovalController::class, 'dashboard'])->name('dashboard');

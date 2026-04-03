@@ -10,7 +10,6 @@ use App\Models\AppNotification;
 use App\Models\User;
 use App\Models\VenueReservation;
 use App\Exports\AttendanceExport;
-use App\Exports\EventReportExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -99,18 +98,8 @@ class OrganizerController extends Controller implements HasMiddleware
             'is_featured'   => $request->boolean('is_featured'),
         ]);
 
-        // Notify all students
-        $students = User::where('role', 'student')->pluck('id');
-        $notifs   = $students->map(fn($uid) => [
-            'user_id'    => $uid,
-            'type'       => 'new_event',
-            'title'      => 'New Event: ' . $event->title,
-            'message'    => "A new event has been posted: {$event->title} on {$event->event_date->format('M d, Y')}.",
-            'data'       => json_encode(['event_id' => $event->id]),
-            'created_at' => now(),
-            'updated_at' => now(),
-        ])->toArray();
-        AppNotification::insert($notifs);
+        // Notifications to students should only be sent once the event is fully approved and published.
+        // Therefore, we removed the early notification blast from here.
 
         return redirect()->route('organizer.events')->with('success', 'Event created successfully!');
     }
@@ -159,7 +148,7 @@ class OrganizerController extends Controller implements HasMiddleware
 
     public function attendees($id)
     {
-        $event = Event::findOrFail($id);
+        $event = Event::where('organizer_id', Auth::id())->findOrFail($id);
         $attendances = Attendance::with(['registration.user.course', 'registration.user.section', 'verifiedBy'])
             ->whereHas('registration', fn($q) => $q->where('event_id', $id))->get();
         $registrations = Registration::with('user.course', 'user.section')
@@ -170,6 +159,11 @@ class OrganizerController extends Controller implements HasMiddleware
 
     public function verify(Request $request, $id)
     {
+        $request->validate([
+            'status' => 'required|in:verified,rejected',
+            'notes'  => 'nullable|string|max:500',
+        ]);
+
         $attendance = Attendance::findOrFail($id);
         $attendance->update([
             'status'      => $request->status,

@@ -160,10 +160,10 @@ class StudentDepartmentController extends Controller implements HasMiddleware
     {
         $res = VenueReservation::with(['event', 'reservedBy', 'approvals.approver'])->findOrFail($id);
         
-        // Authorization check: Only requestor or approvers can view this form
-        // (For simplicity we block external students)
-        if (Auth::user()->role === 'student' && $res->reserved_by !== Auth::id()) {
-            abort(403);
+        // Authorization check: Only requestor or approvers/admins can view this form
+        $user = Auth::user();
+        if ($user->role === 'student' && $res->reserved_by !== $user->id) {
+            abort(403, 'Unauthorized access to this document.');
         }
 
         return view('student_department.permission-form', compact('res'));

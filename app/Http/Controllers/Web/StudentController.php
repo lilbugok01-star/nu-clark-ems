@@ -190,11 +190,17 @@ class StudentController extends Controller
             if (count($image_parts) >= 2) {
                 $image_type_aux = explode('image/', $image_parts[0]);
                 if (count($image_type_aux) >= 2) {
-                    $image_type = $image_type_aux[1];
-                    $image_base64 = base64_decode($image_parts[1]);
-                    $fileName = 'attendance-photos/' . $registration->event_id . '/' . uniqid() . '.' . $image_type;
-                    \Illuminate\Support\Facades\Storage::disk('public')->put($fileName, $image_base64);
-                    $photoPath = $fileName;
+                    $image_type = strtolower($image_type_aux[1]);
+                    // Only allow safe image extensions
+                    $allowed = ['jpeg', 'jpg', 'png', 'webp'];
+                    if (in_array($image_type, $allowed)) {
+                        $image_base64 = base64_decode($image_parts[1]);
+                        $fileName = 'attendance-photos/' . $registration->event_id . '/' . uniqid() . '.' . $image_type;
+                        \Illuminate\Support\Facades\Storage::disk('public')->put($fileName, $image_base64);
+                        $photoPath = $fileName;
+                    } else {
+                        return back()->with('error', 'Invalid photo format. Only JPG, PNG, and WebP are allowed.');
+                    }
                 }
             }
         }

@@ -182,6 +182,14 @@ class ApprovalController extends Controller implements HasMiddleware
             'comments.required' => 'Please provide a reason for rejection (feedback).'
         ]);
 
+        $currentStatus = $event->status;
+        if (($user->role === 'adviser' && $currentStatus !== 'pending_adviser') ||
+            ($user->role === 'department_head' && $currentStatus !== 'pending_dept_head') ||
+            ($user->role === 'dean' && $currentStatus !== 'pending_dean') ||
+            ($user->role === 'executive_director' && $currentStatus !== 'pending_director')) {
+            return back()->with('error', 'You cannot reject this event because it is not in your queue.');
+        }
+
         // Record Rejection
         EventApproval::create([
             'event_id'         => $event->id,

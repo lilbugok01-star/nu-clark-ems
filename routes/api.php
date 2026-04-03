@@ -15,22 +15,26 @@ use App\Http\Controllers\Api\ReportController;
 // ─────────────────────────────────────────────
 // Public Auth Routes
 // ─────────────────────────────────────────────
-Route::post('/register',        [AuthController::class, 'register']);
-Route::post('/login',           [AuthController::class, 'login']);
-Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
-Route::post('/reset-password',  [AuthController::class, 'resetPassword']);
+Route::middleware('throttle:10,1')->group(function () {
+    Route::post('/register',        [AuthController::class, 'register']);
+    Route::post('/login',           [AuthController::class, 'login']);
+    Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+    Route::post('/reset-password',  [AuthController::class, 'resetPassword']);
+});
 
 // Public event browsing
-Route::get('/events',           [EventController::class, 'index']);
-Route::get('/events/upcoming',  [EventController::class, 'upcoming']);
-Route::get('/events/{id}',      [EventController::class, 'show']);
-Route::get('/courses',          [UserController::class, 'courses']);
-Route::get('/sections',         [UserController::class, 'sections']);
+Route::middleware('throttle:api')->group(function () {
+    Route::get('/events',           [EventController::class, 'index']);
+    Route::get('/events/upcoming',  [EventController::class, 'upcoming']);
+    Route::get('/events/{id}',      [EventController::class, 'show']);
+    Route::get('/courses',          [UserController::class, 'courses']);
+    Route::get('/sections',         [UserController::class, 'sections']);
+});
 
 // ─────────────────────────────────────────────
 // Authenticated Routes
 // ─────────────────────────────────────────────
-Route::middleware(['auth:sanctum'])->group(function () {
+Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
 
     // Auth
     Route::post('/logout',  [AuthController::class, 'logout']);
