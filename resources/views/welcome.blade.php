@@ -106,31 +106,83 @@
     </div>
 </div>
 
-<!-- ── FEATURES ──────────────────────────────────────── -->
+<!-- ── HOW IT WORKS ───────────────────────────────────── -->
+<section class="py-5" style="background:var(--gray-50)">
+    <div class="container">
+        <div class="text-center mb-5">
+            <div class="section-label">Student Journey</div>
+            <div class="section-title">How It Works</div>
+            <div class="section-divider mx-auto"></div>
+            <p class="text-muted" style="max-width:500px;margin:0 auto">From discovering an event to having your attendance verified — here's how NU Clark EMS works for every student.</p>
+        </div>
+
+        <div class="row g-0 align-items-stretch justify-content-center">
+            @php
+            $steps = [
+                ['01','bi-search','var(--nu-blue)','Browse Events','Explore all upcoming NU Clark campus events. Filter by category, venue, or date and find what interests you.'],
+                ['02','bi-person-check','var(--nu-gold)','Register','Secure your slot with one click. The system tracks capacity in real time so you never miss out.'],
+                ['03','bi-qr-code','#6f42c1','Get Your QR Code','After registering, your personal QR code is generated instantly and available any time from your dashboard.'],
+                ['04','bi-camera-fill','#0d9488','Check In on the Day','Scan your QR code at the door or submit a selfie photo as proof of attendance at the event venue.'],
+                ['05','bi-patch-check-fill','#e11d48','Get Verified','The organizer approves your check-in. Your attendance record is saved automatically to your profile history.'],
+            ];
+            @endphp
+
+            @foreach($steps as $i => $step)
+            <div class="col-12 col-md">
+                <div class="d-flex flex-column align-items-center text-center px-3 py-4 h-100 position-relative">
+                    {{-- Connector line --}}
+                    @if(!$loop->last)
+                    <div class="d-none d-md-block position-absolute" style="top:2.6rem;left:calc(50% + 2.6rem);width:calc(100% - 5.2rem);height:2px;background:linear-gradient(90deg,{{ $step[2] }}55,{{ $steps[$i+1][2] }}55);z-index:0"></div>
+                    @endif
+
+                    {{-- Step number badge --}}
+                    <div class="position-relative mb-3" style="z-index:1">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center shadow-sm"
+                             style="width:56px;height:56px;background:{{ $step[2] }};color:#fff;font-size:1.5rem">
+                            <i class="bi {{ $step[1] }}"></i>
+                        </div>
+                        <span class="position-absolute" style="top:-6px;right:-8px;background:#fff;border:2px solid {{ $step[2] }};color:{{ $step[2] }};font-size:.58rem;font-weight:900;border-radius:50px;padding:1px 5px;line-height:1.4">{{ $step[0] }}</span>
+                    </div>
+
+                    <h6 class="fw-700 mb-1" style="font-size:.92rem">{{ $step[3] }}</h6>
+                    <p class="text-muted mb-0" style="font-size:.78rem;line-height:1.55;max-width:160px">{{ $step[4] }}</p>
+                </div>
+            </div>
+            @endforeach
+        </div>
+    </div>
+</section>
+
+<!-- ── WHO USES THIS SYSTEM ──────────────────────────── -->
 <section class="py-5">
     <div class="container">
         <div class="text-center mb-5">
-            <div class="section-label">Built for NU Clark</div>
-            <div class="section-title">One System, Every Campus Event</div>
+            <div class="section-label">Built for Everyone on Campus</div>
+            <div class="section-title">Who Uses NU Clark EMS?</div>
             <div class="section-divider mx-auto"></div>
-            <p class="text-muted" style="max-width:540px;margin:0 auto">From organizing school activities to tracking student attendance — NU Clark EMS streamlines every step of the campus event lifecycle.</p>
         </div>
-        <div class="row g-4">
+        <div class="row g-4 justify-content-center">
             @foreach([
-                ['bi-calendar-plus','var(--nu-blue)','Event Management','Organizers plan and publish school events with full details — venue, capacity, category, schedules, and event posters — all in one place.'],
-                ['bi-qr-code-scan','var(--nu-gold)','QR Code Check-In','Every registered student gets a personal QR code. Scan at the door for instant, contactless attendance verification during active event hours.'],
-                ['bi-camera','#6f42c1','Photo Attendance','Students submit a selfie as proof of presence. Organizers review each photo submission and approve or reject with a single click.'],
-                ['bi-file-earmark-check','#0d9488','File Hunting & Approvals','Venue reservations follow a structured digital approval chain — from Student Department to Dean — with e-signatures and real-time status tracking.'],
-                ['bi-bell-fill','#e11d48','Real-Time Notifications','Students receive instant pop-up alerts the moment an event goes live, keeping the whole campus informed without checking manually.'],
-                ['bi-bar-chart-line','#7c3aed','Reports & Analytics','Generate PDF and Excel attendance reports per event. Admins view system-wide stats, monthly trends, and participation data at a glance.'],
-            ] as [$icon,$color,$title,$desc])
-            <div class="col-md-4 col-sm-6">
-                <div class="feature-card h-100">
-                    <div class="feature-icon mx-auto mb-3" style="background:{{ $color }}20;box-shadow:none">
-                        <i class="bi {{ $icon }}" style="color:{{ $color }};font-size:1.7rem"></i>
+                ['bi-mortarboard-fill','var(--nu-blue)','Students','Browse and register for campus events, receive your QR code, check in via QR or photo, and view your full attendance history — all from your personal dashboard.', ['Browse Events','QR Check-In','Photo Attendance','Attendance History']],
+                ['bi-megaphone-fill','var(--nu-gold)','Organizers','Create and manage events from start to finish. Review QR scans and photo submissions, track registrations in real time, and export verified attendance reports as PDF or Excel.', ['Create Events','Verify Check-Ins','Live Registrations','Export Reports']],
+                ['bi-file-earmark-check-fill','#0d9488','Approvers','Review and digitally sign venue reservation requests as part of the structured File Hunting approval chain — from Student Department, Program Chair, up to the Office of the Dean.', ['Review Requests','E-Signature','Approval Chain','Real-Time Status']],
+                ['bi-shield-lock-fill','#7c3aed','Administrators','Oversee the entire system — manage users, maintain event records, configure the approval signatories, import student data via CSV, and monitor full system analytics.', ['User Management','System Analytics','CSV Import','Venue Control']],
+            ] as [$icon,$color,$role,$desc,$tags])
+            <div class="col-md-6 col-lg-3">
+                <div class="h-100 rounded-3 p-4 d-flex flex-column" style="border:2px solid {{ $color }}22;background:{{ $color }}08;transition:all .2s ease">
+                    <div class="mb-3">
+                        <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
+                             style="width:52px;height:52px;background:{{ $color }}18">
+                            <i class="bi {{ $icon }}" style="color:{{ $color }};font-size:1.4rem"></i>
+                        </div>
+                        <h6 class="fw-800 mb-1" style="color:{{ $color }}">{{ $role }}</h6>
+                        <p class="text-muted small mb-3" style="line-height:1.55;font-size:.8rem">{{ $desc }}</p>
                     </div>
-                    <h6 class="fw-700 mb-2">{{ $title }}</h6>
-                    <p class="text-muted small mb-0">{{ $desc }}</p>
+                    <div class="mt-auto d-flex flex-wrap gap-1">
+                        @foreach($tags as $tag)
+                        <span class="badge rounded-pill fw-500" style="background:{{ $color }}18;color:{{ $color }};font-size:.68rem;border:1px solid {{ $color }}33">{{ $tag }}</span>
+                        @endforeach
+                    </div>
                 </div>
             </div>
             @endforeach
