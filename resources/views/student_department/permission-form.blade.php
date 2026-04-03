@@ -99,13 +99,19 @@
 
     <!-- Signatures Section -->
     <div class="mt-5 pt-4">
-        <h6 class="bg-light p-2 fw-bold text-uppercase mb-4" style="border-left: 5px solid #003087;">Approval Chain & E-Signatures</h6>
+        <h6 class="bg-light p-2 fw-bold text-uppercase mb-3" style="border-left: 5px solid #003087;">Approval Chain & E-Signatures</h6>
+        <p class="text-muted small mb-5 fst-italic">This document serves as an official permission form. Any alterations to this printed form without system validation are invalid.</p>
         
         <div class="row g-5">
             <!-- Requester -->
             <div class="col-4 text-center mb-5">
                 <div class="signature-box">
-                    <div class="fw-bold small fst-italic text-muted">Electronically Signed</div>
+                    @if($res->reservedBy->e_signature_path)
+                        <img src="{{ asset('storage/' . $res->reservedBy->e_signature_path) }}" class="signature-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                        <div class="fw-bold small fst-italic text-muted" style="display:none;">Electronically Signed</div>
+                    @else
+                        <div class="fw-bold small fst-italic text-muted">Electronically Signed</div>
+                    @endif
                 </div>
                 <div class="signer-name">{{ $res->reservedBy->name }}</div>
                 <div class="signer-role">Requestor / Student Rep</div>
@@ -116,7 +122,10 @@
             <div class="col-4 text-center mb-5">
                 <div class="signature-box">
                     @if($sd && $sd->e_signature_used)
-                        <img src="{{ asset('storage/' . $sd->e_signature_used) }}" class="signature-img">
+                        <img src="{{ asset('storage/' . $sd->e_signature_used) }}" class="signature-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                        <div class="fw-bold small fst-italic text-muted" style="display:none;">Electronically Signed</div>
+                    @else
+                        <div class="fw-bold small fst-italic text-muted">Awaiting Action</div>
                     @endif
                 </div>
                 <div class="signer-name">{{ $sd->approver->name ?? 'Engr Vernie B Garcia' }}</div>
@@ -128,7 +137,10 @@
             <div class="col-4 text-center mb-5">
                 <div class="signature-box">
                     @if($pc && $pc->e_signature_used)
-                        <img src="{{ asset('storage/' . $pc->e_signature_used) }}" class="signature-img">
+                        <img src="{{ asset('storage/' . $pc->e_signature_used) }}" class="signature-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                        <div class="fw-bold small fst-italic text-muted" style="display:none;">Electronically Signed</div>
+                    @else
+                        <div class="fw-bold small fst-italic text-muted">Awaiting Action</div>
                     @endif
                 </div>
                 <div class="signer-name">{{ $pc->approver->name ?? 'Ronielle B. Antonio' }}</div>
@@ -137,10 +149,13 @@
 
             <!-- Dean -->
             @php $dn = $res->approvals->where('role_level', 'dean')->where('status', 'approved')->first(); @endphp
-            <div class="col-4 text-center">
+            <div class="col-4 text-center mb-5">
                 <div class="signature-box">
                     @if($dn && $dn->e_signature_used)
-                        <img src="{{ asset('storage/' . $dn->e_signature_used) }}" class="signature-img">
+                        <img src="{{ asset('storage/' . $dn->e_signature_used) }}" class="signature-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                        <div class="fw-bold small fst-italic text-muted" style="display:none;">Electronically Signed</div>
+                    @else
+                        <div class="fw-bold small fst-italic text-muted">Awaiting Action</div>
                     @endif
                 </div>
                 <div class="signer-name">{{ $dn->approver->name ?? 'Rafaela Mae M. Landayan' }}</div>
@@ -149,27 +164,20 @@
 
             <!-- Exec Director -->
             @php $ed = $res->approvals->where('role_level', 'executive_director')->where('status', 'approved')->first(); @endphp
-            <div class="col-4 text-center">
+            <div class="col-4 text-center mb-5">
                 <div class="signature-box">
                     @if($ed && $ed->e_signature_used)
-                        <img src="{{ asset('storage/' . $ed->e_signature_used) }}" class="signature-img">
+                        <img src="{{ asset('storage/' . $ed->e_signature_used) }}" class="signature-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                        <div class="fw-bold small fst-italic text-muted" style="display:none;">Electronically Signed</div>
+                    @else
+                        <div class="fw-bold small fst-italic text-muted">Awaiting Action</div>
                     @endif
                 </div>
                 <div class="signer-name">{{ $ed->approver->name ?? 'Dr. Arnell A. Diego' }}</div>
                 <div class="signer-role">Executive Director</div>
             </div>
             
-            <div class="col-4 text-center d-flex align-items-center justify-content-center">
-                <div class="p-3 border rounded text-muted small fst-italic bg-light">
-                    Generated from NU Clark Event Management System on {{ date('M d, Y') }}
-                </div>
-            </div>
         </div>
-    </div>
-
-    <!-- Footer Note -->
-    <div class="mt-5 pt-5 text-muted small text-center" style="position: absolute; bottom: 50px; width: calc(100% - 100px);">
-        <p>This document serves as an official permission form. Any alterations to this printed form without system validation are invalid.</p>
     </div>
 </div>
 
