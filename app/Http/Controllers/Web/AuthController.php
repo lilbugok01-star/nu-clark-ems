@@ -79,9 +79,23 @@ class AuthController extends Controller
 
     public function forgotPassword(Request $request)
     {
-        $request->validate(['email' => 'required|email']);
-        \Illuminate\Support\Facades\Password::sendResetLink($request->only('email'));
-        return back()->with('success', 'Password reset link sent to your email.');
+        $request->validate([
+            'email'      => 'required|email',
+            'student_id' => 'required|string',
+            'password'   => 'required|min:8|confirmed',
+        ]);
+
+        $user = User::where('email', $request->email)
+            ->where('student_id', $request->student_id)
+            ->first();
+
+        if (!$user) {
+            return back()->withErrors(['email' => 'No account found with that email and student ID combination.'])->withInput();
+        }
+
+        $user->update(['password' => Hash::make($request->password)]);
+
+        return redirect()->route('login')->with('success', 'Password has been reset successfully! Please sign in with your new password.');
     }
 
     public function logout(Request $request)

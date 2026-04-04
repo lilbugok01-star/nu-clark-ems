@@ -137,9 +137,15 @@
                             <select name="venue_type" class="form-select" id="venueTypeSelect" required onchange="updateVenueText()">
                                 <option value="">-- Select Venue --</option>
                                 @foreach(\App\Models\VenueReservation::venueNames() as $vn)
+                                    @if($vn !== 'Other')
                                     <option value="{{ $vn }}" {{ old('venue_type', $event->venue_type ?? '') === $vn ? 'selected' : '' }}>{{ $vn }}</option>
+                                    @endif
                                 @endforeach
+                                <option value="Other" {{ old('venue_type', $event->venue_type ?? '') === 'Other' ? 'selected' : '' }}>Other (Custom Name)</option>
                             </select>
+                            <input type="text" name="custom_venue_type" class="form-control mt-2" id="customVenueType"
+                                   placeholder="Enter custom venue/room name" style="display:none;"
+                                   value="{{ old('custom_venue_type', '') }}">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Full Venue / Location *</label>
@@ -233,8 +239,41 @@
 function updateVenueText() {
     const sel = document.getElementById('venueTypeSelect');
     const txt = document.getElementById('venueText');
-    if (sel.value && !txt.value) txt.value = sel.value;
+    const customInput = document.getElementById('customVenueType');
+
+    if (sel.value === 'Other') {
+        customInput.style.display = 'block';
+        customInput.disabled = false;
+        customInput.required = true;
+        customInput.focus();
+        // Clear venue text so user fills in custom
+        if (!customInput.value) txt.value = '';
+    } else {
+        customInput.style.display = 'none';
+        customInput.disabled = true;
+        customInput.required = false;
+        customInput.value = '';
+        if (sel.value && !txt.value) txt.value = sel.value;
+    }
 }
+
+// When custom venue input changes, sync to venue text
+document.addEventListener('DOMContentLoaded', function() {
+    const customInput = document.getElementById('customVenueType');
+    if (customInput) {
+        customInput.addEventListener('input', function() {
+            document.getElementById('venueText').value = this.value;
+        });
+    }
+    // Init: show custom input if 'Other' is pre-selected
+    const sel = document.getElementById('venueTypeSelect');
+    if (sel && sel.value === 'Other') {
+        customInput.style.display = 'block';
+        customInput.disabled = false;
+        customInput.required = true;
+    }
+});
+
 function previewPoster(e) {
     const f = e.target.files[0];
     if (!f) return;

@@ -41,6 +41,9 @@ class DatabaseSeeder extends Seeder
         }
 
         // ── Sections ─────────────────────────────
+        // Deactivate all sections first, then re-activate the valid ones
+        Section::query()->update(['is_active' => false]);
+
         $courseMap = [
             'BSIT-MWA' => ['prefix' => 'MWA', 'years' => 4, 'sections_per_year' => 5],
             'BSA'      => ['prefix' => 'ACC', 'years' => 4, 'sections_per_year' => 5],
@@ -62,9 +65,9 @@ class DatabaseSeeder extends Seeder
             for ($year = 1; $year <= $config['years']; $year++) {
                 for ($sec = 1; $sec <= $config['sections_per_year']; $sec++) {
                     $sectionName = $config['prefix'] . '-' . $year . str_pad($sec, 2, '0', STR_PAD_LEFT);
-                    Section::firstOrCreate(
+                    Section::updateOrCreate(
                         ['course_id' => $course->id, 'name' => $sectionName],
-                        ['course_id' => $course->id, 'name' => $sectionName, 'year_level' => $year, 'is_active' => true]
+                        ['year_level' => $year, 'is_active' => true]
                     );
                 }
             }

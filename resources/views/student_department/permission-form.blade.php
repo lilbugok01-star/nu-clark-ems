@@ -32,8 +32,8 @@
     <button onclick="window.print()" class="btn btn-primary px-4 fw-bold shadow-sm">
         <i class="bi bi-printer me-2"></i>Print Permission Form
     </button>
-    <button onclick="window.close()" class="btn btn-outline-secondary px-4 ms-2">
-        <i class="bi bi-x-circle me-2"></i>Close Tab
+    <button onclick="goBack()" class="btn btn-outline-secondary px-4 ms-2">
+        <i class="bi bi-arrow-left me-2"></i>Go Back
     </button>
 </div>
 
@@ -182,6 +182,16 @@
 </div>
 
 <script>
+    // Go back function with fallback
+    function goBack() {
+        if (document.referrer && document.referrer !== '') {
+            window.history.back();
+        } else {
+            // Fallback: navigate to student department dashboard
+            window.location.href = '{{ route("student_department.dashboard") }}';
+        }
+    }
+
     // Auto-trigger print dialog if requested
     if (window.location.search.includes('print=1')) {
         window.print();

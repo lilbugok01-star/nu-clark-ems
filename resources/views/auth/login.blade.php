@@ -6,6 +6,12 @@
     <p class="text-muted small mb-0">Sign in to your NU Clark EMS account</p>
 </div>
 
+@if(session('success'))
+<div class="alert alert-success rounded-3 py-2 px-3 mb-3 small">
+    <i class="bi bi-check-circle me-1"></i>{{ session('success') }}
+</div>
+@endif
+
 @if($errors->any())
 <div class="alert alert-danger rounded-3 py-2 px-3 mb-3 small">
     <i class="bi bi-exclamation-circle me-1"></i>{{ $errors->first() }}
