@@ -13,7 +13,8 @@
                 <div class="p-4">
                     <div class="d-flex flex-wrap gap-2 mb-3">
                         <span class="badge-category">{{ $event->category ?? 'General' }}</span>
-                        <span class="badge-status-{{ $event->status }}">{{ ucfirst($event->status) }}</span>
+                        @php $statusLabel = match($event->status) { 'pending_adviser','pending_dept_head','pending_dean','pending_director' => 'Under Review', 'published' => 'Published', 'draft' => 'Draft', 'cancelled' => 'Cancelled', 'completed' => 'Completed', 'rejected' => 'Rejected', default => ucfirst($event->status) }; @endphp
+                        <span class="badge-status-{{ $event->status }}">{{ $statusLabel }}</span>
                         @if($event->is_featured) <span class="badge bg-warning text-dark" style="font-size:0.7rem"><i class="bi bi-star-fill"></i> Featured</span> @endif
                     </div>
                     <h1 class="fw-bold h3" style="color:var(--nu-blue)">{{ $event->title }}</h1>

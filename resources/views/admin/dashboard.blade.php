@@ -102,7 +102,7 @@
                                     <td>{{ $e->event_date->format('M d, Y') }}</td>
                                     <td>{{ $e->venue }}</td>
                                     <td>{{ $e->organizer->name ?? '-' }}</td>
-                                    <td><span class="badge-status-{{ $e->status }}">{{ ucfirst($e->status) }}</span></td>
+                                    <td>@php $sl=match($e->status){'pending_adviser','pending_dept_head','pending_dean','pending_director'=>'Pending Approval','published'=>'Published','draft'=>'Draft','cancelled'=>'Cancelled','completed'=>'Completed','rejected'=>'Rejected',default=>ucfirst($e->status)};@endphp<span class="badge-status-{{ $e->status }}">{{ $sl }}</span></td>
                                 </tr>
                                 @endforeach
                             </tbody>

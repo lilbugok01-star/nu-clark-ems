@@ -20,7 +20,29 @@
                     </div>
                 @endif
                 <div class="position-absolute" style="top:10px;right:10px">
-                    <span class="badge-status-{{ $event->status }} shadow-sm">{{ ucfirst($event->status) }}</span>
+                    @php
+                        $statusLabel = match($event->status) {
+                            'pending_adviser'    => 'Pending Approval',
+                            'pending_dept_head'  => 'Pending Approval',
+                            'pending_dean'       => 'Pending Approval',
+                            'pending_director'   => 'Pending Approval',
+                            'published'          => 'Published',
+                            'draft'              => 'Draft',
+                            'cancelled'          => 'Cancelled',
+                            'completed'          => 'Completed',
+                            'rejected'           => 'Rejected',
+                            default              => ucfirst($event->status),
+                        };
+                        $statusBadgeClass = match(true) {
+                            str_starts_with($event->status, 'pending_') => 'bg-warning text-dark',
+                            $event->status === 'published'  => 'bg-success text-white',
+                            $event->status === 'rejected'   => 'bg-danger text-white',
+                            $event->status === 'cancelled'  => 'bg-secondary text-white',
+                            $event->status === 'completed'  => 'bg-info text-dark',
+                            default                         => 'bg-light text-dark',
+                        };
+                    @endphp
+                    <span class="badge {{ $statusBadgeClass }} shadow-sm">{{ $statusLabel }}</span>
                 </div>
                 <div class="event-card-body">
                     <div class="d-flex flex-wrap gap-1 mb-2">
