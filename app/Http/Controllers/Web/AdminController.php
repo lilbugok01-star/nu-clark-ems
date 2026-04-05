@@ -84,12 +84,14 @@ class AdminController extends Controller implements HasMiddleware
 
     public function storeUser(Request $request)
     {
+        $allRoles = 'admin,organizer,student,adviser,department_head,dean,executive_director,student_development,program_chair,student_department';
+
         $rules = [
             'name'       => 'required|string',
             'email'      => 'required|email|unique:users',
             'password'   => 'required|min:8',
-            'role'       => 'required|in:admin,organizer,student',
-            'student_id' => 'nullable|unique:users,student_id',
+            'role'       => 'required|in:' . $allRoles,
+            'student_id' => 'nullable|string|unique:users,student_id',
             'course_id'  => 'nullable|exists:courses,id',
             'section_id' => 'nullable|exists:sections,id',
         ];
@@ -101,30 +103,38 @@ class AdminController extends Controller implements HasMiddleware
         }
 
         $v = $request->validate($rules);
-        User::create([...$v, 'password' => Hash::make($v['password'])]);
+        $v['password'] = Hash::make($v['password']);
+
+        // Handle optional e-signature upload
+        if ($request->hasFile('e_signature')) {
+            $v['e_signature_path'] = $request->file('e_signature')->store('signatures', 'public');
+        }
+
+        User::create($v);
         return back()->with('success', 'User created successfully!');
     }
 
     public function updateUser(Request $request, $id)
     {
         $user = User::findOrFail($id);
-        
+        $allRoles = 'admin,organizer,student,adviser,department_head,dean,executive_director,student_development,program_chair,student_department';
+
         $rules = [
             'name'      => 'sometimes|string',
-            'role'      => 'sometimes|in:admin,organizer,student',
+            'role'      => 'sometimes|in:' . $allRoles,
             'is_active' => 'sometimes|boolean',
-            'student_id'=> 'sometimes|nullable|string|unique:users,student_id,' . $id,
-            'course_id' => 'sometimes|nullable|exists:courses,id',
-            'section_id'=> 'sometimes|nullable|exists:sections,id',
         ];
 
         $role = $request->input('role', $user->role);
-        if ($role === 'student') {
+
+        // Only validate student-specific fields if the role is student
+        // AND those fields were actually submitted (so simple deactivation works)
+        if ($role === 'student' && $request->has('student_id')) {
             $rules['student_id'] = 'required|string|unique:users,student_id,' . $id;
             $rules['course_id']  = 'required|exists:courses,id';
             $rules['section_id'] = 'required|exists:sections,id';
-        } else {
-            // Nullify these if changing from student to admin/organizer
+        } elseif ($role !== 'student') {
+            // Clear student fields when switching away from student role
             $request->merge(['student_id' => null, 'course_id' => null, 'section_id' => null]);
             $rules['student_id'] = 'nullable';
             $rules['course_id']  = 'nullable';

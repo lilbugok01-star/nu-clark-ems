@@ -7,6 +7,20 @@
             <h4 class="fw-800 mb-0" style="color:var(--nu-blue)"><i class="bi bi-building me-2" style="color:var(--nu-gold)"></i>Venue Reservations</h4>
             <p class="text-muted small mb-0">Track your facility requests like a parcel</p>
         </div>
+        {{-- E-Signature Upload --}}
+        <form action="{{ route('student_department.signature.upload') }}" method="POST" enctype="multipart/form-data" class="d-flex align-items-center gap-2">
+            @csrf
+            <div>
+                @php $sigUser = Auth::user(); @endphp
+                @if($sigUser->e_signature_path)
+                    <img src="{{ asset('storage/'.$sigUser->e_signature_path) }}" alt="My Signature" style="max-height:40px;border:1px solid var(--gray-200);border-radius:6px;padding:2px 6px;background:#fff">
+                @endif
+                <label class="btn btn-outline-secondary btn-sm ms-1" style="cursor:pointer">
+                    <i class="bi bi-pen me-1" style="color:var(--nu-blue)"></i>{{ $sigUser->e_signature_path ? 'Update Signature' : 'Upload Signature' }}
+                    <input type="file" name="signature" accept="image/*" class="d-none" onchange="this.closest('form').submit()">
+                </label>
+            </div>
+        </form>
     </div>
 
     <!-- Facility Overview -->

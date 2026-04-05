@@ -82,6 +82,7 @@ Route::middleware(['auth'])->prefix('student-department')->name('student_departm
     Route::post('/venue-reservations',      [StudentDepartmentController::class, 'storeVenueReservation'])->name('venue.store');
     Route::delete('/venue-reservations/{id}',[StudentDepartmentController::class, 'deleteVenueReservation'])->name('venue.delete');
     Route::get('/venue-reservations/{id}/form',[StudentDepartmentController::class, 'showPermissionForm'])->name('venue.form');
+    Route::post('/signature',               [StudentDepartmentController::class, 'uploadSignature'])->name('signature.upload');
 });
 
 // Admin
