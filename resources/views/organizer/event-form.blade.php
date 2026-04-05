@@ -214,14 +214,6 @@
                 </div>
             </div>
 
-            <!-- Venue Reservation Notice -->
-            <div class="col-12">
-                <div class="alert-nu rounded-3">
-                    <i class="bi bi-info-circle me-2" style="color:var(--nu-blue)"></i>
-                    <strong>Venue Reservation:</strong> After creating this event, you can submit a formal venue reservation request under <a href="{{ route('student_department.dashboard') }}" style="color:var(--nu-blue)">My Venue Reservations</a>. Admin approval required for Gymnasium and Auditorium.
-                </div>
-            </div>
-
             <!-- Submit -->
             <div class="col-12 d-flex gap-2">
                 <button type="submit" class="btn btn-nu-blue px-5 fw-700">

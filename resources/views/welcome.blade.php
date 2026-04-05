@@ -79,7 +79,7 @@
                     @empty
                     <p class="text-center small py-3 mb-0" style="color:rgba(255,255,255,.5)">No upcoming events yet.</p>
                     @endforelse
-                    <a href="{{ route('events') }}" class="btn btn-gold w-100 mt-3 fw-700 btn-sm">View All Events →</a>
+                    <a href="{{ route('events') }}" class="btn btn-gold w-100 mt-3 fw-700 btn-sm"><i class="bi bi-calendar3 me-1"></i>See Full Schedule →</a>
                 </div>
             </div>
         </div>

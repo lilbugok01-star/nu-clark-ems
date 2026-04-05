@@ -50,7 +50,6 @@ class VenueReservation extends Model
             }
         }
         
-        $venues[] = 'Other';
         return $venues;
     }
 
