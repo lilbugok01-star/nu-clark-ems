@@ -17,22 +17,28 @@ class AuthController extends Controller
     {
         $validated = $request->validate([
             'name'       => 'required|string|max:255',
-            'email'      => 'required|email|unique:users',
+            'email'      => [
+                'required', 'email', 'unique:users',
+                function ($attribute, $value, $fail) {
+                    if (!str_ends_with(strtolower($value), '@student.nu-clark.edu.ph')) {
+                        $fail('Only official NU Clark student emails (@student.nu-clark.edu.ph) are allowed.');
+                    }
+                },
+            ],
             'password'   => 'required|min:8|confirmed',
-            'role'       => 'in:student,organizer',
-            'student_id' => 'nullable|string|unique:users,student_id',
-            'course_id'  => 'nullable|exists:courses,id',
-            'section_id' => 'nullable|exists:sections,id',
+            'student_id' => 'required|string|unique:users,student_id',
+            'course_id'  => 'required|exists:courses,id',
+            'section_id' => 'required|exists:sections,id',
         ]);
 
         $user = User::create([
             'name'       => $validated['name'],
             'email'      => $validated['email'],
             'password'   => Hash::make($validated['password']),
-            'role'       => $validated['role'] ?? 'student',
-            'student_id' => $validated['student_id'] ?? null,
-            'course_id'  => $validated['course_id'] ?? null,
-            'section_id' => $validated['section_id'] ?? null,
+            'role'       => 'student',
+            'student_id' => $validated['student_id'],
+            'course_id'  => $validated['course_id'],
+            'section_id' => $validated['section_id'],
         ]);
 
         // Welcome notification

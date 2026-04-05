@@ -45,7 +45,7 @@ class SecurityHeaders
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
 
         // 6. Permissions-Policy - Limit access to browser features
-        $response->headers->set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+        $response->headers->set('Permissions-Policy', 'camera=(self), microphone=(), geolocation=()');
 
         // 7. Remove information-leaking headers
         $response->headers->remove('X-Powered-By');

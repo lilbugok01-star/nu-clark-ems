@@ -45,9 +45,6 @@ class StudentController extends Controller implements HasMiddleware
         $unreadCount = AppNotification::where('user_id', $user->id)->whereNull('read_at')->count();
         $notifications = AppNotification::where('user_id', $user->id)->orderByDesc('created_at')->take(5)->get();
 
-        // Mark displayed notifications as read
-        AppNotification::where('user_id', $user->id)->whereNull('read_at')->update(['read_at' => now()]);
-
         return view('student.dashboard', compact('user', 'upcoming', 'totalRegistered', 'totalAttended', 'unreadCount', 'notifications'));
     }
 

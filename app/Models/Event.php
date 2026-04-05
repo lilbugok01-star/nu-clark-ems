@@ -57,11 +57,12 @@ class Event extends Model
 
     public function scopeSearch($query, $keyword)
     {
-        return $query->where(function($q) use ($keyword) {
-            $q->where('title', 'like', "%{$keyword}%")
-              ->orWhere('description', 'like', "%{$keyword}%")
-              ->orWhere('venue', 'like', "%{$keyword}%")
-              ->orWhere('category', 'like', "%{$keyword}%");
+        $escaped = str_replace(['%', '_'], ['\\%', '\\_'], $keyword);
+        return $query->where(function($q) use ($escaped) {
+            $q->where('title', 'like', "%{$escaped}%")
+              ->orWhere('description', 'like', "%{$escaped}%")
+              ->orWhere('venue', 'like', "%{$escaped}%")
+              ->orWhere('category', 'like', "%{$escaped}%");
         });
     }
 

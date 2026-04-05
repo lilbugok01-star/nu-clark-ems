@@ -12,7 +12,7 @@ class RegistrationController extends Controller
 {
     public function register(Request $request, $eventId)
     {
-        $event = Event::findOrFail($eventId);
+        $event = Event::where('status', 'published')->findOrFail($eventId);
         $user  = $request->user();
 
         // Check event is still upcoming

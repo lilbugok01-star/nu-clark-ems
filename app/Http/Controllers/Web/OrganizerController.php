@@ -119,7 +119,7 @@ class OrganizerController extends Controller implements HasMiddleware
             'start_time'  => 'required|date_format:H:i|after_or_equal:08:00',
             'end_time'    => 'required|date_format:H:i|after:start_time|before_or_equal:22:00',
             'capacity'    => 'required|integer|min:1',
-            'status'      => 'in:draft,pending_adviser,pending_dept_head,pending_dean,pending_director,published,cancelled,completed,rejected',
+            'status'      => 'in:draft,pending_adviser,cancelled',
             'category'    => 'nullable|string',
             'poster'      => 'nullable|image|max:4096',
         ], [

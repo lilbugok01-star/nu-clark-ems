@@ -19,7 +19,10 @@ class EventController extends Controller
         if ($request->search)   $query->search($request->search);
         if ($request->category) $query->where('category', $request->category);
         if ($request->date)     $query->whereDate('event_date', $request->date);
-        if ($request->venue)    $query->where('venue', 'like', "%{$request->venue}%");
+        if ($request->venue) {
+            $venue = str_replace(['%', '_'], ['\\%', '\\_'], $request->venue);
+            $query->where('venue', 'like', "%{$venue}%");
+        }
 
         $query->orderBy('event_date');
 

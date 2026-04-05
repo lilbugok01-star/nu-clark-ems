@@ -8,6 +8,8 @@ use App\Models\EventApproval;
 use App\Models\VenueReservation;
 use App\Models\VenueReservationApproval;
 use App\Models\FileHuntingSignatory;
+use App\Models\User;
+use App\Models\AppNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -170,6 +172,20 @@ class ApprovalController extends Controller implements HasMiddleware
 
         $event->update(['status' => $nextStatus]);
 
+        // When fully approved and published, notify all students
+        if ($nextStatus === 'published') {
+            $students = User::where('role', 'student')->pluck('id');
+            $notifs = $students->map(fn($uid) => [
+                'user_id'    => $uid,
+                'type'       => 'new_event',
+                'title'      => 'New Event: ' . $event->title,
+                'message'    => "A new event has been posted: {$event->title} on {$event->event_date->format('M d, Y')} at {$event->venue}.",
+                'created_at' => now(),
+                'updated_at' => now(),
+            ])->toArray();
+            AppNotification::insert($notifs);
+        }
+
         return back()->with('success', 'Event approved successfully.');
     }
 
@@ -242,14 +258,18 @@ class ApprovalController extends Controller implements HasMiddleware
 
         $nextStatus = $nextSig ? 'pending_' . $nextSig->role : 'approved';
 
-        VenueReservationApproval::create([
-            'venue_reservation_id' => $res->id,
-            'approver_id'          => $user->id,
-            'role_level'           => $user->role,
-            'status'               => 'approved',
-            'comments'             => $request->comments,
-            'e_signature_used'     => $user->e_signature_path,
-        ]);
+        VenueReservationApproval::updateOrCreate(
+            [
+                'venue_reservation_id' => $res->id,
+                'approver_id'          => $user->id,
+                'role_level'           => $user->role,
+            ],
+            [
+                'status'           => 'approved',
+                'comments'         => $request->comments,
+                'e_signature_used' => $user->e_signature_path,
+            ]
+        );
 
         $res->update(['status' => $nextStatus]);
 
@@ -277,14 +297,18 @@ class ApprovalController extends Controller implements HasMiddleware
             return back()->with('error', 'You cannot reject this reservation because it is not in your queue.');
         }
 
-        VenueReservationApproval::create([
-            'venue_reservation_id' => $res->id,
-            'approver_id'          => $user->id,
-            'role_level'           => $user->role,
-            'status'               => 'rejected',
-            'comments'             => $request->comments,
-            'e_signature_used'     => $user->e_signature_path,
-        ]);
+        VenueReservationApproval::updateOrCreate(
+            [
+                'venue_reservation_id' => $res->id,
+                'approver_id'          => $user->id,
+                'role_level'           => $user->role,
+            ],
+            [
+                'status'           => 'rejected',
+                'comments'         => $request->comments,
+                'e_signature_used' => $user->e_signature_path,
+            ]
+        );
 
         $res->update(['status' => 'rejected']);
 

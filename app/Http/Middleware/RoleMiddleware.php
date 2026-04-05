@@ -10,7 +10,10 @@ class RoleMiddleware
     public function handle(Request $request, Closure $next, ...$roles)
     {
         if (!$request->user() || !in_array($request->user()->role, $roles)) {
-            return response()->json(['message' => 'Unauthorized. Insufficient permissions.'], 403);
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Unauthorized. Insufficient permissions.'], 403);
+            }
+            abort(403, 'Unauthorized. Insufficient permissions.');
         }
         return $next($request);
     }

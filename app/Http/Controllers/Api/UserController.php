@@ -16,8 +16,13 @@ class UserController extends Controller
         $query = User::with('course', 'section');
 
         if ($request->role)   $query->where('role', $request->role);
-        if ($request->search) $query->where('name', 'like', "%{$request->search}%")
-                                    ->orWhere('email', 'like', "%{$request->search}%");
+        if ($request->search) {
+            $search = str_replace(['%', '_'], ['\\%', '\\_'], $request->search);
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
 
         return response()->json($query->paginate(20));
     }
@@ -56,11 +61,12 @@ class UserController extends Controller
             'student_id' => "sometimes|nullable|unique:users,student_id,{$id}",
             'course_id'  => 'sometimes|nullable|exists:courses,id',
             'section_id' => 'sometimes|nullable|exists:sections,id',
+            'password'   => 'sometimes|string|min:8|confirmed',
             'is_active'  => 'sometimes|boolean',
         ]);
 
-        if ($request->has('password')) {
-            $validated['password'] = Hash::make($request->password);
+        if (isset($validated['password'])) {
+            $validated['password'] = Hash::make($validated['password']);
         }
 
         $user->update($validated);

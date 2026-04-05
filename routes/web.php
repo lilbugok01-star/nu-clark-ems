@@ -17,14 +17,14 @@ Route::get('/events', [HomeController::class, 'events'])->name('events');
 Route::get('/events/{id}', [HomeController::class, 'showEvent'])->name('event.show');
 
 // Force sync database (Admin-only fallback for Railway)
-Route::get('/force-sync-database', function () {
+Route::post('/force-sync-database', function () {
     if (!\Illuminate\Support\Facades\Auth::check() || \Illuminate\Support\Facades\Auth::user()->role !== 'admin') {
         abort(403, 'Admin access required.');
     }
     \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
     \Illuminate\Support\Facades\Artisan::call('db:seed', ['--force' => true]);
-    return "Database forced sync successful! Go back to <a href='/'>Home</a>";
-})->middleware('auth');
+    return redirect('/')->with('success', 'Database forced sync successful!');
+})->middleware(['auth', 'role:admin']);
 
 // ── Auth Routes (guests only) ─────────────────────────────────────────────────
 Route::middleware('guest')->group(function () {
@@ -49,7 +49,7 @@ Route::middleware('auth')->group(function () {
 });
 
 // Student
-Route::middleware(['auth'])->prefix('student')->name('student.')->group(function () {
+Route::middleware(['auth', 'role:student,admin'])->prefix('student')->name('student.')->group(function () {
     Route::get('/dashboard',     [StudentController::class, 'dashboard'])->name('dashboard');
     Route::get('/events',        [StudentController::class, 'events'])->name('events');
     Route::get('/my-events',     [StudentController::class, 'myEvents'])->name('my-events');
@@ -62,7 +62,7 @@ Route::middleware(['auth'])->prefix('student')->name('student.')->group(function
 });
 
 // Organizer
-Route::middleware(['auth'])->prefix('organizer')->name('organizer.')->group(function () {
+Route::middleware(['auth', 'role:organizer,admin'])->prefix('organizer')->name('organizer.')->group(function () {
     Route::get('/dashboard',           [OrganizerController::class, 'dashboard'])->name('dashboard');
     Route::get('/events',              [OrganizerController::class, 'events'])->name('events');
     Route::get('/events/create',       [OrganizerController::class, 'createEvent'])->name('event.create');
@@ -79,7 +79,7 @@ Route::middleware(['auth'])->prefix('organizer')->name('organizer.')->group(func
 });
 
 // Student Department (Venue Reservations)
-Route::middleware(['auth'])->prefix('student-department')->name('student_department.')->group(function () {
+Route::middleware(['auth', 'role:student_department,admin'])->prefix('student-department')->name('student_department.')->group(function () {
     Route::get('/dashboard',                [StudentDepartmentController::class, 'dashboard'])->name('dashboard');
     Route::get('/venue-reservations/events',[StudentDepartmentController::class, 'calendarEvents'])->name('venue.events.json');
     Route::post('/venue-reservations',      [StudentDepartmentController::class, 'storeVenueReservation'])->name('venue.store');
@@ -89,7 +89,7 @@ Route::middleware(['auth'])->prefix('student-department')->name('student_departm
 });
 
 // Admin
-Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard',         [AdminController::class, 'dashboard'])->name('dashboard');
     Route::get('/users',             [AdminController::class, 'users'])->name('users');
     Route::post('/users',            [AdminController::class, 'storeUser'])->name('users.store');
@@ -118,7 +118,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
 
 // Approver Flow
 
-Route::middleware(['auth'])->prefix('approver')->name('approver.')->group(function () {
+Route::middleware(['auth', 'role:adviser,department_head,dean,executive_director,student_development,program_chair,admin'])->prefix('approver')->name('approver.')->group(function () {
     Route::get('/dashboard',              [ApprovalController::class, 'dashboard'])->name('dashboard');
     Route::get('/profile',                [ApprovalController::class, 'profile'])->name('profile');
     Route::post('/profile/update',        [ApprovalController::class, 'updateProfile'])->name('profile.update');
