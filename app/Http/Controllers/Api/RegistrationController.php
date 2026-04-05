@@ -26,7 +26,7 @@ class RegistrationController extends Controller
         }
 
         // Check duplicate registration
-        if (Registration::where('user_id', $user->id)->where('event_id', $eventId)->exists()) {
+        if (Registration::where('user_id', $user->id)->where('event_id', $eventId)->where('status', '!=', 'cancelled')->exists()) {
             return response()->json(['message' => 'You are already registered for this event.'], 422);
         }
 

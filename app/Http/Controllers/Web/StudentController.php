@@ -10,9 +10,24 @@ use App\Models\AppNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 
-class StudentController extends Controller
+class StudentController extends Controller implements HasMiddleware
 {
+    public static function middleware(): array
+    {
+        return [
+            'auth',
+            new Middleware(function ($request, $next) {
+                if (!in_array(Auth::user()->role, ['student', 'admin'])) {
+                    abort(403, 'Access denied. Students only.');
+                }
+                return $next($request);
+            }),
+        ];
+    }
+
     public function dashboard(Request $request)
     {
         $user            = Auth::user()->load('course', 'section');
@@ -103,7 +118,7 @@ class StudentController extends Controller
 
     public function register(Request $request, $eventId)
     {
-        $event = Event::findOrFail($eventId);
+        $event = Event::where('status', 'published')->findOrFail($eventId);
 
         if ($event->isFull()) {
             return back()->with('error', 'Sorry, this event is already at full capacity.');
@@ -198,6 +213,10 @@ class StudentController extends Controller
                     $allowed = ['jpeg', 'jpg', 'png', 'webp'];
                     if (in_array($image_type, $allowed)) {
                         $image_base64 = base64_decode($image_parts[1]);
+                        // Limit decoded size to 5MB to prevent disk exhaustion
+                        if (strlen($image_base64) > 5 * 1024 * 1024) {
+                            return back()->with('error', 'Photo is too large. Maximum size is 5MB.');
+                        }
                         $fileName = 'attendance-photos/' . $registration->event_id . '/' . uniqid() . '.' . $image_type;
                         \Illuminate\Support\Facades\Storage::disk('public')->put($fileName, $image_base64);
                         $photoPath = $fileName;

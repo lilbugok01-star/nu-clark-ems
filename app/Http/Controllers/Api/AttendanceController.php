@@ -130,7 +130,13 @@ class AttendanceController extends Controller
      */
     public function verify(Request $request, $id)
     {
-        $attendance = Attendance::findOrFail($id);
+        $attendance = Attendance::with('registration.event')->findOrFail($id);
+
+        // Ownership check: only event organizer or admin
+        $event = $attendance->registration->event;
+        if ($event->organizer_id !== $request->user()->id && $request->user()->role !== 'admin') {
+            return response()->json(['message' => 'You can only verify attendance for your own events.'], 403);
+        }
 
         $request->validate([
             'status' => 'required|in:verified,rejected',

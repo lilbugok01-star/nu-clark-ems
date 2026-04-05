@@ -54,8 +54,8 @@ class EventController extends Controller
             'status'       => 'pending_adviser',
         ]);
 
-        // Notify all students of new event
-        $this->notifyStudents($event);
+        // Notifications to students are sent only once the event is fully approved and published.
+        // The approval chain handles this transition.
 
         return response()->json(['status' => 'success', 'event' => $event->load('organizer')], 201);
     }

@@ -111,15 +111,15 @@ class ApprovalController extends Controller implements HasMiddleware
             return back()->with('error', 'You are not an active signatory for venue reservations.');
         }
 
-        // Create or retrieve the pending approval record for tracking open state
+        // Create or retrieve the approval record for tracking open state
         $approval = VenueReservationApproval::firstOrCreate(
             [
                 'venue_reservation_id' => $res->id,
                 'approver_id'          => $user->id,
                 'role_level'           => $user->role,
-                'status'               => 'pending',
             ],
             [
+                'status'               => 'pending',
                 'opened_at'            => now(),
             ]
         );

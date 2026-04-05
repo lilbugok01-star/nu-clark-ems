@@ -127,6 +127,8 @@ class StudentDepartmentController extends Controller implements HasMiddleware
             return back()->with('error', 'The requested venue is unavailable at this time due to conflicting events or ingress/egress constraints.');
         }
 
+        $firstSignatory = FileHuntingSignatory::where('is_active', 1)->orderBy('step_order')->first();
+
         VenueReservation::create([
             'event_id'           => $finalEventId,
             'event_title'        => $finalEventTitle,
@@ -137,9 +139,7 @@ class StudentDepartmentController extends Controller implements HasMiddleware
             'expected_attendees' => $v['expected_attendees'] ?? 50,
             'purpose'            => $v['purpose'] ?? null,
             'reserved_by'        => Auth::id(),
-            'status'             => \App\Models\FileHuntingSignatory::where('is_active', 1)->orderBy('step_order')->first()
-                                        ? 'pending_' . \App\Models\FileHuntingSignatory::where('is_active', 1)->orderBy('step_order')->first()->role
-                                        : 'approved', // Start of dynamic chain
+            'status'             => $firstSignatory ? 'pending_' . $firstSignatory->role : 'approved',
         ]);
 
         return back()->with('success', 'Venue reservation request submitted for review.');

@@ -60,7 +60,7 @@ class VenueReservation extends Model
     {
         $query = self::where('venue_name', $venueName)
             ->where('reserved_date', $date)
-            ->where('status', '!=', 'rejected')
+            ->whereNotIn('status', ['rejected', 'cancelled'])
             ->where(function ($q) use ($startTime, $endTime) {
                 $q->whereBetween('start_time', [$startTime, $endTime])
                   ->orWhereBetween('end_time', [$startTime, $endTime])

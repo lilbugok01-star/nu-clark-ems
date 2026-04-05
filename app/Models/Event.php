@@ -78,6 +78,6 @@ class Event extends Model
 
     public function attendedCount(): int
     {
-        return $this->registrations()->whereHas('attendance')->count();
+        return $this->registrations()->whereHas('attendance', fn($q) => $q->where('status', 'verified'))->count();
     }
 }

@@ -12,7 +12,6 @@ use App\Models\Attendance;
 use App\Models\AppNotification;
 use App\Models\VenueReservation;
 use App\Models\FileHuntingSignatory;
-use App\Exports\EventReportExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -156,6 +155,9 @@ class AdminController extends Controller implements HasMiddleware
 
     public function deleteUser($id)
     {
+        if ((int)$id === Auth::id()) {
+            return back()->with('error', 'You cannot delete your own account.');
+        }
         User::findOrFail($id)->delete();
         return back()->with('success', 'User deleted.');
     }
@@ -197,7 +199,7 @@ class AdminController extends Controller implements HasMiddleware
     public function sendNotification(Request $request)
     {
         $v = $request->validate([
-            'role'    => 'nullable|in:admin,organizer,student',
+            'role'    => 'nullable|in:admin,organizer,student,adviser,department_head,dean,executive_director,student_development,program_chair,student_department',
             'title'   => 'required|string|max:255',
             'message' => 'required|string|max:2000',
         ]);
@@ -229,7 +231,7 @@ class AdminController extends Controller implements HasMiddleware
         }
         $reservations = $query->paginate(20);
         $total    = VenueReservation::count();
-        $pending  = VenueReservation::where('status', 'pending')->count();
+        $pending  = VenueReservation::where('status', 'like', 'pending_%')->count();
         $approved = VenueReservation::where('status', 'approved')->count();
         $rejected = VenueReservation::where('status', 'rejected')->count();
         return view('admin.venues', compact('reservations','total','pending','approved','rejected'));

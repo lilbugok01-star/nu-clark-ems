@@ -7,8 +7,6 @@ use App\Models\Event;
 use App\Models\Registration;
 use App\Models\Attendance;
 use App\Models\AppNotification;
-use App\Models\User;
-use App\Models\VenueReservation;
 use App\Exports\AttendanceExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -176,7 +174,7 @@ class OrganizerController extends Controller implements HasMiddleware
 
     public function exportPdf($eventId)
     {
-        $event       = Event::findOrFail($eventId);
+        $event       = Event::where('organizer_id', Auth::id())->findOrFail($eventId);
         $attendances = Attendance::with(['registration.user.course', 'registration.user.section'])
             ->whereHas('registration', fn($q) => $q->where('event_id', $eventId))->get();
         $pdf = Pdf::loadView('reports.attendance-pdf', compact('event', 'attendances'))->setPaper('a4');
@@ -185,6 +183,7 @@ class OrganizerController extends Controller implements HasMiddleware
 
     public function exportExcel($eventId)
     {
+        Event::where('organizer_id', Auth::id())->findOrFail($eventId);
         return Excel::download(new AttendanceExport($eventId), "attendance-{$eventId}.xlsx");
     }
 
