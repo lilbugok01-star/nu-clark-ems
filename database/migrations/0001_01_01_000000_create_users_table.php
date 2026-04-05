@@ -21,7 +21,6 @@ return new class extends Migration
             $table->string('student_id', 20)->nullable()->unique();
             $table->foreignId('course_id')->nullable()->constrained('courses')->nullOnDelete();
             $table->foreignId('section_id')->nullable()->constrained('sections')->nullOnDelete();
-            $table->string('phone', 20)->nullable();
             $table->string('avatar')->nullable();
             $table->boolean('is_active')->default(true);
             $table->rememberToken();

@@ -23,7 +23,6 @@ class AuthController extends Controller
             'student_id' => 'nullable|string|unique:users,student_id',
             'course_id'  => 'nullable|exists:courses,id',
             'section_id' => 'nullable|exists:sections,id',
-            'phone'      => 'nullable|string|max:20',
         ]);
 
         $user = User::create([
@@ -34,7 +33,6 @@ class AuthController extends Controller
             'student_id' => $validated['student_id'] ?? null,
             'course_id'  => $validated['course_id'] ?? null,
             'section_id' => $validated['section_id'] ?? null,
-            'phone'      => $validated['phone'] ?? null,
         ]);
 
         // Welcome notification

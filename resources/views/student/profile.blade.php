@@ -37,8 +37,8 @@
             </div>
             <div class="col-md-6">
                 <div class="p-3 rounded-xl" style="background:var(--gray-100)">
-                    <div class="small text-muted">Phone</div>
-                    <div class="fw-semibold">{{ $user->phone ?? 'Not set' }}</div>
+                    <div class="small text-muted">Year Level</div>
+                    <div class="fw-semibold">{{ $user->section->year_level ? 'Year ' . $user->section->year_level : 'Not set' }}</div>
                 </div>
             </div>
         </div>

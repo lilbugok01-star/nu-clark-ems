@@ -32,7 +32,6 @@ class UserController extends Controller
             'student_id' => 'nullable|string|unique:users,student_id',
             'course_id'  => 'nullable|exists:courses,id',
             'section_id' => 'nullable|exists:sections,id',
-            'phone'      => 'nullable|string|max:20',
         ]);
 
         $user = User::create([...$validated, 'password' => Hash::make($validated['password'])]);
@@ -57,7 +56,6 @@ class UserController extends Controller
             'student_id' => "sometimes|nullable|unique:users,student_id,{$id}",
             'course_id'  => 'sometimes|nullable|exists:courses,id',
             'section_id' => 'sometimes|nullable|exists:sections,id',
-            'phone'      => 'sometimes|nullable|string',
             'is_active'  => 'sometimes|boolean',
         ]);
 
