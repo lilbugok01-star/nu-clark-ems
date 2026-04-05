@@ -160,13 +160,13 @@
                             $bellCount = \App\Models\AppNotification::where('user_id', Auth::id())->whereNull('read_at')->count();
                             $bellNotifs = \App\Models\AppNotification::where('user_id', Auth::id())->orderByDesc('created_at')->take(5)->get();
                         @endphp
-                        <div class="dropdown">
+                        <div class="dropdown" id="notifDropdown">
                             <button class="btn position-relative p-2 rounded-circle"
                                 style="background:rgba(255,255,255,.1);color:rgba(255,255,255,.85);border:none;line-height:1"
                                 data-bs-toggle="dropdown" aria-label="Notifications" title="Notifications">
                                 <i class="bi bi-bell" style="font-size:1.05rem"></i>
                                 @if($bellCount > 0)
-                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill"
+                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill notif-badge"
                                         style="background:var(--nu-gold);color:var(--nu-blue);font-size:.58rem;padding:2px 5px;line-height:1.3;font-weight:800">
                                         {{ $bellCount > 9 ? '9+' : $bellCount }}
                                     </span>
@@ -174,16 +174,19 @@
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end shadow-lg rounded-3 notif-dropdown mt-1 p-0"
                                 style="min-width:300px;border:1px solid var(--gray-200);overflow:hidden">
-                                <li class="px-3 py-2" style="background:var(--nu-blue);border-radius:12px 12px 0 0">
+                                <li class="px-3 py-2 d-flex justify-content-between align-items-center" style="background:var(--nu-blue);border-radius:12px 12px 0 0">
                                     <span class="fw-700 small text-white"><i class="bi bi-bell me-1"
                                             style="color:var(--nu-gold)"></i> Notifications</span>
+                                    @if($bellCount > 0)
+                                        <a href="#" class="text-white small fw-600 mark-all-read-link" style="font-size:.7rem;text-decoration:underline;opacity:.85">Mark all read</a>
+                                    @endif
                                 </li>
                                 @forelse($bellNotifs as $nn)
                                     <li>
                                         <a class="dropdown-item py-2 px-3 border-bottom" href="#" style="white-space:normal;font-size:.82rem;color:{{ $nn->read_at ? 'var(--gray-600)' : 'var(--gray-800)' }};
                                                       font-weight:{{ $nn->read_at ? '400' : '600' }}">
                                             @if(!$nn->read_at)
-                                                <span
+                                                <span class="notif-unread-dot"
                                                     style="color:var(--nu-gold);font-size:.6rem;vertical-align:middle">●</span>&nbsp;
                                             @endif
                                             {{ Str::limit($nn->title, 42) }}
@@ -436,6 +439,57 @@
         integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous">
     </script>
     @stack('scripts')
+
+    @auth
+    <script>
+    (function(){
+        function markAllRead() {
+            fetch("{{ route('notifications.markRead') }}", {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            }).then(function(){
+                // Hide badge
+                var badge = document.querySelector('.notif-badge');
+                if (badge) badge.style.display = 'none';
+                // Remove unread dots
+                document.querySelectorAll('.notif-unread-dot').forEach(function(d){ d.remove(); });
+                // Hide "Mark all read" link
+                var link = document.querySelector('.mark-all-read-link');
+                if (link) link.style.display = 'none';
+                // Reset font-weight on notification items
+                document.querySelectorAll('#notifDropdown .dropdown-item').forEach(function(el){
+                    el.style.fontWeight = '400';
+                    el.style.color = 'var(--gray-600)';
+                });
+            });
+        }
+
+        // Mark as read when dropdown opens
+        var notifDropdown = document.getElementById('notifDropdown');
+        if (notifDropdown) {
+            var btn = notifDropdown.querySelector('[data-bs-toggle="dropdown"]');
+            if (btn) {
+                btn.addEventListener('shown.bs.dropdown', function() {
+                    @if($bellCount > 0) markAllRead(); @endif
+                });
+            }
+        }
+
+        // Also handle "Mark all read" link click
+        var markLink = document.querySelector('.mark-all-read-link');
+        if (markLink) {
+            markLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                markAllRead();
+            });
+        }
+    })();
+    </script>
+    @endauth
 </body>
 
 </html>

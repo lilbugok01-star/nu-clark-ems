@@ -35,6 +35,16 @@ Route::middleware('guest')->group(function () {
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
+// ── Shared Authenticated Routes ─────────────────────────────────────────────
+Route::middleware('auth')->group(function () {
+    Route::post('/notifications/mark-read', function () {
+        \App\Models\AppNotification::where('user_id', \Illuminate\Support\Facades\Auth::id())
+            ->whereNull('read_at')
+            ->update(['read_at' => now()]);
+        return response()->json(['ok' => true]);
+    })->name('notifications.markRead');
+});
+
 // Student
 Route::middleware(['auth'])->prefix('student')->name('student.')->group(function () {
     Route::get('/dashboard',     [StudentController::class, 'dashboard'])->name('dashboard');
