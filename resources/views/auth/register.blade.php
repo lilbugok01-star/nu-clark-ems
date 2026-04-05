@@ -32,8 +32,14 @@
             <label class="form-label fw-600">Email Address <span class="text-danger">*</span></label>
             <div class="input-group">
                 <span class="input-group-text"><i class="bi bi-envelope text-muted"></i></span>
-                <input type="email" name="email" class="form-control" placeholder="your@nu-clark.edu.ph"
-                       value="{{ old('email') }}" required autocomplete="email">
+                <input type="email" name="email" class="form-control"
+                       placeholder="e.g. 2022-00001@student.nu-clark.edu.ph"
+                       value="{{ old('email') }}" required autocomplete="email"
+                       pattern=".+@student\.nu-clark\.edu\.ph"
+                       title="Must be an official NU Clark student email ending in @student.nu-clark.edu.ph">
+            </div>
+            <div class="form-text" style="color:var(--nu-blue);font-size:.75rem">
+                <i class="bi bi-info-circle me-1"></i>Use your official school email: <strong>@student.nu-clark.edu.ph</strong>
             </div>
         </div>
 

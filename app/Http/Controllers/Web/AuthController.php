@@ -52,12 +52,20 @@ class AuthController extends Controller
     {
         $v = $request->validate([
             'name'       => 'required|string|max:255',
-            'email'      => 'required|email|unique:users',
+            'email'      => [
+                'required',
+                'email',
+                'unique:users',
+                function ($attribute, $value, $fail) {
+                    if (!str_ends_with(strtolower($value), '@student.nu-clark.edu.ph')) {
+                        $fail('Only official NU Clark student emails (@student.nu-clark.edu.ph) are allowed.');
+                    }
+                },
+            ],
             'password'   => 'required|min:8|confirmed',
             'student_id' => 'required|string|unique:users,student_id',
             'course_id'  => 'required|exists:courses,id',
             'section_id' => 'required|exists:sections,id',
-            'phone'      => ['nullable', 'string', 'regex:/^[0-9+\-\s()]{7,20}$/'],
         ]);
 
         $user = User::create([

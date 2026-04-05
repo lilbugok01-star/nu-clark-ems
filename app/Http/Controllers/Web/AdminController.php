@@ -97,6 +97,14 @@ class AdminController extends Controller implements HasMiddleware
         ];
 
         if ($request->role === 'student') {
+            $rules['email'] = [
+                'required', 'email', 'unique:users',
+                function ($attribute, $value, $fail) {
+                    if (!str_ends_with(strtolower($value), '@student.nu-clark.edu.ph')) {
+                        $fail('Student accounts must use an official NU Clark email (@student.nu-clark.edu.ph).');
+                    }
+                },
+            ];
             $rules['student_id'] = 'required|string|unique:users,student_id';
             $rules['course_id']  = 'required|exists:courses,id';
             $rules['section_id'] = 'required|exists:sections,id';
