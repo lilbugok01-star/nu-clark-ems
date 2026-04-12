@@ -14,10 +14,7 @@
                 <a href="{{ route('admin.notifications') }}" class="sidebar-link @if(request()->routeIs('admin.notifications')) active @endif"><i class="bi bi-megaphone"></i> Notifications</a>
                 <a href="{{ route('events') }}" class="sidebar-link"><i class="bi bi-calendar3"></i> View Events</a>
                 <hr style="border-color:rgba(255,255,255,0.1)">
-                <form action="{{ route('logout') }}" method="POST">
-                    @csrf
-                    <button type="submit" class="sidebar-link w-100 border-0" style="background:none;text-align:left"><i class="bi bi-box-arrow-right"></i> Logout</button>
-                </form>
+                <button type="button" class="sidebar-link w-100 border-0" style="background:none;text-align:left" data-bs-toggle="modal" data-bs-target="#logoutConfirmModal"><i class="bi bi-box-arrow-right"></i> Logout</button>
             </div>
         </div>
 
@@ -110,6 +107,20 @@
                         </div>
                     </div>
                 </div>
+                </div>
+
+                <!-- Events Calendar -->
+                <div class="col-12 mt-4">
+                    <div class="nu-card p-4">
+                        <h6 class="fw-bold mb-3"><i class="bi bi-calendar3 text-gold me-2"></i>Events Calendar</h6>
+                        <div class="d-flex flex-wrap gap-3 mb-3">
+                            <span class="d-flex align-items-center gap-1 small text-muted"><span style="width:12px;height:12px;border-radius:3px;background:#003087;display:inline-block"></span> Published Events</span>
+                            <span class="d-flex align-items-center gap-1 small text-muted"><span style="width:12px;height:12px;border-radius:3px;background:#28a745;display:inline-block"></span> Approved Venues</span>
+                            <span class="d-flex align-items-center gap-1 small text-muted"><span style="width:12px;height:12px;border-radius:3px;background:#ffc107;display:inline-block"></span> Pending Venues</span>
+                        </div>
+                        <div id="adminCalendar" style="min-height:500px"></div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -142,5 +153,47 @@ new Chart(document.getElementById('registrationsChart'), {
     }
 });
 </script>
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var cal = new FullCalendar.Calendar(document.getElementById('adminCalendar'), {
+        initialView: 'dayGridMonth',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+        },
+        buttonText: { today: 'Today', month: 'Month', week: 'Week', day: 'Day' },
+        slotMinTime: '06:00:00',
+        slotMaxTime: '23:00:00',
+        events: '{{ route("calendar.events.json") }}',
+        eventClick: function(info) { showCalendarEventModal(info); },
+        height: 'auto'
+    });
+    cal.render();
+});
+</script>
+<style>
+    #adminCalendar .fc .fc-button-primary {
+        background-color: var(--nu-blue) !important;
+        border-color: var(--nu-blue) !important;
+        font-size: 0.85rem !important;
+        font-weight: 700 !important;
+        padding: 0.4rem 0.8rem !important;
+    }
+    #adminCalendar .fc .fc-button-primary:hover {
+        background-color: var(--nu-blue-dk) !important;
+    }
+    #adminCalendar .fc .fc-button-active {
+        background-color: var(--nu-gold) !important;
+        border-color: var(--nu-gold) !important;
+        color: var(--nu-blue) !important;
+    }
+    #adminCalendar .fc .fc-toolbar-title {
+        font-size: 1.1rem !important;
+        font-weight: 800 !important;
+        color: var(--nu-blue);
+    }
+</style>
 @endpush
 @endsection

@@ -15,6 +15,7 @@ use App\Http\Controllers\Web\ApprovalController;
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/events', [HomeController::class, 'events'])->name('events');
 Route::get('/events/{id}', [HomeController::class, 'showEvent'])->name('event.show');
+Route::get('/calendar/events/json', [HomeController::class, 'calendarEventsJson'])->name('calendar.events.json');
 
 // Force sync database (Admin-only fallback for Railway)
 Route::post('/force-sync-database', function () {

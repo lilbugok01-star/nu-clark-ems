@@ -47,14 +47,6 @@
         </div>
     </div>
 
-    <!-- Remember + Submit -->
-    <div class="d-flex align-items-center justify-content-between mb-3">
-        <div class="form-check">
-            <input class="form-check-input" type="checkbox" name="remember" id="rememberMe">
-            <label class="form-check-label small" for="rememberMe">Keep me signed in</label>
-        </div>
-    </div>
-
     <button type="submit" class="btn btn-nu-blue w-100 py-2 fw-700 mb-3">
         <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
     </button>

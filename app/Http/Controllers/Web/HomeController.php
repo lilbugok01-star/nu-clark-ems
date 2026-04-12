@@ -30,6 +30,57 @@ class HomeController extends Controller
         return view('home.events', compact('events', 'categories'));
     }
 
+    /**
+     * Shared JSON feed for FullCalendar — published events + venue reservations.
+     */
+    public function calendarEventsJson()
+    {
+        $items = [];
+
+        // Published events
+        $events = Event::where('status', 'published')->get();
+        foreach ($events as $e) {
+            $items[] = [
+                'id'    => 'event-' . $e->id,
+                'title' => $e->title,
+                'start' => $e->event_date->format('Y-m-d') . 'T' . $e->start_time,
+                'end'   => $e->event_date->format('Y-m-d') . 'T' . $e->end_time,
+                'color' => '#003087',
+                'extendedProps' => [
+                    'type'     => 'event',
+                    'venue'    => $e->venue,
+                    'category' => $e->category,
+                    'status'   => $e->status,
+                ],
+            ];
+        }
+
+        // Venue reservations (approved + pending)
+        $reservations = \App\Models\VenueReservation::with('event')
+            ->where(function ($q) {
+                $q->where('status', 'like', 'pending_%')
+                  ->orWhere('status', 'approved');
+            })->get();
+
+        foreach ($reservations as $r) {
+            $eventTitle = $r->event ? $r->event->title : ($r->event_title ?: 'Reserved');
+            $items[] = [
+                'id'    => 'venue-' . $r->id,
+                'title' => $eventTitle . ' (' . $r->venue_name . ')',
+                'start' => $r->reserved_date->format('Y-m-d') . 'T' . $r->start_time,
+                'end'   => $r->reserved_date->format('Y-m-d') . 'T' . $r->end_time,
+                'color' => $r->status === 'approved' ? '#28a745' : '#ffc107',
+                'extendedProps' => [
+                    'type'   => 'venue',
+                    'venue'  => $r->venue_name,
+                    'status' => $r->status,
+                ],
+            ];
+        }
+
+        return response()->json($items);
+    }
+
     public function showEvent($id)
     {
         $event = Event::with('organizer')->findOrFail($id);

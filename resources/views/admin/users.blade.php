@@ -86,7 +86,10 @@
                                 <div class="d-flex gap-1">
                                     <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#editUserModal"
                                             data-id="{{ $user->id }}" data-name="{{ $user->name }}" data-role="{{ $user->role }}"
-                                            data-active="{{ $user->is_active ? '1' : '0' }}">
+                                            data-active="{{ $user->is_active ? '1' : '0' }}"
+                                            data-student-id="{{ $user->student_id }}"
+                                            data-course-id="{{ $user->course_id }}"
+                                            data-section-id="{{ $user->section_id }}">
                                         <i class="bi bi-pencil"></i>
                                     </button>
                                     @if($user->id !== auth()->id())
@@ -239,6 +242,7 @@
                         </select>
                     </div>
                     <div class="form-check form-switch mb-3">
+                        <input type="hidden" name="is_active" value="0">
                         <input class="form-check-input" type="checkbox" name="is_active" id="editActive" value="1">
                         <label class="form-check-label fw-600" for="editActive">Active Account</label>
                     </div>

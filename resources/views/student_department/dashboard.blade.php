@@ -122,9 +122,7 @@
                 slotMinTime: '06:00:00',
                 slotMaxTime: '23:00:00',
                 events: '{{ route("student_department.venue.events.json") }}',
-                eventClick: function(info) {
-                    alert('Venue: ' + info.event.extendedProps.venue + '\nStatus: ' + info.event.extendedProps.status);
-                }
+                eventClick: function(info) { showCalendarEventModal(info); }
             });
             calendar.render();
         });

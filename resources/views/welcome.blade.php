@@ -243,6 +243,71 @@
 </section>
 @endif
 
+<!-- ── EVENTS CALENDAR ─────────────────────────────────── -->
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-4">
+            <div class="section-label">Full Schedule</div>
+            <div class="section-title">Events Calendar</div>
+            <div class="section-divider mx-auto"></div>
+            <p class="text-muted" style="max-width:500px;margin:0 auto">Browse all upcoming NU Clark events on an interactive calendar. Click any event for details.</p>
+        </div>
+        <div class="d-flex flex-wrap gap-3 justify-content-center mb-3">
+            <span class="d-flex align-items-center gap-1 small text-muted"><span style="width:12px;height:12px;border-radius:3px;background:#003087;display:inline-block"></span> Published Events</span>
+            <span class="d-flex align-items-center gap-1 small text-muted"><span style="width:12px;height:12px;border-radius:3px;background:#28a745;display:inline-block"></span> Approved Venues</span>
+            <span class="d-flex align-items-center gap-1 small text-muted"><span style="width:12px;height:12px;border-radius:3px;background:#ffc107;display:inline-block"></span> Pending Venues</span>
+        </div>
+        <div class="nu-card p-4" style="border-radius:var(--radius-lg)">
+            <div id="welcomeCalendar" style="min-height:500px"></div>
+        </div>
+    </div>
+</section>
+
+@push('scripts')
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var cal = new FullCalendar.Calendar(document.getElementById('welcomeCalendar'), {
+        initialView: 'dayGridMonth',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek'
+        },
+        buttonText: { today: 'Today', month: 'Month', week: 'Week' },
+        events: '{{ route("calendar.events.json") }}',
+        eventClick: function(info) { showCalendarEventModal(info); },
+        height: 'auto'
+    });
+    cal.render();
+});
+</script>
+<style>
+    #welcomeCalendar .fc .fc-button-primary {
+        background-color: var(--nu-blue) !important;
+        border-color: var(--nu-blue) !important;
+        font-size: 0.85rem !important;
+        font-weight: 700 !important;
+        padding: 0.4rem 0.8rem !important;
+    }
+    #welcomeCalendar .fc .fc-button-primary:hover {
+        background-color: var(--nu-blue-dk) !important;
+        border-color: var(--nu-blue-dk) !important;
+    }
+    #welcomeCalendar .fc .fc-button-active {
+        background-color: var(--nu-gold) !important;
+        border-color: var(--nu-gold) !important;
+        color: var(--nu-blue) !important;
+    }
+    #welcomeCalendar .fc .fc-toolbar-title {
+        font-size: 1.1rem !important;
+        font-weight: 800 !important;
+        color: var(--nu-blue);
+    }
+</style>
+@endpush
+
+
 <!-- ── CTA ───────────────────────────────────────────── -->
 <section class="py-5" style="background:linear-gradient(135deg,var(--nu-blue-dk),var(--nu-blue))">
     <div class="container text-center py-2">
@@ -253,7 +318,7 @@
             <i class="bi bi-person-plus me-2"></i>Get Started — It's Free
         </a>
         @else
-        <a href="{{ Auth::user()->role === 'student' ? route('student.events') : route('organizer.events') }}" class="btn btn-gold btn-lg px-5 fw-700">
+        <a href="{{ route('events') }}" class="btn btn-gold btn-lg px-5 fw-700">
             <i class="bi bi-calendar-event me-2"></i>Browse Events
         </a>
         @endguest

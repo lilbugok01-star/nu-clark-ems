@@ -239,7 +239,7 @@
                                     <li><a class="dropdown-item small py-2 px-3 d-flex align-items-center gap-2"
                                             href="{{ route('organizer.analytics') }}"><i class="bi bi-bar-chart"
                                                 style="color:var(--nu-blue)"></i> Analytics</a></li>
-                                @elseif(in_array(Auth::user()->role, ['adviser', 'department_head', 'dean', 'executive_director']))
+                                @elseif(in_array(Auth::user()->role, ['adviser', 'department_head', 'dean', 'executive_director', 'student_development', 'program_chair']))
                                     <li><a class="dropdown-item small py-2 px-3 d-flex align-items-center gap-2"
                                             href="{{ route('approver.profile') }}"><i class="bi bi-pen"
                                                 style="color:var(--nu-blue)"></i> E-Signature Profile</a></li>
@@ -253,13 +253,10 @@
                                     <hr class="dropdown-divider m-0">
                                 </li>
                                 <li>
-                                    <form action="{{ route('logout') }}" method="POST">
-                                        @csrf
-                                        <button class="dropdown-item small py-2 px-3 d-flex align-items-center gap-2 fw-600"
-                                            style="color:#dc2626">
-                                            <i class="bi bi-box-arrow-right"></i> Sign Out
-                                        </button>
-                                    </form>
+                                    <button class="dropdown-item small py-2 px-3 d-flex align-items-center gap-2 fw-600"
+                                        style="color:#dc2626" data-bs-toggle="modal" data-bs-target="#logoutConfirmModal">
+                                        <i class="bi bi-box-arrow-right"></i> Sign Out
+                                    </button>
                                 </li>
                             </ul>
                         </div>
@@ -435,8 +432,168 @@
 
     {{-- Footer link styles have been moved to public/css/app.css --}}
 
+    @auth
+    {{-- ══ LOGOUT CONFIRMATION MODAL ══════════════════════════════════ --}}
+    <div class="modal fade" id="logoutConfirmModal" tabindex="-1" aria-labelledby="logoutConfirmLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content" style="border-radius:var(--radius-lg,16px);overflow:hidden;border:none">
+                <div style="background:linear-gradient(135deg,var(--nu-blue-dk,#001d50),var(--nu-blue,#003087));padding:1.5rem;text-align:center">
+                    <div class="mx-auto mb-2 d-flex align-items-center justify-content-center rounded-circle"
+                         style="width:56px;height:56px;background:rgba(255,184,0,.2)">
+                        <i class="bi bi-box-arrow-right" style="color:var(--nu-gold,#FFB800);font-size:1.5rem"></i>
+                    </div>
+                    <h6 class="text-white fw-800 mb-0" id="logoutConfirmLabel">Sign Out</h6>
+                </div>
+                <div class="modal-body text-center py-4">
+                    <p class="mb-0 text-muted" style="font-size:.92rem">Are you sure you want to sign out of your account?</p>
+                </div>
+                <div class="modal-footer justify-content-center gap-2 border-0 pb-4 pt-0">
+                    <button type="button" class="btn btn-outline-secondary btn-sm px-4 rounded-pill" data-bs-dismiss="modal">Cancel</button>
+                    <form action="{{ route('logout') }}" method="POST" style="margin:0">
+                        @csrf
+                        <button type="submit" class="btn btn-sm px-4 rounded-pill fw-700" style="background:#dc2626;color:#fff">
+                            <i class="bi bi-box-arrow-right me-1"></i>Yes, Sign Out
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endauth
+
+    {{-- ══ CALENDAR EVENT DETAIL MODAL (available to all, including guests) ═══ --}}
+    <div class="modal fade" id="calendarEventModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius:var(--radius-lg,16px);overflow:hidden;border:none;box-shadow:0 20px 60px rgba(0,0,0,.15)">
+                <div id="calModalHeader" style="background:linear-gradient(135deg,var(--nu-blue-dk,#001d50),var(--nu-blue,#003087));padding:1.5rem 1.5rem 1.2rem">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <span id="calModalBadge" class="badge mb-2" style="font-size:.68rem"></span>
+                            <h5 id="calModalTitle" class="text-white fw-800 mb-0" style="line-height:1.3"></h5>
+                        </div>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" style="margin:-4px -4px 0 12px"></button>
+                    </div>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="d-flex flex-column gap-3">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="d-flex align-items-center justify-content-center rounded-3" style="width:42px;height:42px;background:rgba(0,48,135,.08);flex-shrink:0">
+                                <i class="bi bi-calendar-event" style="color:var(--nu-blue);font-size:1.1rem"></i>
+                            </div>
+                            <div>
+                                <div class="text-muted" style="font-size:.72rem;font-weight:600">DATE & TIME</div>
+                                <div id="calModalDate" class="fw-600" style="font-size:.9rem;color:var(--gray-800,#1f2937)"></div>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="d-flex align-items-center justify-content-center rounded-3" style="width:42px;height:42px;background:rgba(0,48,135,.08);flex-shrink:0">
+                                <i class="bi bi-geo-alt" style="color:var(--nu-blue);font-size:1.1rem"></i>
+                            </div>
+                            <div>
+                                <div class="text-muted" style="font-size:.72rem;font-weight:600">VENUE</div>
+                                <div id="calModalVenue" class="fw-600" style="font-size:.9rem;color:var(--gray-800,#1f2937)"></div>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="d-flex align-items-center justify-content-center rounded-3" style="width:42px;height:42px;background:rgba(0,48,135,.08);flex-shrink:0">
+                                <i class="bi bi-info-circle" style="color:var(--nu-blue);font-size:1.1rem"></i>
+                            </div>
+                            <div>
+                                <div class="text-muted" style="font-size:.72rem;font-weight:600">STATUS</div>
+                                <div id="calModalStatus" class="fw-600" style="font-size:.9rem"></div>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center gap-3" id="calModalCategoryWrap" style="display:none!important">
+                            <div class="d-flex align-items-center justify-content-center rounded-3" style="width:42px;height:42px;background:rgba(0,48,135,.08);flex-shrink:0">
+                                <i class="bi bi-tag" style="color:var(--nu-blue);font-size:1.1rem"></i>
+                            </div>
+                            <div>
+                                <div class="text-muted" style="font-size:.72rem;font-weight:600">CATEGORY</div>
+                                <div id="calModalCategory" class="fw-600" style="font-size:.9rem;color:var(--gray-800,#1f2937)"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0 pb-4 px-4">
+                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3" data-bs-dismiss="modal">Close</button>
+                    <a id="calModalViewBtn" href="#" class="btn btn-nu-blue btn-sm rounded-pill px-3 fw-700" style="display:none">
+                        <i class="bi bi-eye me-1"></i>View Event
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous">
+    </script>
+
+    {{-- Global calendar event click handler --}}
+    <script>
+    function showCalendarEventModal(info) {
+        var e = info.event;
+        var p = e.extendedProps || {};
+        var isEvent = (p.type === 'event');
+
+        // Title
+        document.getElementById('calModalTitle').textContent = e.title;
+
+        // Badge
+        var badge = document.getElementById('calModalBadge');
+        if (isEvent) {
+            badge.textContent = 'Published Event';
+            badge.style.background = 'rgba(255,184,0,.25)';
+            badge.style.color = '#FFB800';
+        } else {
+            badge.textContent = (p.status === 'approved' ? 'Approved Venue' : 'Pending Venue');
+            badge.style.background = p.status === 'approved' ? 'rgba(40,167,69,.2)' : 'rgba(255,193,7,.25)';
+            badge.style.color = p.status === 'approved' ? '#28a745' : '#c59100';
+        }
+
+        // Date & Time
+        var start = e.start;
+        var end = e.end;
+        var dateStr = start ? start.toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' }) : 'N/A';
+        var timeStr = '';
+        if (start) {
+            timeStr = start.toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit' });
+            if (end) timeStr += ' — ' + end.toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit' });
+        }
+        document.getElementById('calModalDate').textContent = dateStr + (timeStr ? '  •  ' + timeStr : '');
+
+        // Venue
+        document.getElementById('calModalVenue').textContent = p.venue || 'Not specified';
+
+        // Status
+        var statusEl = document.getElementById('calModalStatus');
+        var statusText = (p.status || 'N/A').replace(/_/g, ' ');
+        statusText = statusText.charAt(0).toUpperCase() + statusText.slice(1);
+        statusEl.textContent = statusText;
+        statusEl.style.color = p.status === 'published' ? '#003087' : (p.status === 'approved' ? '#28a745' : '#c59100');
+
+        // Category
+        var catWrap = document.getElementById('calModalCategoryWrap');
+        if (p.category) {
+            catWrap.style.display = 'flex';
+            catWrap.classList.add('d-flex');
+            document.getElementById('calModalCategory').textContent = p.category;
+        } else {
+            catWrap.style.display = 'none';
+            catWrap.classList.remove('d-flex');
+        }
+
+        // View button — only for published events
+        var viewBtn = document.getElementById('calModalViewBtn');
+        if (isEvent) {
+            var eventId = String(e.id).replace('event-', '');
+            viewBtn.href = '/events/' + eventId;
+            viewBtn.style.display = '';
+        } else {
+            viewBtn.style.display = 'none';
+        }
+
+        new bootstrap.Modal(document.getElementById('calendarEventModal')).show();
+    }
     </script>
     @stack('scripts')
 

@@ -149,7 +149,27 @@ class AdminController extends Controller implements HasMiddleware
         }
 
         $v = $request->validate($rules);
+
+        // Track if role changed
+        $oldRole = $user->role;
+
         $user->update($v);
+
+        // If role changed, force the user to re-login so they see their new dashboard
+        if (isset($v['role']) && $v['role'] !== $oldRole) {
+            // Invalidate remember token to force re-authentication
+            $user->update(['remember_token' => null]);
+
+            // If the admin is editing themselves, don't log themselves out
+            if ((int)$id !== Auth::id()) {
+                // Clear all sessions for this user by cycling their password hash
+                // This is a lightweight approach — the user will need to re-login
+                \Illuminate\Support\Facades\DB::table('sessions')
+                    ->where('user_id', $id)
+                    ->delete();
+            }
+        }
+
         return back()->with('success', 'User updated!');
     }
 
