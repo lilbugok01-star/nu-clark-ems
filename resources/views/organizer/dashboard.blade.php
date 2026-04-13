@@ -127,11 +127,6 @@
                 <div class="col-12">
                     <div class="nu-card p-4">
                         <h6 class="fw-bold mb-3"><i class="bi bi-calendar3 text-gold me-2"></i>Events Calendar</h6>
-                        <div class="d-flex flex-wrap gap-3 mb-3">
-                            <span class="d-flex align-items-center gap-1 small text-muted"><span style="width:12px;height:12px;border-radius:3px;background:#003087;display:inline-block"></span> Published Events</span>
-                            <span class="d-flex align-items-center gap-1 small text-muted"><span style="width:12px;height:12px;border-radius:3px;background:#28a745;display:inline-block"></span> Approved Venues</span>
-                            <span class="d-flex align-items-center gap-1 small text-muted"><span style="width:12px;height:12px;border-radius:3px;background:#ffc107;display:inline-block"></span> Pending Venues</span>
-                        </div>
                         <div id="organizerCalendar" style="min-height:500px"></div>
                     </div>
                 </div>
@@ -151,7 +146,8 @@ document.addEventListener('DOMContentLoaded', function() {
             center: 'title',
             right: 'dayGridMonth,timeGridWeek,timeGridDay'
         },
-        buttonText: { today: 'Today', month: 'Month', week: 'Week', day: 'Day' },
+        buttonIcons: false,
+        buttonText: { today: 'Today', month: 'Month', week: 'Week', day: 'Day', prev: ' < ', next: ' > ' },
         slotMinTime: '06:00:00',
         slotMaxTime: '23:00:00',
         events: '{{ route("calendar.events.json") }}',

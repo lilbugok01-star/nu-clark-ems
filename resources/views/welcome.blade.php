@@ -252,11 +252,6 @@
             <div class="section-divider mx-auto"></div>
             <p class="text-muted" style="max-width:500px;margin:0 auto">Browse all upcoming NU Clark events on an interactive calendar. Click any event for details.</p>
         </div>
-        <div class="d-flex flex-wrap gap-3 justify-content-center mb-3">
-            <span class="d-flex align-items-center gap-1 small text-muted"><span style="width:12px;height:12px;border-radius:3px;background:#003087;display:inline-block"></span> Published Events</span>
-            <span class="d-flex align-items-center gap-1 small text-muted"><span style="width:12px;height:12px;border-radius:3px;background:#28a745;display:inline-block"></span> Approved Venues</span>
-            <span class="d-flex align-items-center gap-1 small text-muted"><span style="width:12px;height:12px;border-radius:3px;background:#ffc107;display:inline-block"></span> Pending Venues</span>
-        </div>
         <div class="nu-card p-4" style="border-radius:var(--radius-lg)">
             <div id="welcomeCalendar" style="min-height:500px"></div>
         </div>
@@ -274,7 +269,8 @@ document.addEventListener('DOMContentLoaded', function() {
             center: 'title',
             right: 'dayGridMonth,timeGridWeek'
         },
-        buttonText: { today: 'Today', month: 'Month', week: 'Week' },
+        buttonIcons: false,
+        buttonText: { today: 'Today', month: 'Month', week: 'Week', prev: ' < ', next: ' > ' },
         events: '{{ route("calendar.events.json") }}',
         eventClick: function(info) { showCalendarEventModal(info); },
         height: 'auto'

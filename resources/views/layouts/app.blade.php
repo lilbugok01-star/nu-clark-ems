@@ -646,6 +646,22 @@
         }
     })();
     </script>
+    <style>
+        /* Global FullCalendar Button Adjustments */
+        .fc .fc-button-group > .fc-button {
+            margin-right: 4px !important;
+            border-radius: 6px !important;
+        }
+        .fc .fc-button-primary:not(:disabled).fc-button-active, 
+        .fc .fc-button-primary:not(:disabled):active {
+            background-color: var(--nu-gold) !important;
+            border-color: var(--nu-gold) !important;
+            color: var(--nu-blue) !important;
+        }
+        .fc-today-button {
+            margin-left: 8px !important;
+        }
+    </style>
     @endauth
 </body>
 

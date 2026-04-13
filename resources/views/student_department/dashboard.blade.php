@@ -111,13 +111,14 @@
                     center: 'title',
                     right: 'dayGridMonth,timeGridWeek,timeGridDay'
                 },
+                buttonIcons: false,
                 buttonText: {
                     today: 'Today',
                     month: 'Month',
                     week: 'Week',
                     day: 'Day',
-                    prev: 'Prev',
-                    next: 'Next'
+                    prev: ' < ',
+                    next: ' > '
                 },
                 slotMinTime: '06:00:00',
                 slotMaxTime: '23:00:00',
