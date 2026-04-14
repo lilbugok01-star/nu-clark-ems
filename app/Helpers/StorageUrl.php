@@ -18,7 +18,9 @@ class StorageUrl
 
         $disk = config('filesystems.default', 'local');
 
-        if ($disk === 's3') {
+        // FORCE S3 proxy for paths known to be stored in S3 (signatures and attendance)
+        // This ensures they work even if the default disk is set to 'local' (common on Railway/Heroku)
+        if ($disk === 's3' || str_starts_with($path, 'signatures/') || str_starts_with($path, 'attendance/')) {
             return route('storage.s3', ['path' => $path]);
         }
 

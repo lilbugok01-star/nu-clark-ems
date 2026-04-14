@@ -18,10 +18,15 @@ Route::get('/events/{id}', [HomeController::class, 'showEvent'])->name('event.sh
 Route::get('/calendar/events/json', [HomeController::class, 'calendarEventsJson'])->name('calendar.events.json');
 // S3 Storage Proxy (Universal Fallback for Private/Strict Buckets)
 Route::get('/storage/s3/{path}', function ($path) {
-    if (!\Illuminate\Support\Facades\Storage::disk('s3')->exists($path)) {
-        abort(404);
+    try {
+        if (!\Illuminate\Support\Facades\Storage::disk('s3')->exists($path)) {
+            abort(404);
+        }
+        return \Illuminate\Support\Facades\Storage::disk('s3')->response($path);
+    } catch (\Exception $e) {
+        \Illuminate\Support\Facades\Log::error("S3 Proxy Error: " . $e->getMessage());
+        abort(500, "Error accessing signature storage.");
     }
-    return \Illuminate\Support\Facades\Storage::disk('s3')->response($path);
 })->where('path', '.*')->name('storage.s3');
 
 // S3 Debug Route
