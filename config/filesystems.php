@@ -54,7 +54,7 @@ return [
             'region' => env('REGION', 'auto'),
             'bucket' => env('BUCKET'),
             'endpoint' => env('ENDPOINT'),
-            'use_path_style_endpoint' => true,
+            'use_path_style_endpoint' => env('USE_PATH_STYLE_ENDPOINT', false),
             'throw' => false,
             'report' => false,
         ],
