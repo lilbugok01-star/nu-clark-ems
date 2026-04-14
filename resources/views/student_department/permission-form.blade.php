@@ -102,67 +102,44 @@
         <h6 class="bg-light p-2 fw-bold text-uppercase mb-3" style="border-left: 5px solid #003087;">Approval Chain & E-Signatures</h6>
         <p class="text-muted small mb-5 fst-italic">This document serves as an official permission form. Any alterations to this printed form without system validation are invalid.</p>
         
-        <div class="row g-5">
+        <div class="row g-5 justify-content-center">
 
-            <!-- Student Development -->
-            @php $sd = $res->approvals->where('role_level', 'student_development')->where('status', 'approved')->first(); @endphp
+            <!-- Prepared By (Requester) -->
             <div class="col-4 text-center mb-5">
                 <div class="signature-box">
-                    @if($sd && $sd->e_signature_used)
-                        <img src="{{ asset('storage/' . $sd->e_signature_used) }}" class="signature-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                    @if($res->reservedBy && $res->reservedBy->e_signature_path)
+                        <img src="{{ asset('storage/' . $res->reservedBy->e_signature_path) }}" class="signature-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
                         <div class="fw-bold small fst-italic text-muted" style="display:none;">Electronically Signed</div>
                     @else
                         <div class="fw-bold small fst-italic text-muted">Awaiting Action</div>
                     @endif
                 </div>
-                <div class="signer-name">{{ $sd->approver->name ?? 'Engr Vernie B Garcia' }}</div>
-                <div class="signer-role">Student Development</div>
+                <div class="signer-name">{{ $res->reservedBy->name }}</div>
+                <div class="signer-role">Prepared By</div>
             </div>
 
-            <!-- Program Chair -->
-            @php $pc = $res->approvals->where('role_level', 'program_chair')->where('status', 'approved')->first(); @endphp
-            <div class="col-4 text-center mb-5">
-                <div class="signature-box">
-                    @if($pc && $pc->e_signature_used)
-                        <img src="{{ asset('storage/' . $pc->e_signature_used) }}" class="signature-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                        <div class="fw-bold small fst-italic text-muted" style="display:none;">Electronically Signed</div>
-                    @else
-                        <div class="fw-bold small fst-italic text-muted">Awaiting Action</div>
-                    @endif
-                </div>
-                <div class="signer-name">{{ $pc->approver->name ?? 'Ronielle B. Antonio' }}</div>
-                <div class="signer-role">Program Chair</div>
-            </div>
+            <!-- Dynamic Approval Chain -->
+            @php
+                $activeSignatoris = \App\Models\FileHuntingSignatory::where('is_active', 1)->orderBy('step_order')->get();
+            @endphp
 
-            <!-- Dean -->
-            @php $dn = $res->approvals->where('role_level', 'dean')->where('status', 'approved')->first(); @endphp
-            <div class="col-4 text-center mb-5">
-                <div class="signature-box">
-                    @if($dn && $dn->e_signature_used)
-                        <img src="{{ asset('storage/' . $dn->e_signature_used) }}" class="signature-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                        <div class="fw-bold small fst-italic text-muted" style="display:none;">Electronically Signed</div>
-                    @else
-                        <div class="fw-bold small fst-italic text-muted">Awaiting Action</div>
-                    @endif
+            @foreach($activeSignatoris as $sig)
+                @php 
+                    $approval = $res->approvals->where('role_level', $sig->role)->where('status', 'approved')->first(); 
+                @endphp
+                <div class="col-4 text-center mb-5">
+                    <div class="signature-box">
+                        @if($approval && $approval->e_signature_used)
+                            <img src="{{ asset('storage/' . $approval->e_signature_used) }}" class="signature-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                            <div class="fw-bold small fst-italic text-muted" style="display:none;">Electronically Signed</div>
+                        @else
+                            <div class="fw-bold small fst-italic text-muted">Awaiting Action</div>
+                        @endif
+                    </div>
+                    <div class="signer-name">{{ $approval->approver->name ?? '-' }}</div>
+                    <div class="signer-role">{{ $sig->position_label }}</div>
                 </div>
-                <div class="signer-name">{{ $dn->approver->name ?? 'Rafaela Mae M. Landayan' }}</div>
-                <div class="signer-role">Dean / Department Head</div>
-            </div>
-
-            <!-- Exec Director -->
-            @php $ed = $res->approvals->where('role_level', 'executive_director')->where('status', 'approved')->first(); @endphp
-            <div class="col-4 text-center mb-5">
-                <div class="signature-box">
-                    @if($ed && $ed->e_signature_used)
-                        <img src="{{ asset('storage/' . $ed->e_signature_used) }}" class="signature-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                        <div class="fw-bold small fst-italic text-muted" style="display:none;">Electronically Signed</div>
-                    @else
-                        <div class="fw-bold small fst-italic text-muted">Awaiting Action</div>
-                    @endif
-                </div>
-                <div class="signer-name">{{ $ed->approver->name ?? 'Dr. Arnell A. Diego' }}</div>
-                <div class="signer-role">Executive Director</div>
-            </div>
+            @endforeach
             
         </div>
     </div>
