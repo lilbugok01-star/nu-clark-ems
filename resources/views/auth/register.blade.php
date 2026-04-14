@@ -33,7 +33,7 @@
             <div class="input-group">
                 <span class="input-group-text"><i class="bi bi-envelope text-muted"></i></span>
                 <input type="email" name="email" class="form-control"
-                       placeholder="e.g. 2024-00000@student.nu-clark.edu.ph"
+                       placeholder="yourname@student.nu-clark.edu.ph"
                        value="{{ old('email') }}" required autocomplete="email"
                        pattern=".+@student\.nu-clark\.edu\.ph"
                        title="Must be an official NU Clark student email ending in @student.nu-clark.edu.ph">
