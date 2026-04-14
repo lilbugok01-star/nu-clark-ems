@@ -17,22 +17,6 @@ Route::get('/events', [HomeController::class, 'events'])->name('events');
 Route::get('/events/{id}', [HomeController::class, 'showEvent'])->name('event.show');
 Route::get('/calendar/events/json', [HomeController::class, 'calendarEventsJson'])->name('calendar.events.json');
 
-Route::get('/create-test-event', function() {
-    $event = \App\Models\Event::create([
-        'title' => 'System Test Event',
-        'description' => 'Test event starting exactly at 10:35 AM.',
-        'venue' => 'NU Clark Lobby',
-        'event_date' => now()->toDateString(),
-        'start_time' => '10:35:00',
-        'end_time' => '23:00:00',
-        'capacity' => 100,
-        'organizer_id' => 1,
-        'status' => 'published',
-        'is_featured' => 1,
-    ]);
-    return "Test event created successfully! Event ID: " . $event->id . ". Go to the Student Dashboard to register for it.";
-});
-
 // Force sync database (Admin-only fallback for Railway)
 Route::post('/force-sync-database', function () {
     if (!\Illuminate\Support\Facades\Auth::check() || \Illuminate\Support\Facades\Auth::user()->role !== 'admin') {
