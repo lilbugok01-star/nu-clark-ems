@@ -3,7 +3,7 @@ aptPkgs = ["libatomic1"]
 
 [phases.build]
 cmds = [
-    "composer install --no-dev --optimize-autoloader",
+    "composer update --no-dev --optimize-autoloader --no-interaction",
     "npm install",
     "npm run build"
 ]
