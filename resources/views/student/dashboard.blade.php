@@ -195,7 +195,7 @@
             <div class="col-12">
                 <div class="nu-card p-4">
                     <h6 class="fw-700 mb-3"><i class="bi bi-calendar3 me-2" style="color:var(--nu-gold)"></i>Events Calendar</h6>
-                    <div id="studentCalendar" style="min-height:500px"></div>
+                    <x-event-calendar calendarId="studentCalendar" rightToolbar="dayGridMonth,timeGridWeek" />
                 </div>
             </div>
         </div>
@@ -251,47 +251,6 @@
 @endsection
 
 @push('scripts')
-<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    var cal = new FullCalendar.Calendar(document.getElementById('studentCalendar'), {
-        initialView: 'dayGridMonth',
-        headerToolbar: {
-            left: 'prev,next today',
-            center: 'title',
-            right: 'dayGridMonth,timeGridWeek'
-        },
-        buttonIcons: false,
-        buttonText: { today: 'Today', month: 'Month', week: 'Week', prev: ' < ', next: ' > ' },
-        events: '{{ route("calendar.events.json") }}',
-        eventClick: function(info) { showCalendarEventModal(info); },
-        height: 'auto'
-    });
-    cal.render();
-});
-</script>
-<style>
-    #studentCalendar .fc .fc-button-primary {
-        background-color: var(--nu-blue) !important;
-        border-color: var(--nu-blue) !important;
-        font-size: 0.85rem !important;
-        font-weight: 700 !important;
-        padding: 0.4rem 0.8rem !important;
-    }
-    #studentCalendar .fc .fc-button-primary:hover {
-        background-color: var(--nu-blue-dk) !important;
-    }
-    #studentCalendar .fc .fc-button-active {
-        background-color: var(--nu-gold) !important;
-        border-color: var(--nu-gold) !important;
-        color: var(--nu-blue) !important;
-    }
-    #studentCalendar .fc .fc-toolbar-title {
-        font-size: 1.1rem !important;
-        font-weight: 800 !important;
-        color: var(--nu-blue);
-    }
-</style>
 <script>
 // ═══ LIVE EVENT DETECTION ══════════════════════════
 const shownIds = new Set(JSON.parse(localStorage.getItem('shownLiveIds') || '[]'));

@@ -253,55 +253,10 @@
             <p class="text-muted" style="max-width:500px;margin:0 auto">Browse all upcoming NU Clark events on an interactive calendar. Click any event for details.</p>
         </div>
         <div class="nu-card p-4" style="border-radius:var(--radius-lg)">
-            <div id="welcomeCalendar" style="min-height:500px"></div>
+            <x-event-calendar calendarId="welcomeCalendar" rightToolbar="dayGridMonth,timeGridWeek" />
         </div>
     </div>
 </section>
-
-@push('scripts')
-<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    var cal = new FullCalendar.Calendar(document.getElementById('welcomeCalendar'), {
-        initialView: 'dayGridMonth',
-        headerToolbar: {
-            left: 'prev,next today',
-            center: 'title',
-            right: 'dayGridMonth,timeGridWeek'
-        },
-        buttonIcons: false,
-        buttonText: { today: 'Today', month: 'Month', week: 'Week', prev: ' < ', next: ' > ' },
-        events: '{{ route("calendar.events.json") }}',
-        eventClick: function(info) { showCalendarEventModal(info); },
-        height: 'auto'
-    });
-    cal.render();
-});
-</script>
-<style>
-    #welcomeCalendar .fc .fc-button-primary {
-        background-color: var(--nu-blue) !important;
-        border-color: var(--nu-blue) !important;
-        font-size: 0.85rem !important;
-        font-weight: 700 !important;
-        padding: 0.4rem 0.8rem !important;
-    }
-    #welcomeCalendar .fc .fc-button-primary:hover {
-        background-color: var(--nu-blue-dk) !important;
-        border-color: var(--nu-blue-dk) !important;
-    }
-    #welcomeCalendar .fc .fc-button-active {
-        background-color: var(--nu-gold) !important;
-        border-color: var(--nu-gold) !important;
-        color: var(--nu-blue) !important;
-    }
-    #welcomeCalendar .fc .fc-toolbar-title {
-        font-size: 1.1rem !important;
-        font-weight: 800 !important;
-        color: var(--nu-blue);
-    }
-</style>
-@endpush
 
 
 <!-- ── CTA ───────────────────────────────────────────── -->

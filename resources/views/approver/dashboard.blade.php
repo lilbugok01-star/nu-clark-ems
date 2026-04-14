@@ -267,7 +267,7 @@
         <div class="col-12">
             <div class="nu-card p-4">
                 <h6 class="fw-bold mb-3"><i class="bi bi-calendar3 me-2" style="color:var(--nu-gold)"></i>Events Calendar</h6>
-                <div id="approverCalendar" style="min-height:500px"></div>
+                <x-event-calendar calendarId="approverCalendar" rightToolbar="dayGridMonth,timeGridWeek" />
             </div>
         </div>
     </div>
@@ -290,50 +290,6 @@
         border-color: var(--nu-blue) !important;
     }
 </style>
-
-@push('scripts')
-<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    var cal = new FullCalendar.Calendar(document.getElementById('approverCalendar'), {
-        initialView: 'dayGridMonth',
-        headerToolbar: {
-            left: 'prev,next today',
-            center: 'title',
-            right: 'dayGridMonth,timeGridWeek'
-        },
-        buttonIcons: false,
-        buttonText: { today: 'Today', month: 'Month', week: 'Week', prev: ' < ', next: ' > ' },
-        events: '{{ route("calendar.events.json") }}',
-        eventClick: function(info) { showCalendarEventModal(info); },
-        height: 'auto'
-    });
-    cal.render();
-});
-</script>
-<style>
-    #approverCalendar .fc .fc-button-primary {
-        background-color: var(--nu-blue) !important;
-        border-color: var(--nu-blue) !important;
-        font-size: 0.85rem !important;
-        font-weight: 700 !important;
-        padding: 0.4rem 0.8rem !important;
-    }
-    #approverCalendar .fc .fc-button-primary:hover {
-        background-color: var(--nu-blue-dk) !important;
-    }
-    #approverCalendar .fc .fc-button-active {
-        background-color: var(--nu-gold) !important;
-        border-color: var(--nu-gold) !important;
-        color: var(--nu-blue) !important;
-    }
-    #approverCalendar .fc .fc-toolbar-title {
-        font-size: 1.1rem !important;
-        font-weight: 800 !important;
-        color: var(--nu-blue);
-    }
-</style>
-@endpush
 
 @endsection
 

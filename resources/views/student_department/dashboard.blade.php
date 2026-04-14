@@ -32,70 +32,14 @@
         @endforeach
     </div>
 
-    <style>
-        .fc .fc-button-primary {
-            background-color: var(--nu-blue) !important;
-            border-color: var(--nu-blue) !important;
-            font-size: 0.85rem !important;
-            font-weight: 700 !important;
-            padding: 0.4rem 0.8rem !important;
-            transition: all 0.2s ease !important;
-        }
-        .fc .fc-button-primary:hover {
-            background-color: var(--nu-blue-dk) !important;
-            border-color: var(--nu-blue-dk) !important;
-            transform: translateY(-1px);
-        }
-        .fc .fc-button-active {
-            background-color: var(--nu-gold) !important;
-            border-color: var(--nu-gold) !important;
-            color: var(--nu-blue) !important;
-        }
-        .fc .fc-toolbar-title {
-            font-size: 1.1rem !important;
-            font-weight: 800 !important;
-            color: var(--nu-blue);
-        }
-        .fc-icon {
-            font-size: 1.25em !important;
-        }
-    </style>
-
     <!-- Venue Availability Calendar -->
     <div class="nu-card p-4 mb-4">
         <h6 class="fw-700 mb-3"><i class="bi bi-calendar3 me-2" style="color:var(--nu-gold)"></i>Venue Availability Calendar</h6>
-        <div id="calendar" style="min-height: 500px;"></div>
+        <x-event-calendar calendarId="calendar" eventsUrl="{{ route('student_department.venue.events.json') }}" initialView="timeGridWeek" />
     </div>
     
     @push('scripts')
-    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            var calendarEl = document.getElementById('calendar');
-            var calendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: 'timeGridWeek',
-                headerToolbar: {
-                    left: 'prev,next today',
-                    center: 'title',
-                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
-                },
-                buttonIcons: false,
-                buttonText: {
-                    today: 'Today',
-                    month: 'Month',
-                    week: 'Week',
-                    day: 'Day',
-                    prev: ' < ',
-                    next: ' > '
-                },
-                slotMinTime: '06:00:00',
-                slotMaxTime: '23:00:00',
-                events: '{{ route("student_department.venue.events.json") }}',
-                eventClick: function(info) { showCalendarEventModal(info); }
-            });
-            calendar.render();
-        });
-
         function toggleCustomFields() {
             const evSelect = document.getElementById('event_select');
             const evInput = document.getElementById('custom_event_title');
