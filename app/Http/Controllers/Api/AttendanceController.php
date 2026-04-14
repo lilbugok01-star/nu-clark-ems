@@ -40,13 +40,14 @@ class AttendanceController extends Controller
             return response()->json(['status' => 'error', 'message' => 'QR code has expired.'], 422);
         }
 
-        // ── Live-window check ──────────────────────────────────────────────
+        // ── Live-window check (Forced PHT to avoid server sync issues) ─────
         $event       = $registration->event;
-        $now         = Carbon::now();
+        $now         = \Carbon\Carbon::now('Asia/Manila');
         $today       = $now->toDateString();
         $currentTime = $now->format('H:i:s');
 
         if ($event->event_date->toDateString() !== $today) {
+            \Illuminate\Support\Facades\Log::warning("Attendance Rejected (Date): User [{$registration->user->id}] attempted check-in for event [{$event->id}] scheduled for [{$event->event_date->toDateString()}] but server today is [{$today}].");
             return response()->json([
                 'status'  => 'error',
                 'message' => 'Attendance can only be recorded on the day of the event (' . $event->event_date->format('M d, Y') . ').',
@@ -54,8 +55,9 @@ class AttendanceController extends Controller
         }
 
         if ($currentTime < $event->start_time || $currentTime > $event->end_time) {
-            $start = Carbon::parse($event->start_time)->format('h:i A');
-            $end   = Carbon::parse($event->end_time)->format('h:i A');
+            $start = \Carbon\Carbon::parse($event->start_time)->format('h:i A');
+            $end   = \Carbon\Carbon::parse($event->end_time)->format('h:i A');
+            \Illuminate\Support\Facades\Log::warning("Attendance Rejected (Time): User [{$registration->user->id}] attempted check-in for event [{$event->id}] at [{$currentTime}] but window is [{$event->start_time} - {$event->end_time}].");
             return response()->json([
                 'status'  => 'error',
                 'message' => "Attendance is only open during the event window ({$start} – {$end}).",

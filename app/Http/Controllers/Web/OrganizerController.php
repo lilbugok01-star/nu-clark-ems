@@ -45,7 +45,7 @@ class OrganizerController extends Controller implements HasMiddleware
         ];
         $pendingVerifications = Attendance::with(['registration.user', 'registration.event'])
             ->whereHas('registration.event', fn($q) => $q->where('organizer_id', $user->id))
-            ->where('status', 'pending')->take(5)->get();
+            ->where('status', 'pending')->take(20)->get();
 
         return view('organizer.dashboard', compact('user', 'myEvents', 'stats', 'pendingVerifications'));
     }

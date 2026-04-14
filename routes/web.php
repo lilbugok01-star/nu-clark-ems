@@ -61,6 +61,20 @@ Route::get('/test-sig', function() {
     return "Path: " . $path . "<br>URL: " . $url . "<br>Exists in S3: " . ($exists ? 'Yes' : 'No');
 });
 
+// Attendance Debug Route
+Route::get('/check-pending', function () {
+    $pending = \App\Models\Attendance::with(['registration.user', 'registration.event'])
+        ->where('status', 'pending')
+        ->get();
+    
+    return response()->json([
+        'server_time' => now()->toDateTimeString(),
+        'manila_time' => now('Asia/Manila')->toDateTimeString(),
+        'pending_count' => $pending->count(),
+        'records' => $pending
+    ]);
+});
+
 // Force sync database (Admin-only fallback for Railway)
 Route::post('/force-sync-database', function () {
     if (!\Illuminate\Support\Facades\Auth::check() || \Illuminate\Support\Facades\Auth::user()->role !== 'admin') {

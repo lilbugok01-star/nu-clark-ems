@@ -78,50 +78,52 @@
                 <div class="col-lg-5">
                     <div class="nu-card p-4">
                         <h6 class="fw-bold mb-3"><i class="bi bi-camera text-gold me-2"></i>Pending Verifications</h6>
-                        @forelse($pendingVerifications as $att)
-                        <div class="d-flex align-items-center gap-2 mb-2 p-2 rounded" style="background:var(--gray-100)">
-                            @if($att->photo_path)
-                                <a href="#" data-bs-toggle="modal" data-bs-target="#photoModal{{ $att->id }}">
-                                    <img src="{{ \App\Helpers\StorageUrl::url($att->photo_path) }}" class="attendance-photo" style="cursor:pointer;object-fit:cover;width:42px;height:42px;border-radius:50%;border:2px solid var(--nu-blue)" alt="photo">
-                                </a>
+                        <div class="pending-verification-list" style="max-height: 400px; overflow-y: auto; padding-right: 5px;">
+                            @forelse($pendingVerifications as $att)
+                            <div class="d-flex align-items-center gap-2 mb-2 p-2 rounded" style="background:var(--gray-100)">
+                                @if($att->photo_path)
+                                    <a href="#" data-bs-toggle="modal" data-bs-target="#photoModal{{ $att->id }}">
+                                        <img src="{{ \App\Helpers\StorageUrl::url($att->photo_path) }}" class="attendance-photo" style="cursor:pointer;object-fit:cover;width:42px;height:42px;border-radius:50%;border:2px solid var(--nu-blue)" alt="photo">
+                                    </a>
 
-                                <!-- Photo Modal -->
-                                <div class="modal fade" id="photoModal{{ $att->id }}" tabindex="-1">
-                                    <div class="modal-dialog modal-dialog-centered">
-                                        <div class="modal-content rounded-3 overflow-hidden">
-                                            <div class="modal-header border-0 pb-0">
-                                                <strong class="small" style="color:var(--nu-blue)">{{ $att->registration->user->name }} — Pending Check-in</strong>
-                                                <button class="btn-close" data-bs-dismiss="modal"></button>
-                                            </div>
-                                            <div class="modal-body p-2">
-                                                <img src="{{ \App\Helpers\StorageUrl::url($att->photo_path) }}" class="w-100 rounded-2 bg-dark" style="object-fit:contain;max-height:450px" alt="Attendance Photo">
-                                            </div>
-                                            <div class="modal-footer d-flex gap-2 border-0 pt-0">
-                                                <form action="{{ route('organizer.attendance.verify', $att->id) }}" method="POST" class="d-flex gap-2 w-100" style="margin:0">
-                                                    @csrf @method('PUT')
-                                                    <button name="status" value="verified" class="btn btn-success flex-grow-1 fw-700" onclick="document.querySelector('#photoModal{{ $att->id }} .btn-close').click()"><i class="bi bi-check-lg me-1"></i>Verify</button>
-                                                    <button name="status" value="rejected" class="btn btn-danger flex-grow-1 fw-700" onclick="document.querySelector('#photoModal{{ $att->id }} .btn-close').click()"><i class="bi bi-x-lg me-1"></i>Reject</button>
-                                                </form>
+                                    <!-- Photo Modal -->
+                                    <div class="modal fade" id="photoModal{{ $att->id }}" tabindex="-1">
+                                        <div class="modal-dialog modal-dialog-centered">
+                                            <div class="modal-content rounded-3 overflow-hidden">
+                                                <div class="modal-header border-0 pb-0">
+                                                    <strong class="small" style="color:var(--nu-blue)">{{ $att->registration->user->name }} — Pending Check-in</strong>
+                                                    <button class="btn-close" data-bs-dismiss="modal"></button>
+                                                </div>
+                                                <div class="modal-body p-2">
+                                                    <img src="{{ \App\Helpers\StorageUrl::url($att->photo_path) }}" class="w-100 rounded-2 bg-dark" style="object-fit:contain;max-height:450px" alt="Attendance Photo">
+                                                </div>
+                                                <div class="modal-footer d-flex gap-2 border-0 pt-0">
+                                                    <form action="{{ route('organizer.attendance.verify', $att->id) }}" method="POST" class="d-flex gap-2 w-100" style="margin:0">
+                                                        @csrf @method('PUT')
+                                                        <button name="status" value="verified" class="btn btn-success flex-grow-1 fw-700" onclick="document.querySelector('#photoModal{{ $att->id }} .btn-close').click()"><i class="bi bi-check-lg me-1"></i>Verify</button>
+                                                        <button name="status" value="rejected" class="btn btn-danger flex-grow-1 fw-700" onclick="document.querySelector('#photoModal{{ $att->id }} .btn-close').click()"><i class="bi bi-x-lg me-1"></i>Reject</button>
+                                                    </form>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
+                                @else
+                                    <div class="attendance-photo d-flex align-items-center justify-content-center" style="background:#eee;width:42px;height:42px;border-radius:50%"><i class="bi bi-person text-muted"></i></div>
+                                @endif
+                                <div class="flex-grow-1">
+                                    <div class="small fw-semibold">{{ $att->registration->user->name }}</div>
+                                    <div class="text-muted" style="font-size:0.72rem">{{ $att->registration->event->title }}</div>
                                 </div>
-                            @else
-                                <div class="attendance-photo d-flex align-items-center justify-content-center" style="background:#eee;width:42px;height:42px;border-radius:50%"><i class="bi bi-person text-muted"></i></div>
-                            @endif
-                            <div class="flex-grow-1">
-                                <div class="small fw-semibold">{{ $att->registration->user->name }}</div>
-                                <div class="text-muted" style="font-size:0.72rem">{{ $att->registration->event->title }}</div>
+                                <form action="{{ route('organizer.attendance.verify', $att->id) }}" method="POST" class="d-flex gap-1" style="z-index:10;">
+                                    @csrf @method('PUT')
+                                    <button name="status" value="verified" class="btn btn-success btn-sm py-0 px-2" title="Verify"><i class="bi bi-check"></i></button>
+                                    <button name="status" value="rejected" class="btn btn-danger btn-sm py-0 px-2" title="Reject"><i class="bi bi-x"></i></button>
+                                </form>
                             </div>
-                            <form action="{{ route('organizer.attendance.verify', $att->id) }}" method="POST" class="d-flex gap-1" style="z-index:10;">
-                                @csrf @method('PUT')
-                                <button name="status" value="verified" class="btn btn-success btn-sm py-0 px-2" title="Verify"><i class="bi bi-check"></i></button>
-                                <button name="status" value="rejected" class="btn btn-danger btn-sm py-0 px-2" title="Reject"><i class="bi bi-x"></i></button>
-                            </form>
+                            @empty
+                            <p class="text-muted small text-center mt-3">No pending verifications. 🎉</p>
+                            @endforelse
                         </div>
-                        @empty
-                        <p class="text-muted small text-center mt-3">No pending verifications. 🎉</p>
-                        @endforelse
                         <a href="{{ route('organizer.events') }}" class="btn btn-outline-gold btn-sm w-100 mt-2">View All Events</a>
                     </div>
                 </div>
