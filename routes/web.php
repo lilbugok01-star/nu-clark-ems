@@ -29,15 +29,6 @@ Route::get('/storage/s3/{path}', function ($path) {
     }
 })->where('path', '.*')->name('storage.s3');
 
-// Force clear cache for Railway deployment
-Route::get('/force-clear-cache', function () {
-    \Illuminate\Support\Facades\Artisan::call('config:clear');
-    \Illuminate\Support\Facades\Artisan::call('cache:clear');
-    \Illuminate\Support\Facades\Artisan::call('view:clear');
-    \Illuminate\Support\Facades\Artisan::call('route:clear');
-    return "All caches cleared successfully! Please check the signature form again.";
-});
-
 // S3 Debug Route
 Route::get('/test-s3', function () {
     try {
