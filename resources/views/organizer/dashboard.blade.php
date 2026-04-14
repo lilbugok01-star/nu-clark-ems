@@ -19,9 +19,14 @@
         <div class="col-lg-10 col-md-9">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h4 class="fw-bold mb-0" style="color:var(--nu-blue)">Organizer Dashboard</h4>
-                <a href="{{ route('organizer.event.create') }}" class="btn btn-gold">
-                    <i class="bi bi-plus me-1"></i>Create Event
-                </a>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-nu-blue fw-bold" data-bs-toggle="modal" data-bs-target="#webScannerModal">
+                        <i class="bi bi-qr-code-scan me-1"></i>Web Scanner
+                    </button>
+                    <a href="{{ route('organizer.event.create') }}" class="btn btn-gold">
+                        <i class="bi bi-plus me-1"></i>Create
+                    </a>
+                </div>
             </div>
 
             <!-- Stats -->
@@ -134,4 +139,52 @@
         </div>
     </div>
 </div>
+
+<!-- Web Scanner Modal -->
+<div class="modal fade" id="webScannerModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-3 overflow-hidden">
+            <div class="modal-header border-0 pb-0">
+                <strong class="small" style="color:var(--nu-blue)"><i class="bi bi-camera me-2"></i>Webcam QR Scanner</strong>
+                <button class="btn-close" data-bs-dismiss="modal" id="closeScannerModal"></button>
+            </div>
+            <div class="modal-body text-center p-3">
+                <div id="reader" class="rounded-3 overflow-hidden" style="width: 100%; border:2px dashed var(--nu-blue)"></div>
+                <p class="text-muted small mt-3 mb-0">Point the student's QR code at your laptop webcam to check them in seamlessly.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@push('scripts')
+<script src="https://unpkg.com/html5-qrcode"></script>
+<script>
+    let html5QrcodeScanner;
+    const scannerModal = document.getElementById('webScannerModal');
+
+    scannerModal.addEventListener('shown.bs.modal', function () {
+        html5QrcodeScanner = new Html5QrcodeScanner(
+            "reader", { fps: 10, qrbox: {width: 250, height: 250} }, false);
+        
+        html5QrcodeScanner.render(function(decodedText) {
+            // Once scanned, redirect securely to the decoded link
+            html5QrcodeScanner.clear();
+            const modalInstance = bootstrap.Modal.getInstance(scannerModal);
+            if(modalInstance) modalInstance.hide();
+            
+            // Navigate to the scanned URL
+            window.location.href = decodedText;
+        }, function(error) {
+            // Background scan noise (ignore)
+        });
+    });
+
+    scannerModal.addEventListener('hidden.bs.modal', function () {
+        if (html5QrcodeScanner) {
+            html5QrcodeScanner.clear();
+        }
+    });
+</script>
+@endpush
+
 @endsection
