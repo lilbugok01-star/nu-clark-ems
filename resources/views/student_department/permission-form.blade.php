@@ -103,19 +103,6 @@
         <p class="text-muted small mb-5 fst-italic">This document serves as an official permission form. Any alterations to this printed form without system validation are invalid.</p>
         
         <div class="row g-5">
-            <!-- Requester -->
-            <div class="col-4 text-center mb-5">
-                <div class="signature-box">
-                    @if($res->reservedBy->e_signature_path)
-                        <img src="{{ asset('storage/' . $res->reservedBy->e_signature_path) }}" class="signature-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                        <div class="fw-bold small fst-italic text-muted" style="display:none;">Electronically Signed</div>
-                    @else
-                        <div class="fw-bold small fst-italic text-muted">Electronically Signed</div>
-                    @endif
-                </div>
-                <div class="signer-name">{{ $res->reservedBy->name }}</div>
-                <div class="signer-role">Requestor / Student Rep</div>
-            </div>
 
             <!-- Student Development -->
             @php $sd = $res->approvals->where('role_level', 'student_development')->where('status', 'approved')->first(); @endphp

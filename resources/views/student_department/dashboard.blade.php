@@ -9,39 +9,7 @@
         </div>
     </div>
 
-    {{-- ── E-Signature Card ─────────────────────────────────────────────── --}}
-    @php $sigUser = Auth::user(); @endphp
-    <div class="nu-card p-4 mb-4" style="border-left:4px solid var(--nu-gold)">
-        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
-            <div class="d-flex align-items-center gap-3">
-                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:48px;height:48px;background:rgba(0,48,135,.08)">
-                    <i class="bi bi-pen-fill" style="color:var(--nu-blue);font-size:1.2rem"></i>
-                </div>
-                <div>
-                    <div class="fw-700 mb-0" style="color:var(--nu-blue)">My E-Signature</div>
-                    <div class="text-muted small">Your signature will appear on approved venue permission forms</div>
-                </div>
-            </div>
-            <div class="d-flex align-items-center gap-3">
-                @if($sigUser->e_signature_path)
-                    <div class="p-2 rounded-2 border" style="background:#fff">
-                        <img src="{{ asset('storage/'.$sigUser->e_signature_path) }}" alt="My Signature"
-                             style="max-height:55px;max-width:180px;object-fit:contain">
-                    </div>
-                    <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Signature Uploaded</span>
-                @else
-                    <span class="badge bg-warning text-dark"><i class="bi bi-exclamation-circle me-1"></i>No Signature Yet</span>
-                @endif
-                <form action="{{ route('student_department.signature.upload') }}" method="POST" enctype="multipart/form-data">
-                    @csrf
-                    <label class="btn btn-nu-blue fw-600" style="cursor:pointer">
-                        <i class="bi bi-upload me-1"></i>{{ $sigUser->e_signature_path ? 'Update Signature' : 'Upload Signature' }}
-                        <input type="file" name="signature" accept="image/*" class="d-none" onchange="this.closest('form').submit()">
-                    </label>
-                </form>
-            </div>
-        </div>
-    </div>
+
 
     <!-- Facility Overview -->
     <div class="row g-3 mb-4">
