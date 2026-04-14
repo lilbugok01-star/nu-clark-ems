@@ -112,6 +112,8 @@
             @foreach($activeSignatoris as $sig)
                 @php 
                     $approval = $res->approvals->where('role_level', $sig->role)->where('status', 'approved')->first(); 
+                    $roleUser = \App\Models\User::where('role', $sig->role)->first();
+                    $signerName = $approval ? $approval->approver->name : ($roleUser ? $roleUser->name : 'N/A');
                 @endphp
                 <div class="col-4 text-center mb-5">
                     <div class="signature-box">
@@ -121,7 +123,7 @@
                             <div class="fw-bold small fst-italic text-muted">Awaiting Action</div>
                         @endif
                     </div>
-                    <div class="signer-name">{{ $approval->approver->name ?? '-' }}</div>
+                    <div class="signer-name text-uppercase">{{ $signerName }}</div>
                     <div class="signer-role">{{ $sig->position_label }}</div>
                 </div>
             @endforeach
