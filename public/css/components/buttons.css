@@ -45,3 +45,18 @@
     color: #fff !important;
 }
 
+.btn-outline-nu-blue {
+    border: 2px solid var(--nu-blue);
+    color: var(--nu-blue) !important;
+    background: transparent;
+    font-weight: 600;
+    border-radius: var(--radius-sm);
+    transition: var(--transition);
+}
+.btn-outline-nu-blue:hover {
+    background: var(--nu-blue);
+    color: #fff !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,48,135,.25);
+}
+

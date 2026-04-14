@@ -239,4 +239,67 @@ class OrganizerController extends Controller implements HasMiddleware
     }
 
     // Venue Reservations have been moved to StudentDepartmentController as per workflow update.
+
+    /**
+     * GET /organizer/scan/{token}
+     * Universal camera-based QR check-in. Scans the student's QR code URL
+     * and automatically marks attendance as verified.
+     */
+    public function scanQr($token)
+    {
+        $registration = Registration::with(['event', 'user'])->where('qr_token', $token)->first();
+
+        if (!$registration) {
+            return view('organizer.scan-result', ['status' => 'error', 'message' => 'Invalid QR Code. Registration not found.']);
+        }
+
+        if ($registration->isExpired()) {
+            return view('organizer.scan-result', ['status' => 'error', 'message' => 'This QR Code has expired. Registration is no longer valid.']);
+        }
+
+        $event = $registration->event;
+        $now = now();
+        $today = $now->toDateString();
+        $currentTime = $now->format('H:i:s');
+
+        $eventDate = $event->event_date instanceof \DateTimeInterface
+            ? $event->event_date->toDateString()
+            : \Carbon\Carbon::parse($event->event_date)->toDateString();
+
+        if ($eventDate !== $today) {
+            return view('organizer.scan-result', [
+                'status' => 'error',
+                'message' => 'Attendance can only be scanned on the day of the event (' . \Carbon\Carbon::parse($eventDate)->format('M d, Y') . ').',
+            ]);
+        }
+
+        if ($currentTime < $event->start_time || $currentTime > $event->end_time) {
+            $start = \Carbon\Carbon::parse($event->start_time)->format('h:i A');
+            $end = \Carbon\Carbon::parse($event->end_time)->format('h:i A');
+            return view('organizer.scan-result', [
+                'status' => 'error',
+                'message' => "Attendance is only open during the event window ({$start} – {$end}).",
+            ]);
+        }
+
+        if ($registration->attendance) {
+            return view('organizer.scan-result', [
+                'status' => 'warning',
+                'message' => 'This student has already checked in.',
+                'registration' => $registration,
+            ]);
+        }
+
+        Attendance::create([
+            'registration_id' => $registration->id,
+            'checked_in_at'   => now(),
+            'status'          => 'verified',
+        ]);
+
+        return view('organizer.scan-result', [
+            'status' => 'success',
+            'message' => 'Successfully Checked In!',
+            'registration' => $registration,
+        ]);
+    }
 }
