@@ -263,7 +263,7 @@ class OrganizerController extends Controller implements HasMiddleware
         $currentTime = $now->format('H:i:s');
 
         $eventDate = $event->event_date instanceof \DateTimeInterface
-            ? $event->event_date->toDateString()
+            ? $event->event_date->format('Y-m-d')
             : \Carbon\Carbon::parse($event->event_date)->toDateString();
 
         if ($eventDate !== $today) {
