@@ -94,7 +94,7 @@
                                                 <button class="btn-close" data-bs-dismiss="modal"></button>
                                             </div>
                                             <div class="modal-body p-2">
-                                                <img src="{{ asset('storage/' . $att->photo_path) }}" class="w-100 rounded-2" style="object-fit:cover;max-height:400px" alt="Attendance Photo">
+                                                <img src="{{ asset('storage/' . $att->photo_path) }}" class="w-100 rounded-2 bg-dark" style="object-fit:contain;max-height:450px" alt="Attendance Photo">
                                             </div>
                                             <div class="modal-footer d-flex gap-2 border-0 pt-0">
                                                 <form action="{{ route('organizer.attendance.verify', $att->id) }}" method="POST" class="d-flex gap-2 w-100" style="margin:0">
