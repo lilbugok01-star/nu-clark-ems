@@ -35,6 +35,15 @@ Route::get('/test-s3', function () {
     }
 });
 
+Route::get('/test-sig', function() {
+    $u = \App\Models\User::where('role', 'student_development')->first();
+    if (!$u) return "User not found";
+    $path = $u->e_signature_path;
+    $url = \App\Helpers\StorageUrl::url($path);
+    $exists = \Illuminate\Support\Facades\Storage::disk('s3')->exists($path);
+    return "Path: " . $path . "<br>URL: " . $url . "<br>Exists in S3: " . ($exists ? 'Yes' : 'No');
+});
+
 // Force sync database (Admin-only fallback for Railway)
 Route::post('/force-sync-database', function () {
     if (!\Illuminate\Support\Facades\Auth::check() || \Illuminate\Support\Facades\Auth::user()->role !== 'admin') {
