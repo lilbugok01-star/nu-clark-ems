@@ -35,10 +35,11 @@
                 <input type="email" name="email" class="form-control"
                        placeholder="e.g. 2024-00000@student.nu-clark.edu.ph"
                        value="{{ old('email') }}" required autocomplete="email"
-                       title="Official NU Clark email suggested">
+                       pattern=".+@student\.nu-clark\.edu\.ph"
+                       title="Must be an official NU Clark student email ending in @student.nu-clark.edu.ph">
             </div>
             <div class="form-text" style="color:var(--nu-blue);font-size:.75rem">
-                <i class="bi bi-info-circle me-1"></i>Hint: Use your official school email (<strong>@student.nu-clark.edu.ph</strong>) if available.
+                <i class="bi bi-info-circle me-1"></i>Official school email required: <strong>@student.nu-clark.edu.ph</strong>
             </div>
         </div>
 
