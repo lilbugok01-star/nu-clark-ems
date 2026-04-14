@@ -52,16 +52,7 @@ class AuthController extends Controller
     {
         $v = $request->validate([
             'name'       => 'required|string|max:255',
-            'email'      => [
-                'required',
-                'email',
-                'unique:users',
-                function ($attribute, $value, $fail) {
-                    if (!str_ends_with(strtolower($value), '@student.nu-clark.edu.ph')) {
-                        $fail('Only official NU Clark student emails (@student.nu-clark.edu.ph) are allowed.');
-                    }
-                },
-            ],
+            'email'      => 'required|email|unique:users',
             'password'   => 'required|min:8|confirmed',
             'student_id' => ['required', 'string', 'unique:users,student_id', 'regex:/^\d{4}-\d{6}$/'],
             'course_id'  => 'required|exists:courses,id',

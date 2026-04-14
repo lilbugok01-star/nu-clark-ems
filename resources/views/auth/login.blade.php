@@ -27,7 +27,7 @@
         <div class="input-group">
             <span class="input-group-text"><i class="bi bi-envelope text-muted"></i></span>
             <input type="email" name="email" class="form-control @error('email') is-invalid @enderror"
-                   placeholder="your@email.com" value="{{ old('email') }}" autocomplete="email" required>
+                   placeholder="e.g. 2024-00000@student.nu-clark.edu.ph" value="{{ old('email') }}" autocomplete="email" required>
         </div>
     </div>
 
