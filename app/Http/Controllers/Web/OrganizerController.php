@@ -85,7 +85,7 @@ class OrganizerController extends Controller implements HasMiddleware
 
         $poster_path = null;
         if ($request->hasFile('poster')) {
-            $poster_path = $request->file('poster')->store('posters', 'public');
+            $poster_path = $request->file('poster')->store('posters', 's3');
         }
 
         $status = Auth::user()->role === 'student_development' ? 'published' : 'pending_adviser';
@@ -145,8 +145,8 @@ class OrganizerController extends Controller implements HasMiddleware
         ]);
 
         if ($request->hasFile('poster')) {
-            if ($event->poster_path) \Illuminate\Support\Facades\Storage::disk('public')->delete($event->poster_path);
-            $validated['poster_path'] = $request->file('poster')->store('posters', 'public');
+            if ($event->poster_path) \Illuminate\Support\Facades\Storage::disk('s3')->delete($event->poster_path);
+            $validated['poster_path'] = $request->file('poster')->store('posters', 's3');
         }
         $event->update($validated);
 

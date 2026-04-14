@@ -15,7 +15,7 @@
                             @if($user->e_signature_path)
                                 <div class="mb-2">
                                     <div class="border p-3 rounded text-center bg-white">
-                                        <img src="{{ asset('storage/' . $user->e_signature_path) }}" alt="Current Signature" style="max-height:160px;max-width:100%;object-fit:contain">
+                                        <img src="{{ \App\Helpers\StorageUrl::url($user->e_signature_path) }}" alt="Current Signature" style="max-height:160px;max-width:100%;object-fit:contain">
                                     </div>
                                     <small class="text-success"><i class="bi bi-check-circle"></i> Signature uploaded</small>
                                 </div>

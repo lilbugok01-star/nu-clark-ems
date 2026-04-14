@@ -178,10 +178,10 @@ class StudentDepartmentController extends Controller implements HasMiddleware
         if ($request->hasFile('signature')) {
             $user = Auth::user();
             if ($user->e_signature_path) {
-                \Illuminate\Support\Facades\Storage::disk('public')->delete($user->e_signature_path);
+                \Illuminate\Support\Facades\Storage::disk('s3')->delete($user->e_signature_path);
             }
 
-            $path = $request->file('signature')->store('signatures', 'public');
+            $path = $request->file('signature')->store('signatures', 's3');
             $user->update(['e_signature_path' => $path]);
         }
 
