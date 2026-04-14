@@ -14,9 +14,10 @@
                             <label class="form-label fw-bold">Upload E-Signature</label>
                             @if($user->e_signature_path)
                                 <div class="mb-2">
-                                    <div class="border p-2 rounded text-center bg-light">
-                                        <img src="{{ asset('storage/' . $user->e_signature_path) }}" alt="Current Signature" style="max-height:80px">
+                                    <div class="border p-3 rounded text-center bg-white">
+                                        <img src="{{ asset('storage/' . $user->e_signature_path) }}" alt="Current Signature" style="max-height:160px;max-width:100%;object-fit:contain">
                                     </div>
+                                    <small class="text-success"><i class="bi bi-check-circle"></i> Signature uploaded</small>
                                 </div>
                             @else
                                 <div class="alert alert-warning mb-2 py-2">

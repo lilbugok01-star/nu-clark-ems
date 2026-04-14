@@ -311,8 +311,8 @@
                     @if($user->e_signature_path)
                     <div class="mb-4">
                         <div class="small text-muted mb-2">Current Signature:</div>
-                        <div class="p-3 border rounded-3 bg-light mx-auto" style="max-width:200px">
-                            <img src="{{ asset('storage/' . $user->e_signature_path) }}" alt="Signature" class="img-fluid" style="max-height:100px">
+                        <div class="p-3 border rounded-3 bg-white mx-auto" style="max-width:320px">
+                            <img src="{{ asset('storage/' . $user->e_signature_path) }}" alt="Signature" class="img-fluid" style="max-height:160px;max-width:100%;object-fit:contain">
                         </div>
                     </div>
                     @else
