@@ -55,8 +55,8 @@ return [
             'bucket' => env('AWS_S3_BUCKET_NAME', env('BUCKET')),
             'endpoint' => env('AWS_ENDPOINT_URL', env('ENDPOINT')),
             'use_path_style_endpoint' => env('USE_PATH_STYLE_ENDPOINT', false),
-            'throw' => false,
-            'report' => false,
+            'throw' => true,
+            'report' => true,
         ],
 
     ],

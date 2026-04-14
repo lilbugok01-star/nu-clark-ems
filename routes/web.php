@@ -24,6 +24,17 @@ Route::get('/storage/s3/{path}', function ($path) {
     return \Illuminate\Support\Facades\Storage::disk('s3')->response($path);
 })->where('path', '.*')->name('storage.s3');
 
+// S3 Debug Route
+Route::get('/test-s3', function () {
+    try {
+        \Illuminate\Support\Facades\Storage::disk('s3')->put('test.txt', 'hello');
+        $exists = \Illuminate\Support\Facades\Storage::disk('s3')->exists('test.txt');
+        return "S3 Connection Success! File saved! Exists: " . ($exists ? 'Yes' : 'No');
+    } catch (\Exception $e) {
+        return "S3 Connection Failed: " . $e->getMessage();
+    }
+});
+
 // Force sync database (Admin-only fallback for Railway)
 Route::post('/force-sync-database', function () {
     if (!\Illuminate\Support\Facades\Auth::check() || \Illuminate\Support\Facades\Auth::user()->role !== 'admin') {
