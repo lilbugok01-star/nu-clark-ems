@@ -80,7 +80,7 @@ class ApprovalController extends Controller implements HasMiddleware
             if ($user->e_signature_path) {
                 \Illuminate\Support\Facades\Storage::delete($user->e_signature_path);
             }
-            $user->e_signature_path = $request->file('e_signature')->store('signatures');
+            $user->e_signature_path = $request->file('e_signature')->store('signatures', 's3');
             $user->save();
         }
 

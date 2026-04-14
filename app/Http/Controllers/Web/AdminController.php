@@ -114,7 +114,7 @@ class AdminController extends Controller implements HasMiddleware
 
         // Handle optional e-signature upload
         if ($request->hasFile('e_signature')) {
-            $v['e_signature_path'] = $request->file('e_signature')->store('signatures');
+            $v['e_signature_path'] = $request->file('e_signature')->store('signatures', 's3');
         }
 
         User::create($v);
