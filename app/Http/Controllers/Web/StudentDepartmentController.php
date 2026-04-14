@@ -181,7 +181,7 @@ class StudentDepartmentController extends Controller implements HasMiddleware
                 \Illuminate\Support\Facades\Storage::delete($user->e_signature_path);
             }
 
-            $path = $request->file('signature')->store('signatures');
+            $path = $request->file('signature')->store('signatures', 's3');
             $user->update(['e_signature_path' => $path]);
         }
 
