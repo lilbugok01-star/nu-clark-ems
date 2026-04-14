@@ -43,14 +43,16 @@
             </div>
         </div>
 
-        <!-- Student ID -->
         <div class="col-12">
             <label class="form-label fw-600">Student ID <span class="text-danger">*</span></label>
             <div class="input-group">
                 <span class="input-group-text"><i class="bi bi-person-badge text-muted"></i></span>
-                <input type="text" name="student_id" class="form-control" placeholder="e.g. 2022-00001"
-                       value="{{ old('student_id') }}" required>
+                <input type="text" name="student_id" class="form-control" placeholder="YYYY-NNNNNN (e.g. 2023-190866)"
+                       value="{{ old('student_id') }}" required 
+                       pattern="\d{4}-\d{6}" 
+                       title="Format: YYYY-NNNNNN (e.g. 2023-190866)">
             </div>
+            <div class="form-text" style="font-size:.7rem"><i class="bi bi-info-circle me-1"></i>Format: <strong>YYYY-NNNNNN</strong></div>
         </div>
 
         <!-- Course, Year & Section -->

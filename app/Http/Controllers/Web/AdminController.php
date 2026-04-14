@@ -90,7 +90,7 @@ class AdminController extends Controller implements HasMiddleware
             'email'      => 'required|email|unique:users',
             'password'   => 'required|min:8',
             'role'       => 'required|in:' . $allRoles,
-            'student_id' => 'nullable|string|unique:users,student_id',
+            'student_id' => 'nullable|string|unique:users,student_id|regex:/^\d{4}-\d{6}$/',
             'course_id'  => 'nullable|exists:courses,id',
             'section_id' => 'nullable|exists:sections,id',
         ];
@@ -104,12 +104,14 @@ class AdminController extends Controller implements HasMiddleware
                     }
                 },
             ];
-            $rules['student_id'] = 'required|string|unique:users,student_id';
+            $rules['student_id'] = 'required|string|unique:users,student_id|regex:/^\d{4}-\d{6}$/';
             $rules['course_id']  = 'required|exists:courses,id';
             $rules['section_id'] = 'required|exists:sections,id';
         }
 
-        $v = $request->validate($rules);
+        $v = $request->validate($rules, [
+            'student_id.regex' => 'The Student ID format must be YYYY-NNNNNN (e.g. 2023-190866).',
+        ]);
         $v['password'] = Hash::make($v['password']);
 
         // Handle optional e-signature upload
@@ -137,7 +139,7 @@ class AdminController extends Controller implements HasMiddleware
         // Only validate student-specific fields if the role is student
         // AND those fields were actually submitted (so simple deactivation works)
         if ($role === 'student' && $request->has('student_id')) {
-            $rules['student_id'] = 'required|string|unique:users,student_id,' . $id;
+            $rules['student_id'] = 'required|string|regex:/^\d{4}-\d{6}$/|unique:users,student_id,' . $id;
             $rules['course_id']  = 'required|exists:courses,id';
             $rules['section_id'] = 'required|exists:sections,id';
         } elseif ($role !== 'student') {
@@ -148,7 +150,9 @@ class AdminController extends Controller implements HasMiddleware
             $rules['section_id'] = 'nullable';
         }
 
-        $v = $request->validate($rules);
+        $v = $request->validate($rules, [
+            'student_id.regex' => 'The Student ID format must be YYYY-NNNNNN (e.g. 2023-190866).',
+        ]);
 
         // Track if role changed
         $oldRole = $user->role;

@@ -63,9 +63,11 @@ class AuthController extends Controller
                 },
             ],
             'password'   => 'required|min:8|confirmed',
-            'student_id' => 'required|string|unique:users,student_id',
+            'student_id' => ['required', 'string', 'unique:users,student_id', 'regex:/^\d{4}-\d{6}$/'],
             'course_id'  => 'required|exists:courses,id',
             'section_id' => 'required|exists:sections,id',
+        ], [
+            'student_id.regex' => 'The Student ID format must be YYYY-NNNNNN (e.g. 2023-190866).',
         ]);
 
         $user = User::create([
@@ -89,8 +91,10 @@ class AuthController extends Controller
     {
         $request->validate([
             'email'      => 'required|email',
-            'student_id' => 'required|string',
+            'student_id' => 'required|string|regex:/^\d{4}-\d{6}$/',
             'password'   => 'required|min:8|confirmed',
+        ], [
+            'student_id.regex' => 'The Student ID format must be YYYY-NNNNNN (e.g. 2023-190866).',
         ]);
 
         $user = User::where('email', $request->email)

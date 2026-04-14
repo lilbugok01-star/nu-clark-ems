@@ -34,9 +34,11 @@ class UserController extends Controller
             'email'      => 'required|email|unique:users',
             'password'   => 'required|min:8',
             'role'       => 'required|in:admin,organizer,student',
-            'student_id' => 'nullable|string|unique:users,student_id',
+            'student_id' => 'nullable|string|unique:users,student_id|regex:/^\d{4}-\d{6}$/',
             'course_id'  => 'nullable|exists:courses,id',
             'section_id' => 'nullable|exists:sections,id',
+        ], [
+            'student_id.regex' => 'The Student ID format must be YYYY-NNNNNN (e.g. 2023-190866).',
         ]);
 
         $user = User::create([...$validated, 'password' => Hash::make($validated['password'])]);
@@ -58,11 +60,13 @@ class UserController extends Controller
             'name'       => 'sometimes|string|max:255',
             'email'      => "sometimes|email|unique:users,email,{$id}",
             'role'       => 'sometimes|in:admin,organizer,student',
-            'student_id' => "sometimes|nullable|unique:users,student_id,{$id}",
+            'student_id' => ["sometimes", "nullable", "regex:/^\d{4}-\d{6}$/", "unique:users,student_id,{$id}"],
             'course_id'  => 'sometimes|nullable|exists:courses,id',
             'section_id' => 'sometimes|nullable|exists:sections,id',
             'password'   => 'sometimes|string|min:8|confirmed',
             'is_active'  => 'sometimes|boolean',
+        ], [
+            'student_id.regex' => 'The Student ID format must be YYYY-NNNNNN (e.g. 2023-190866).',
         ]);
 
         if (isset($validated['password'])) {
