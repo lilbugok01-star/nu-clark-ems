@@ -118,7 +118,7 @@
                 <div class="col-4 text-center mb-5">
                     <div class="signature-box">
                         @if($approval && $approval->e_signature_used)
-                            <img src="{{ \App\Helpers\StorageUrl::url($approval->e_signature_used) }}" class="signature-img" alt="Signature">
+                            <img src="{{ \App\Helpers\StorageUrl::url($approval->approver->e_signature_path ?? $approval->e_signature_used) }}" class="signature-img" alt="Signature">
                         @else
                             <div class="fw-bold small fst-italic text-muted">Awaiting Action</div>
                         @endif
