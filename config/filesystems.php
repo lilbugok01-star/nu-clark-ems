@@ -49,11 +49,11 @@ return [
 
         's3' => [
             'driver' => 's3',
-            'key' => env('ACCESS_KEY_ID'),
-            'secret' => env('SECRET_ACCESS_KEY'),
-            'region' => env('REGION', 'auto'),
-            'bucket' => env('BUCKET'),
-            'endpoint' => env('ENDPOINT'),
+            'key' => env('AWS_ACCESS_KEY_ID', env('ACCESS_KEY_ID')),
+            'secret' => env('AWS_SECRET_ACCESS_KEY', env('SECRET_ACCESS_KEY')),
+            'region' => env('AWS_DEFAULT_REGION', env('REGION', 'auto')),
+            'bucket' => env('AWS_S3_BUCKET_NAME', env('BUCKET')),
+            'endpoint' => env('AWS_ENDPOINT_URL', env('ENDPOINT')),
             'use_path_style_endpoint' => env('USE_PATH_STYLE_ENDPOINT', false),
             'throw' => false,
             'report' => false,
