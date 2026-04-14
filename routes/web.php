@@ -19,13 +19,25 @@ Route::get('/calendar/events/json', [HomeController::class, 'calendarEventsJson'
 // S3 Storage Proxy (Universal Fallback for Private/Strict Buckets)
 Route::get('/storage/s3/{path}', function ($path) {
     try {
-        if (!\Illuminate\Support\Facades\Storage::disk('s3')->exists($path)) {
-            abort(404);
+        $disk = \Illuminate\Support\Facades\Storage::disk('s3');
+        
+        if (!$disk->exists($path)) {
+            \Illuminate\Support\Facades\Log::warning("S3 Proxy: File not found at path: " . $path);
+            abort(404, "File not found in storage.");
         }
-        return \Illuminate\Support\Facades\Storage::disk('s3')->response($path);
+
+        // Option A: Redirect to a temporary S3 URL (Most reliable)
+        // return redirect($disk->temporaryUrl($path, now()->addMinutes(60)));
+
+        // Option B: Stream the file robustly
+        $content = $disk->get($path);
+        $mime = $disk->mimeType($path);
+        
+        return response($content, 200)->header('Content-Type', $mime);
+        
     } catch (\Exception $e) {
-        \Illuminate\Support\Facades\Log::error("S3 Proxy Error: " . $e->getMessage());
-        abort(500, "Error accessing signature storage.");
+        \Illuminate\Support\Facades\Log::error("S3 Proxy Error for path [{$path}]: " . $e->getMessage());
+        return response("Error accessing storage: " . $e->getMessage(), 500);
     }
 })->where('path', '.*')->name('storage.s3');
 
