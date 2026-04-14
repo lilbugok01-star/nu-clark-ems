@@ -77,6 +77,7 @@ Route::middleware(['auth', 'role:organizer,student_development,admin'])->prefix(
     Route::get('/events/{id}/attendance/export-excel', [OrganizerController::class, 'exportExcel'])->name('attendance.excel');
     Route::get('/attendees',              [OrganizerController::class, 'allAttendees'])->name('attendees');
     Route::get('/analytics',           [OrganizerController::class, 'analytics'])->name('analytics');
+    Route::get('/scan/{token}',        [OrganizerController::class, 'scanQr'])->name('scan');
 });
 
 // Student Department (Venue Reservations)

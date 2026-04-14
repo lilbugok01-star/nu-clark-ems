@@ -80,13 +80,13 @@ class StudentController extends Controller implements HasMiddleware
             ->where('user_id', Auth::id())
             ->findOrFail($registrationId);
 
-        $qrContent = json_encode([
-            'token'    => $registration->qr_token,
-            'event_id' => $registration->event_id,
-            'user_id'  => $registration->user_id,
-        ]);
+        $url = route('organizer.scan', ['token' => $registration->qr_token]);
 
-        $qrCode = QrCode::format('svg')->size(250)->errorCorrection('H')->generate($qrContent);
+        $qrCode = QrCode::format('svg')
+            ->size(280)
+            ->errorCorrection('H')
+            ->merge(public_path('assets/img/NU_shield.png'), 0.25, true)
+            ->generate($url);
 
         return view('student.qr-code', compact('registration', 'qrCode'));
     }
