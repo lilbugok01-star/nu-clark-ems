@@ -22,5 +22,12 @@ class AppServiceProvider extends ServiceProvider
         if (config('app.env') === 'production') {
             \Illuminate\Support\Facades\URL::forceScheme('https');
         }
+
+        // Register global storage_url() helper
+        if (!function_exists('storage_url')) {
+            function storage_url(?string $path): string {
+                return \App\Helpers\StorageUrl::url($path);
+            }
+        }
     }
 }

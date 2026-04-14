@@ -109,7 +109,7 @@
             <div class="col-4 text-center mb-5">
                 <div class="signature-box">
                     @if($sd && $sd->e_signature_used)
-                        <img src="{{ asset('storage/' . $sd->e_signature_used) }}" class="signature-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                        <img src="{{ \App\Helpers\StorageUrl::url($sd->e_signature_used) }}" class="signature-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
                         <div class="fw-bold small fst-italic text-muted" style="display:none;">Electronically Signed</div>
                     @else
                         <div class="fw-bold small fst-italic text-muted">Awaiting Action</div>
@@ -124,7 +124,7 @@
             <div class="col-4 text-center mb-5">
                 <div class="signature-box">
                     @if($pc && $pc->e_signature_used)
-                        <img src="{{ asset('storage/' . $pc->e_signature_used) }}" class="signature-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                        <img src="{{ \App\Helpers\StorageUrl::url($pc->e_signature_used) }}" class="signature-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
                         <div class="fw-bold small fst-italic text-muted" style="display:none;">Electronically Signed</div>
                     @else
                         <div class="fw-bold small fst-italic text-muted">Awaiting Action</div>
@@ -139,7 +139,7 @@
             <div class="col-4 text-center mb-5">
                 <div class="signature-box">
                     @if($dn && $dn->e_signature_used)
-                        <img src="{{ asset('storage/' . $dn->e_signature_used) }}" class="signature-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                        <img src="{{ \App\Helpers\StorageUrl::url($dn->e_signature_used) }}" class="signature-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
                         <div class="fw-bold small fst-italic text-muted" style="display:none;">Electronically Signed</div>
                     @else
                         <div class="fw-bold small fst-italic text-muted">Awaiting Action</div>
@@ -154,7 +154,7 @@
             <div class="col-4 text-center mb-5">
                 <div class="signature-box">
                     @if($ed && $ed->e_signature_used)
-                        <img src="{{ asset('storage/' . $ed->e_signature_used) }}" class="signature-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                        <img src="{{ \App\Helpers\StorageUrl::url($ed->e_signature_used) }}" class="signature-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
                         <div class="fw-bold small fst-italic text-muted" style="display:none;">Electronically Signed</div>
                     @else
                         <div class="fw-bold small fst-italic text-muted">Awaiting Action</div>

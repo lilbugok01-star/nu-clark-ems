@@ -312,7 +312,7 @@
                     <div class="mb-4">
                         <div class="small text-muted mb-2">Current Signature:</div>
                         <div class="p-3 border rounded-3 bg-light mx-auto" style="max-width:200px">
-                            <img src="{{ asset('storage/' . $user->e_signature_path) }}" alt="Signature" class="img-fluid" style="max-height:100px">
+                            <img src="{{ \App\Helpers\StorageUrl::url($user->e_signature_path) }}" alt="Signature" class="img-fluid" style="max-height:100px">
                         </div>
                     </div>
                     @else

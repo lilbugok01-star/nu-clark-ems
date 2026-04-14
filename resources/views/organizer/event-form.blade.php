@@ -181,7 +181,7 @@
                             <label class="form-label">Event Poster / Cover Image</label>
                             @if($event && $event->poster_path)
                             <div class="mb-2">
-                                <img src="{{ asset('storage/'.$event->poster_path) }}" class="rounded-2" style="height:80px;object-fit:cover">
+                                <img src="{{ \App\Helpers\StorageUrl::url($event->poster_path) }}" class="rounded-2" style="height:80px;object-fit:cover">
                                 <span class="text-muted small ms-2">Current poster (upload new to replace)</span>
                             </div>
                             @endif

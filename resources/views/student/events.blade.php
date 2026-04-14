@@ -43,7 +43,7 @@
         <div class="col-md-6 col-lg-4 fade-in-up" style="animation-delay:{{ $loop->index * 0.05 }}s">
             <div class="event-card h-100">
                 @if($ev->poster_path)
-                    <img src="{{ asset('storage/'.$ev->poster_path) }}" class="event-card-img" alt="{{ $ev->title }}">
+                    <img src="{{ \App\Helpers\StorageUrl::url($ev->poster_path) }}" class="event-card-img" alt="{{ $ev->title }}">
                 @else
                     <div class="event-card-img-placeholder">
                         <i class="bi bi-calendar-event text-white" style="font-size:3rem;opacity:.5"></i>
