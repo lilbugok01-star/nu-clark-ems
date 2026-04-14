@@ -23,11 +23,6 @@ class AppServiceProvider extends ServiceProvider
             \Illuminate\Support\Facades\URL::forceScheme('https');
         }
 
-        // Register global storage_url() helper
-        if (!function_exists('storage_url')) {
-            function storage_url(?string $path): string {
-                return \App\Helpers\StorageUrl::url($path);
-            }
-        }
+        // No global helpers defined here to prevent redeclaration errors during config:cache
     }
 }
