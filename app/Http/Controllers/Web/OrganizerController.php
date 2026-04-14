@@ -23,7 +23,7 @@ class OrganizerController extends Controller implements HasMiddleware
         return [
             'auth',
             new Middleware(function ($request, $next) {
-                if (!Auth::check() || !in_array(Auth::user()->role, ['organizer', 'admin'])) {
+                if (!Auth::check() || !in_array(Auth::user()->role, ['organizer', 'student_development', 'admin'])) {
                     abort(403, 'Access denied. Organizers only.');
                 }
                 return $next($request);
@@ -88,13 +88,29 @@ class OrganizerController extends Controller implements HasMiddleware
             $poster_path = $request->file('poster')->store('posters', 'public');
         }
 
+        $status = Auth::user()->role === 'student_development' ? 'published' : 'pending_adviser';
+
         $event = Event::create([
             ...$validated,
             'organizer_id'  => Auth::id(),
             'poster_path'   => $poster_path,
-            'status'        => 'pending_adviser',
+            'status'        => $status,
             'is_featured'   => $request->boolean('is_featured'),
         ]);
+
+        if ($status === 'published') {
+            // Notify students since it's immediately published without needing an approver signatory
+            $students = \App\Models\User::where('role', 'student')->pluck('id');
+            $notifs = $students->map(fn($uid) => [
+                'user_id'    => $uid,
+                'type'       => 'new_event',
+                'title'      => 'New Event: ' . $event->title,
+                'message'    => "A new event has been posted: {$event->title} on {$event->event_date->format('M d, Y')} at {$event->venue}.",
+                'created_at' => now(),
+                'updated_at' => now(),
+            ])->toArray();
+            \App\Models\AppNotification::insert($notifs);
+        }
 
         // Notifications to students should only be sent once the event is fully approved and published.
         // Therefore, we removed the early notification blast from here.
@@ -119,7 +135,7 @@ class OrganizerController extends Controller implements HasMiddleware
             'start_time'  => 'required|date_format:H:i|after_or_equal:08:00',
             'end_time'    => 'required|date_format:H:i|after:start_time|before_or_equal:22:00',
             'capacity'    => 'required|integer|min:1',
-            'status'      => 'in:draft,pending_adviser,cancelled',
+            'status'      => 'in:draft,pending_adviser,cancelled,published',
             'category'    => 'nullable|string',
             'poster'      => 'nullable|image|max:4096',
         ], [

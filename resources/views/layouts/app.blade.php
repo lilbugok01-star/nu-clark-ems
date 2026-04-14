@@ -75,7 +75,7 @@
                                 </a>
                             </li>
 
-                        @elseif($role === 'organizer')
+                        @elseif($role === 'organizer' || $role === 'student_development')
                             <li class="nav-item">
                                 <a class="nav-link {{ request()->routeIs('organizer.dashboard') ? 'active' : '' }}"
                                     href="{{ route('organizer.dashboard') }}">
@@ -94,6 +94,14 @@
                                     <i class="bi bi-person-check"></i> Attendees
                                 </a>
                             </li>
+                            @if($role === 'student_development')
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs('approver.dashboard') ? 'active' : '' }}"
+                                    href="{{ route('approver.dashboard') }}">
+                                    <i class="bi bi-ui-checks"></i> Approvals
+                                </a>
+                            </li>
+                            @endif
 
                         @elseif($role === 'student_department')
                             <li class="nav-item">
@@ -103,7 +111,7 @@
                                 </a>
                             </li>
 
-                        @elseif(in_array($role, ['adviser', 'department_head', 'dean', 'executive_director', 'student_development', 'program_chair']))
+                        @elseif(in_array($role, ['adviser', 'department_head', 'dean', 'executive_director', 'program_chair']))
                             <li class="nav-item">
                                 <a class="nav-link {{ request()->routeIs('approver.dashboard') ? 'active' : '' }}"
                                     href="{{ route('approver.dashboard') }}">

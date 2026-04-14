@@ -62,8 +62,8 @@ Route::middleware(['auth', 'role:student,admin'])->prefix('student')->name('stud
     Route::post('/attendance/checkin',   [StudentController::class, 'checkin'])->name('checkin');
 });
 
-// Organizer
-Route::middleware(['auth', 'role:organizer,admin'])->prefix('organizer')->name('organizer.')->group(function () {
+// Organizer & Student Development
+Route::middleware(['auth', 'role:organizer,student_development,admin'])->prefix('organizer')->name('organizer.')->group(function () {
     Route::get('/dashboard',           [OrganizerController::class, 'dashboard'])->name('dashboard');
     Route::get('/events',              [OrganizerController::class, 'events'])->name('events');
     Route::get('/events/create',       [OrganizerController::class, 'createEvent'])->name('event.create');
