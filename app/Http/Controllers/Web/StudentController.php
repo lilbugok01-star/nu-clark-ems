@@ -126,7 +126,10 @@ class StudentController extends Controller implements HasMiddleware
         }
 
         $qrToken = Registration::generateQrToken(Auth::id(), $eventId);
-        $expires = \Carbon\Carbon::parse($event->event_date->format('Y-m-d') . ' ' . $event->end_time)->addDay();
+        $evDateStr = $event->event_date instanceof \DateTimeInterface 
+            ? $event->event_date->format('Y-m-d') 
+            : \Carbon\Carbon::parse($event->event_date)->format('Y-m-d');
+        $expires = \Carbon\Carbon::parse($evDateStr . ' ' . $event->end_time)->addDay();
 
         Registration::create([
             'user_id'       => Auth::id(),
