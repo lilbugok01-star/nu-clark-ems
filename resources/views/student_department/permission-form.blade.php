@@ -171,11 +171,16 @@
 <script>
     // Go back function with fallback
     function goBack() {
-        if (document.referrer && document.referrer !== '') {
+        if (window.history.length > 1 && document.referrer !== '') {
             window.history.back();
         } else {
-            // Fallback: navigate to student department dashboard
-            window.location.href = '{{ route("student_department.dashboard") }}';
+            @if(Auth::check() && Auth::user()->role === 'student_department')
+                window.location.href = '{{ route("student_department.dashboard") }}';
+            @elseif(Auth::check() && in_array(Auth::user()->role, ['adviser', 'department_head', 'dean', 'executive_director', 'program_chair']))
+                window.location.href = '{{ route("approver.dashboard") }}';
+            @else
+                window.location.href = '{{ url("/") }}';
+            @endif
         }
     }
 
