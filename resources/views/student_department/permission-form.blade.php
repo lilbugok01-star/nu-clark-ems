@@ -104,20 +104,6 @@
         
         <div class="row g-5 justify-content-center">
 
-            <!-- Prepared By (Requester) -->
-            <div class="col-4 text-center mb-5">
-                <div class="signature-box">
-                    @if($res->reservedBy && $res->reservedBy->e_signature_path)
-                        <img src="{{ asset('storage/' . $res->reservedBy->e_signature_path) }}" class="signature-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                        <div class="fw-bold small fst-italic text-muted" style="display:none;">Electronically Signed</div>
-                    @else
-                        <div class="fw-bold small fst-italic text-muted">Awaiting Action</div>
-                    @endif
-                </div>
-                <div class="signer-name">{{ $res->reservedBy->name }}</div>
-                <div class="signer-role">Prepared By</div>
-            </div>
-
             <!-- Dynamic Approval Chain -->
             @php
                 $activeSignatoris = \App\Models\FileHuntingSignatory::where('is_active', 1)->orderBy('step_order')->get();
@@ -130,8 +116,7 @@
                 <div class="col-4 text-center mb-5">
                     <div class="signature-box">
                         @if($approval && $approval->e_signature_used)
-                            <img src="{{ asset('storage/' . $approval->e_signature_used) }}" class="signature-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                            <div class="fw-bold small fst-italic text-muted" style="display:none;">Electronically Signed</div>
+                            <img src="{{ asset('storage/' . $approval->e_signature_used) }}" class="signature-img" alt="Signature">
                         @else
                             <div class="fw-bold small fst-italic text-muted">Awaiting Action</div>
                         @endif
