@@ -78,7 +78,7 @@
             <div class="col-md-4 fade-in-up" style="animation-delay: {{ $i * 0.1 }}s">
                 <div class="nu-card h-100">
                     @if($event->poster_path)
-                        <img src="{{ \App\Helpers\StorageUrl::url($event->poster_path) }}" class="event-card-img" alt="{{ $event->title }}">
+                        <img src="{{ asset('storage/' . $event->poster_path) }}" class="event-card-img" alt="{{ $event->title }}">
                     @else
                         <div class="event-card-img-placeholder"><i class="bi bi-calendar-event"></i></div>
                     @endif
@@ -122,7 +122,7 @@
             <div class="col-md-6 col-lg-4 fade-in-up" style="animation-delay: {{ $i * 0.08 }}s">
                 <div class="nu-card h-100">
                     @if($event->poster_path)
-                        <img src="{{ \App\Helpers\StorageUrl::url($event->poster_path) }}" class="event-card-img" alt="{{ $event->title }}">
+                        <img src="{{ asset('storage/' . $event->poster_path) }}" class="event-card-img" alt="{{ $event->title }}">
                     @else
                         <div class="event-card-img-placeholder"><i class="bi bi-calendar-event"></i></div>
                     @endif

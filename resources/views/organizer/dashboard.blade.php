@@ -82,7 +82,7 @@
                         <div class="d-flex align-items-center gap-2 mb-2 p-2 rounded" style="background:var(--gray-100)">
                             @if($att->photo_path)
                                 <a href="#" data-bs-toggle="modal" data-bs-target="#photoModal{{ $att->id }}">
-                                    <img src="{{ \App\Helpers\StorageUrl::url($att->photo_path) }}" class="attendance-photo" style="cursor:pointer;object-fit:cover;width:42px;height:42px;border-radius:50%;border:2px solid var(--nu-blue)" alt="photo">
+                                    <img src="{{ asset('storage/' . $att->photo_path) }}" class="attendance-photo" style="cursor:pointer;object-fit:cover;width:42px;height:42px;border-radius:50%;border:2px solid var(--nu-blue)" alt="photo">
                                 </a>
 
                                 <!-- Photo Modal -->
@@ -94,7 +94,7 @@
                                                 <button class="btn-close" data-bs-dismiss="modal"></button>
                                             </div>
                                             <div class="modal-body p-2">
-                                                <img src="{{ \App\Helpers\StorageUrl::url($att->photo_path) }}" class="w-100 rounded-2" style="object-fit:cover;max-height:400px" alt="Attendance Photo">
+                                                <img src="{{ asset('storage/' . $att->photo_path) }}" class="w-100 rounded-2" style="object-fit:cover;max-height:400px" alt="Attendance Photo">
                                             </div>
                                             <div class="modal-footer d-flex gap-2 border-0 pt-0">
                                                 <form action="{{ route('organizer.attendance.verify', $att->id) }}" method="POST" class="d-flex gap-2 w-100" style="margin:0">

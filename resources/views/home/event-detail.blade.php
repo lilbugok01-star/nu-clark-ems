@@ -6,7 +6,7 @@
         <div class="col-lg-8">
             <div class="nu-card overflow-hidden">
                 @if($event->poster_path)
-                    <img src="{{ \App\Helpers\StorageUrl::url($event->poster_path) }}" class="w-100" style="max-height:400px;object-fit:cover" alt="{{ $event->title }}">
+                    <img src="{{ asset('storage/' . $event->poster_path) }}" class="w-100" style="max-height:400px;object-fit:cover" alt="{{ $event->title }}">
                 @else
                     <div class="event-card-img-placeholder" style="height:250px"><i class="bi bi-calendar-event"></i></div>
                 @endif

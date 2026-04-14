@@ -67,8 +67,8 @@
                         <td class="small">{{ $att->checked_in_at?->format('M d, H:i') ?? '-' }}</td>
                         <td>
                             @if($att->photo_path)
-                                <a href="{{ \App\Helpers\StorageUrl::url($att->photo_path) }}" target="_blank" data-bs-toggle="modal" data-bs-target="#photoModal{{ $att->id }}">
-                                    <img src="{{ \App\Helpers\StorageUrl::url($att->photo_path) }}" class="attendance-photo" alt="photo">
+                                <a href="{{ asset('storage/' . $att->photo_path) }}" target="_blank" data-bs-toggle="modal" data-bs-target="#photoModal{{ $att->id }}">
+                                    <img src="{{ asset('storage/' . $att->photo_path) }}" class="attendance-photo" alt="photo">
                                 </a>
                                 <!-- Photo Modal -->
                                 <div class="modal fade" id="photoModal{{ $att->id }}" tabindex="-1">
@@ -79,7 +79,7 @@
                                                 <button class="btn-close" data-bs-dismiss="modal"></button>
                                             </div>
                                             <div class="modal-body p-2">
-                                                <img src="{{ \App\Helpers\StorageUrl::url($att->photo_path) }}" class="w-100 rounded-2" style="object-fit:cover;max-height:400px" alt="Attendance Photo">
+                                                <img src="{{ asset('storage/' . $att->photo_path) }}" class="w-100 rounded-2" style="object-fit:cover;max-height:400px" alt="Attendance Photo">
                                             </div>
                                             @if($att->status === 'pending')
                                             <div class="modal-footer d-flex gap-2 border-0 pt-0">

@@ -15,7 +15,7 @@
                             @if($user->e_signature_path)
                                 <div class="mb-2">
                                     <div class="border p-2 rounded text-center bg-light">
-                                        <img src="{{ \App\Helpers\StorageUrl::url($user->e_signature_path) }}" alt="Current Signature" style="max-height:80px">
+                                        <img src="{{ asset('storage/' . $user->e_signature_path) }}" alt="Current Signature" style="max-height:80px">
                                     </div>
                                 </div>
                             @else

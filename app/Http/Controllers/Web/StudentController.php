@@ -202,7 +202,7 @@ class StudentController extends Controller implements HasMiddleware
 
         $photoPath = null;
         if ($request->hasFile('photo')) {
-            $photoPath = $request->file('photo')->store('attendance-photos/' . $registration->event_id);
+            $photoPath = $request->file('photo')->store('attendance-photos/' . $registration->event_id, 'public');
         } elseif ($request->filled('photo_data')) {
             $image_parts = explode(';base64,', $request->photo_data);
             if (count($image_parts) >= 2) {
@@ -218,7 +218,7 @@ class StudentController extends Controller implements HasMiddleware
                             return back()->with('error', 'Photo is too large. Maximum size is 5MB.');
                         }
                         $fileName = 'attendance-photos/' . $registration->event_id . '/' . uniqid() . '.' . $image_type;
-                        \Illuminate\Support\Facades\Storage::put($fileName, $image_base64);
+                        \Illuminate\Support\Facades\Storage::disk('public')->put($fileName, $image_base64);
                         $photoPath = $fileName;
                     } else {
                         return back()->with('error', 'Invalid photo format. Only JPG, PNG, and WebP are allowed.');

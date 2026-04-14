@@ -47,7 +47,7 @@ class EventController extends Controller
 
         $poster_path = null;
         if ($request->hasFile('poster')) {
-            $poster_path = $request->file('poster')->store('posters', 's3');
+            $poster_path = $request->file('poster')->store('posters', 'public');
         }
 
         $event = Event::create([
@@ -93,8 +93,8 @@ class EventController extends Controller
         ]);
 
         if ($request->hasFile('poster')) {
-            if ($event->poster_path) \Illuminate\Support\Facades\Storage::delete($event->poster_path);
-            $validated['poster_path'] = $request->file('poster')->store('posters', 's3');
+            if ($event->poster_path) \Illuminate\Support\Facades\Storage::disk('public')->delete($event->poster_path);
+            $validated['poster_path'] = $request->file('poster')->store('posters', 'public');
         }
 
         $event->update($validated);
