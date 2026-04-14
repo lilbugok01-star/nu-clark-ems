@@ -16,6 +16,13 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/events', [HomeController::class, 'events'])->name('events');
 Route::get('/events/{id}', [HomeController::class, 'showEvent'])->name('event.show');
 Route::get('/calendar/events/json', [HomeController::class, 'calendarEventsJson'])->name('calendar.events.json');
+// S3 Storage Proxy (Universal Fallback for Private/Strict Buckets)
+Route::get('/storage/s3/{path}', function ($path) {
+    if (!\Illuminate\Support\Facades\Storage::disk('s3')->exists($path)) {
+        abort(404);
+    }
+    return \Illuminate\Support\Facades\Storage::disk('s3')->response($path);
+})->where('path', '.*')->name('storage.s3');
 
 // Force sync database (Admin-only fallback for Railway)
 Route::post('/force-sync-database', function () {
