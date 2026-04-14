@@ -175,14 +175,15 @@ class StudentDepartmentController extends Controller implements HasMiddleware
             'signature' => 'required|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
-        $user = Auth::user();
-        // Delete old signature if exists
-        if ($user->e_signature_path) {
-            \Illuminate\Support\Facades\Storage::disk('public')->delete($user->e_signature_path);
-        }
+        if ($request->hasFile('signature')) {
+            $user = Auth::user();
+            if ($user->e_signature_path) {
+                \Illuminate\Support\Facades\Storage::delete($user->e_signature_path);
+            }
 
-        $path = $request->file('signature')->store('signatures', 'public');
-        $user->update(['e_signature_path' => $path]);
+            $path = $request->file('signature')->store('signatures');
+            $user->update(['e_signature_path' => $path]);
+        }
 
         return back()->with('success', 'E-signature uploaded successfully!');
     }
