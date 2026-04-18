@@ -180,7 +180,7 @@
                                     </span>
                                 @endif
                             </button>
-                            <ul class="dropdown-menu dropdown-menu-end shadow-lg rounded-3 notif-dropdown mt-1 p-0"
+                            <ul class="dropdown-menu dropdown-menu-lg-end shadow-lg rounded-3 notif-dropdown mt-1 p-0"
                                 style="min-width:300px;border:1px solid var(--gray-200);overflow:hidden">
                                 <li class="px-3 py-2 d-flex justify-content-between align-items-center" style="background:var(--nu-blue);border-radius:12px 12px 0 0">
                                     <span class="fw-700 small text-white"><i class="bi bi-bell me-1"
@@ -219,7 +219,7 @@
                                 <span class="d-none d-sm-inline">{{ explode(' ', Auth::user()->name)[0] }}</span>
                             </button>
 
-                            <ul class="dropdown-menu dropdown-menu-end shadow-lg rounded-3 mt-1 p-0"
+                            <ul class="dropdown-menu dropdown-menu-lg-end shadow-lg rounded-3 mt-1 p-0"
                                 style="min-width:215px;border:1px solid var(--gray-200);overflow:hidden">
                                 <li style="background:var(--gray-50);border-radius:12px 12px 0 0">
                                     <div class="px-3 pt-3 pb-2">
