@@ -88,7 +88,7 @@
                                         <p class="text-muted small mt-2">Click button below to use camera</p>
                                     </div>
                                     <div class="mt-2 d-flex gap-2 justify-content-center flex-wrap">
-                                        <button type="button" class="btn btn-nu-blue btn-sm" onclick="startCamera()"><i
+                                        <button type="button" class="btn btn-nu-blue btn-sm" id="startCameraBtn" onclick="startCamera()"><i
                                                 class="bi bi-camera me-1"></i>Start Camera</button>
                                         <button type="button" class="btn btn-gold btn-sm d-none" id="captureBtn"
                                             onclick="capturePhoto()"><i class="bi bi-camera-fill me-1"></i>Capture</button>
@@ -126,17 +126,25 @@
 @push('scripts')
     <script>
         let stream = null;
-        let capturedBlob = null;
 
         async function startCamera() {
             try {
-                stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-                document.getElementById('cameraPreview').srcObject = stream;
-                document.getElementById('cameraPreview').classList.remove('d-none');
+                // adding facingMode user to prefer front camera
+                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
+                const video = document.getElementById('cameraPreview');
+                video.srcObject = stream;
+                
+                video.onloadedmetadata = () => {
+                    video.play();
+                };
+
+                video.classList.remove('d-none');
                 document.getElementById('cameraPlaceholder').classList.add('d-none');
                 document.getElementById('capturedPhoto').classList.add('d-none');
                 document.getElementById('captureBtn').classList.remove('d-none');
                 document.getElementById('retakeBtn').classList.add('d-none');
+                const startBtn = document.getElementById('startCameraBtn');
+                if (startBtn) startBtn.classList.add('d-none');
             } catch (e) {
                 alert('Camera not available. Please use the file upload option.');
             }
@@ -145,24 +153,34 @@
         function capturePhoto() {
             const video = document.getElementById('cameraPreview');
             const canvas = document.getElementById('cameraCanvas');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            canvas.getContext('2d').drawImage(video, 0, 0);
-            canvas.toBlob(blob => {
-                capturedBlob = blob;
-                const url = URL.createObjectURL(blob);
-                document.getElementById('capturedPhoto').src = url;
-                document.getElementById('capturedPhoto').classList.remove('d-none');
-                document.getElementById('cameraPreview').classList.add('d-none');
-                document.getElementById('captureBtn').classList.add('d-none');
-                document.getElementById('retakeBtn').classList.remove('d-none');
-                document.getElementById('photoData').value = canvas.toDataURL('image/jpeg', 0.8);
-                if (stream) stream.getTracks().forEach(t => t.stop());
-            }, 'image/jpeg', 0.8);
+            
+            // Set canvas size to match video
+            canvas.width = video.videoWidth || 640;
+            canvas.height = video.videoHeight || 480;
+            
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            // Get base64 string directly - more reliable than Blob across browsers
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+            
+            // Show preview
+            document.getElementById('capturedPhoto').src = dataUrl;
+            document.getElementById('capturedPhoto').classList.remove('d-none');
+            document.getElementById('cameraPreview').classList.add('d-none');
+            document.getElementById('captureBtn').classList.add('d-none');
+            document.getElementById('retakeBtn').classList.remove('d-none');
+            
+            // Save to input
+            document.getElementById('photoData').value = dataUrl;
+            
+            // Stop camera
+            if (stream) {
+                stream.getTracks().forEach(t => t.stop());
+            }
         }
 
         function retakePhoto() {
-            capturedBlob = null;
             document.getElementById('photoData').value = '';
             document.getElementById('capturedPhoto').classList.add('d-none');
             startCamera();
