@@ -195,8 +195,29 @@ class AdminController extends Controller implements HasMiddleware
     public function storeCourse(Request $request)
     {
         $v = $request->validate(['code' => 'required|unique:courses', 'name' => 'required']);
-        Course::create($v);
-        return back()->with('success', 'Course added!');
+        $course = Course::create($v);
+
+        // Auto-generate sections for the new course
+        $prefix = preg_replace('/[^A-Z]/', '', strtoupper($course->code));
+        if (strlen($prefix) > 3) {
+            $prefix = substr($prefix, -3);
+        } elseif (strlen($prefix) == 0) {
+            $prefix = 'SEC';
+        }
+
+        for ($year = 1; $year <= 4; $year++) {
+            for ($sec = 1; $sec <= 5; $sec++) {
+                $sectionName = $prefix . '-' . $year . str_pad($sec, 2, '0', STR_PAD_LEFT);
+                Section::create([
+                    'course_id' => $course->id,
+                    'name' => $sectionName,
+                    'year_level' => $year,
+                    'is_active' => true
+                ]);
+            }
+        }
+
+        return back()->with('success', 'Course added successfully along with its sections!');
     }
 
     public function reports()
