@@ -23,6 +23,7 @@
         .signature-img { position: absolute; max-height: 70px; max-width: 150px; bottom: 5px; object-fit: contain; }
         .signer-name { font-weight: 800; font-size: 0.85rem; text-transform: uppercase; margin-top: 5px; color: #111; }
         .signer-role { font-size: 0.75rem; color: #666; text-transform: capitalize; }
+        .signature-block { page-break-inside: avoid; break-inside: avoid; }
         .watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg); font-size: 8rem; opacity: 0.05; font-weight: 900; pointer-events: none; color: #003087; }
     </style>
 </head>
@@ -115,7 +116,7 @@
                     $roleUser = \App\Models\User::where('role', $sig->role)->first();
                     $signerName = $approval ? $approval->approver->name : ($roleUser ? $roleUser->name : 'N/A');
                 @endphp
-                <div class="col-4 text-center mb-5">
+                <div class="col-4 text-center mb-5 signature-block">
                     <div class="signature-box">
                         @if($approval && $approval->e_signature_used)
                             <img src="{{ \App\Helpers\StorageUrl::url($approval->approver->e_signature_path ?? $approval->e_signature_used) }}" class="signature-img" alt="Signature">
