@@ -170,73 +170,84 @@
         
         html5QrCode = new Html5Qrcode("reader");
         
-        // Loading state
+        // Render an explicit Start button. 
+        // iOS WebKit strongly restricts getUserMedia unless preceded by a DIRECT user gesture 
+        // (like a button click) in the exact same event loop. shown.bs.modal is asynchronous and loses this context.
         document.getElementById('reader').innerHTML = `
             <div class="d-flex flex-column align-items-center justify-content-center text-muted" style="height:250px">
-                <div class="spinner-border text-primary mb-3" role="status"></div>
-                <span class="small">Requesting camera access...</span>
+                <i class="bi bi-qr-code-scan mb-3" style="font-size:2.5rem; color:var(--nu-blue); opacity:0.3"></i>
+                <button type="button" class="btn btn-nu-blue rounded-pill fw-bold" id="startCameraBtn">
+                    <i class="bi bi-play-circle me-1"></i> Start Camera
+                </button>
             </div>
         `;
 
-        Html5Qrcode.getCameras().then(devices => {
-            if (devices && devices.length) {
-                let cameraId = devices[0].id;
-                
-                // Prioritize rear/environment camera
-                for (let i = 0; i < devices.length; i++) {
-                    const label = devices[i].label.toLowerCase();
-                    if (label.includes("back") || label.includes("environment") || label.includes("rear")) {
-                        cameraId = devices[i].id;
-                        break;
-                    }
-                }
+        document.getElementById('startCameraBtn').addEventListener('click', function() {
+            // Loading state on button
+            const btn = document.getElementById('startCameraBtn');
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span> Requesting Access...';
+            btn.disabled = true;
 
-                html5QrCode.start(
-                    cameraId, 
-                    {
-                        fps: 10,
-                        // Dynamic qrbox size prevents container overflow errors on small mobiles
-                        qrbox: function(viewfinderWidth, viewfinderHeight) {
-                            let minEdgeSize = Math.min(viewfinderWidth, viewfinderHeight);
-                            let qrboxSize = Math.floor(minEdgeSize * 0.75);
-                            return { width: qrboxSize, height: qrboxSize };
+            Html5Qrcode.getCameras().then(devices => {
+                if (devices && devices.length) {
+                    let cameraId = devices[0].id;
+                    
+                    // Prioritize rear/environment camera
+                    for (let i = 0; i < devices.length; i++) {
+                        const label = devices[i].label.toLowerCase();
+                        if (label.includes("back") || label.includes("environment") || label.includes("rear")) {
+                            cameraId = devices[i].id;
+                            break;
                         }
-                    },
-                    function onScanSuccess(decodedText) {
-                        if(html5QrCode) {
-                            html5QrCode.stop().then(() => {
-                                const modalInstance = bootstrap.Modal.getInstance(scannerModal);
-                                if(modalInstance) modalInstance.hide();
-                                window.location.href = decodedText;
-                            }).catch(err => console.error(err));
-                        }
-                    },
-                    function onScanFailure(error) {
-                        // Keep scanning
                     }
-                ).catch(err => {
-                    console.error("Camera start error:", err);
+
+                    html5QrCode.start(
+                        cameraId, 
+                        {
+                            fps: 10,
+                            // Dynamic qrbox size prevents container overflow errors on small mobiles
+                            qrbox: function(viewfinderWidth, viewfinderHeight) {
+                                let minEdgeSize = Math.min(viewfinderWidth, viewfinderHeight);
+                                let qrboxSize = Math.floor(minEdgeSize * 0.75);
+                                return { width: qrboxSize, height: qrboxSize };
+                            }
+                        },
+                        function onScanSuccess(decodedText) {
+                            if(html5QrCode) {
+                                html5QrCode.stop().then(() => {
+                                    const modalInstance = bootstrap.Modal.getInstance(scannerModal);
+                                    if(modalInstance) modalInstance.hide();
+                                    window.location.href = decodedText;
+                                }).catch(err => console.error(err));
+                            }
+                        },
+                        function onScanFailure(error) {
+                            // Keep scanning
+                        }
+                    ).catch(err => {
+                        console.error("Camera start error:", err);
+                        document.getElementById('reader').innerHTML = `
+                            <div class="alert alert-danger m-3 text-start small">
+                                <strong>Could not start camera.</strong><br>${err}
+                            </div>
+                        `;
+                    });
+                } else {
                     document.getElementById('reader').innerHTML = `
-                        <div class="alert alert-danger m-3 text-start small">
-                            <strong>Could not start camera.</strong><br>${err}
+                        <div class="alert alert-warning m-3 text-start small">
+                            <strong>No cameras found.</strong><br>Check if your device has a working camera.
                         </div>
                     `;
-                });
-            } else {
+                }
+            }).catch(err => {
+                console.error("Permission error:", err);
                 document.getElementById('reader').innerHTML = `
-                    <div class="alert alert-warning m-3 text-start small">
-                        <strong>No cameras found.</strong><br>Check if your device has a working camera.
+                    <div class="alert alert-danger m-3 text-start small">
+                        <strong>Camera access blocked.</strong><br>
+                        Please allow camera permissions in your browser settings and try again.
                     </div>
                 `;
-            }
-        }).catch(err => {
-            console.error("Permission error:", err);
-            document.getElementById('reader').innerHTML = `
-                <div class="alert alert-danger m-3 text-start small">
-                    <strong>Camera access blocked.</strong><br>
-                    Please allow camera permissions in your browser settings and try again.
-                </div>
-            `;
+            });
         });
     });
 
