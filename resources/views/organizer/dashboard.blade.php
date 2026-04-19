@@ -151,121 +151,116 @@
                 <button class="btn-close" data-bs-dismiss="modal" id="closeScannerModal"></button>
             </div>
             <div class="modal-body text-center p-3">
-                <div id="reader" class="rounded-3 overflow-hidden" style="width: 100%; border:2px dashed var(--nu-blue)"></div>
-                <p class="text-muted small mt-3 mb-0">Point the student's QR code at your laptop webcam to check them in seamlessly.</p>
+                <!-- Idle overlay shown before camera starts -->
+                <div id="scannerIdle" class="d-flex flex-column align-items-center justify-content-center rounded-3"
+                     style="height:300px; background:linear-gradient(135deg,#f0f4ff,#e8eeff);">
+                    <div style="background:rgba(0,51,160,0.08);border-radius:50%;width:80px;height:80px;display:flex;align-items:center;justify-content:center;margin-bottom:16px;">
+                        <i class="bi bi-qr-code-scan" style="font-size:2.2rem;color:var(--nu-blue);"></i>
+                    </div>
+                    <p class="fw-semibold mb-1" style="color:var(--nu-blue);font-size:0.95rem;">Ready to Scan</p>
+                    <p class="text-muted small mb-3" style="font-size:0.78rem;">Click below to activate your webcam</p>
+                    <button id="startCameraBtn" type="button"
+                            class="btn fw-bold px-4 py-2 rounded-pill shadow-sm"
+                            style="background:var(--nu-blue);color:#fff;font-size:0.9rem;">
+                        <i class="bi bi-play-circle-fill me-2"></i>Start Camera
+                    </button>
+                    <div id="scannerError" class="mt-3 small text-danger d-none"></div>
+                </div>
+
+                <!-- Live camera feed (hidden until started) -->
+                <div id="scannerLive" class="d-none rounded-3 overflow-hidden" style="position:relative;background:#000;">
+                    <video id="scannerVideo" playsinline autoplay muted
+                           style="width:100%;display:block;max-height:320px;object-fit:cover;"></video>
+                    <!-- Scanning frame overlay -->
+                    <div style="position:absolute;inset:0;pointer-events:none;display:flex;align-items:center;justify-content:center;">
+                        <div style="width:180px;height:180px;border:3px solid var(--nu-gold);border-radius:12px;box-shadow:0 0 0 9999px rgba(0,0,0,0.35);"></div>
+                    </div>
+                    <div style="position:absolute;bottom:10px;left:0;right:0;text-align:center;">
+                        <span class="badge" style="background:rgba(0,0,0,0.55);color:#fff;font-size:0.75rem;padding:4px 12px;border-radius:20px;">
+                            <span class="spinner-grow spinner-grow-sm me-1" style="color:var(--nu-gold);"></span>Scanning…
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Hidden canvas used for jsQR processing -->
+                <canvas id="scannerCanvas" style="display:none;"></canvas>
+
+                <p class="text-muted small mt-3 mb-0">Point the student's QR code at the gold frame to check them in.</p>
             </div>
         </div>
     </div>
 </div>
 
 @push('scripts')
-<script src="https://unpkg.com/html5-qrcode"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 <script>
-    let html5QrCode;
+    let cameraStream   = null;
+    let scanInterval   = null;
     const scannerModal = document.getElementById('webScannerModal');
 
-    scannerModal.addEventListener('shown.bs.modal', function () {
-        // Show the idle/start state first — do NOT instantiate Html5Qrcode yet
-        // because its constructor may mutate #reader and conflict with our innerHTML.
-        document.getElementById('reader').innerHTML = `
-            <div class="d-flex flex-column align-items-center justify-content-center" style="height:260px; background: linear-gradient(135deg, #f0f4ff 0%, #e8eeff 100%); border-radius: 12px;">
-                <div style="background: rgba(0,51,160,0.08); border-radius: 50%; width: 80px; height: 80px; display:flex; align-items:center; justify-content:center; margin-bottom: 16px;">
-                    <i class="bi bi-qr-code-scan" style="font-size:2.2rem; color:var(--nu-blue);"></i>
-                </div>
-                <p class="fw-semibold mb-1" style="color:var(--nu-blue); font-size:0.95rem;">Ready to Scan</p>
-                <p class="text-muted small mb-3" style="font-size:0.78rem;">Click below to activate your webcam</p>
-                <button type="button" class="btn fw-bold px-4 py-2 rounded-pill shadow-sm" id="startCameraBtn"
-                    style="background: var(--nu-blue); color:#fff; font-size:0.9rem; letter-spacing:0.3px;">
-                    <i class="bi bi-play-circle-fill me-2"></i>Start Camera
-                </button>
-            </div>
-        `;
+    function stopCamera() {
+        if (scanInterval)  { clearInterval(scanInterval);  scanInterval  = null; }
+        if (cameraStream)  { cameraStream.getTracks().forEach(t => t.stop()); cameraStream = null; }
+        // Reset UI back to idle
+        document.getElementById('scannerLive').classList.add('d-none');
+        document.getElementById('scannerIdle').classList.remove('d-none');
+        const btn = document.getElementById('startCameraBtn');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-play-circle-fill me-2"></i>Start Camera';
+        document.getElementById('scannerError').classList.add('d-none');
+    }
 
-        document.getElementById('startCameraBtn').addEventListener('click', function() {
-            const btn = document.getElementById('startCameraBtn');
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span> Requesting Access...';
-            btn.disabled = true;
+    // Stop camera whenever modal closes
+    scannerModal.addEventListener('hidden.bs.modal', stopCamera);
 
-            // Instantiate only now — right inside the user gesture handler
-            document.getElementById('reader').innerHTML = '';
-            html5QrCode = new Html5Qrcode("reader");
+    document.getElementById('startCameraBtn').addEventListener('click', async function () {
+        const btn = document.getElementById('startCameraBtn');
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Requesting Access...';
+        btn.disabled = true;
 
-            Html5Qrcode.getCameras().then(devices => {
-                if (devices && devices.length) {
-                    let cameraId = devices[0].id;
-                    
-                    // Prioritize rear/environment camera
-                    for (let i = 0; i < devices.length; i++) {
-                        const label = devices[i].label.toLowerCase();
-                        if (label.includes("back") || label.includes("environment") || label.includes("rear")) {
-                            cameraId = devices[i].id;
-                            break;
-                        }
-                    }
-
-                    html5QrCode.start(
-                        cameraId, 
-                        {
-                            fps: 10,
-                            // Dynamic qrbox size prevents container overflow errors on small mobiles
-                            qrbox: function(viewfinderWidth, viewfinderHeight) {
-                                let minEdgeSize = Math.min(viewfinderWidth, viewfinderHeight);
-                                let qrboxSize = Math.floor(minEdgeSize * 0.75);
-                                return { width: qrboxSize, height: qrboxSize };
-                            }
-                        },
-                        function onScanSuccess(decodedText) {
-                            if(html5QrCode) {
-                                html5QrCode.stop().then(() => {
-                                    const modalInstance = bootstrap.Modal.getInstance(scannerModal);
-                                    if(modalInstance) modalInstance.hide();
-                                    window.location.href = decodedText;
-                                }).catch(err => console.error(err));
-                            }
-                        },
-                        function onScanFailure(error) {
-                            // Keep scanning
-                        }
-                    ).catch(err => {
-                        console.error("Camera start error:", err);
-                        document.getElementById('reader').innerHTML = `
-                            <div class="alert alert-danger m-3 text-start small">
-                                <strong>Could not start camera.</strong><br>${err}
-                            </div>
-                        `;
-                    });
-                } else {
-                    document.getElementById('reader').innerHTML = `
-                        <div class="alert alert-warning m-3 text-start small">
-                            <strong>No cameras found.</strong><br>Check if your device has a working camera.
-                        </div>
-                    `;
-                }
-            }).catch(err => {
-                console.error("Permission error:", err);
-                document.getElementById('reader').innerHTML = `
-                    <div class="alert alert-danger m-3 text-start small">
-                        <strong>Camera access blocked.</strong><br>
-                        Please allow camera permissions in your browser settings and try again.
-                    </div>
-                `;
+        try {
+            // Request camera — prefer rear/environment on mobile, fallback to any
+            cameraStream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }
             });
-        });
-    });
 
-    scannerModal.addEventListener('hidden.bs.modal', function () {
-        if (html5QrCode) {
-            try {
-                // Try stopping first if running
-                html5QrCode.stop().then(() => {
-                    html5QrCode.clear();
-                }).catch(err => {
-                    // Overrides the warning when stopping a stopped camera
-                    html5QrCode.clear();
-                });
-            } catch (e) {
-                console.log("Cleanup error:", e);
-            }
+            const video  = document.getElementById('scannerVideo');
+            const canvas = document.getElementById('scannerCanvas');
+            const ctx    = canvas.getContext('2d');
+
+            video.srcObject = cameraStream;
+            await video.play();
+
+            // Switch UI: hide idle, show live feed
+            document.getElementById('scannerIdle').classList.add('d-none');
+            document.getElementById('scannerLive').classList.remove('d-none');
+
+            // Scan a frame every 100ms with jsQR
+            scanInterval = setInterval(function () {
+                if (video.readyState !== video.HAVE_ENOUGH_DATA) return;
+                canvas.width  = video.videoWidth;
+                canvas.height = video.videoHeight;
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const code = jsQR(imageData.data, canvas.width, canvas.height, { inversionAttempts: 'dontInvert' });
+                if (code && code.data) {
+                    // QR found — stop everything and navigate
+                    stopCamera();
+                    const modalInstance = bootstrap.Modal.getInstance(scannerModal);
+                    if (modalInstance) modalInstance.hide();
+                    window.location.href = code.data;
+                }
+            }, 100);
+
+        } catch (err) {
+            // Show error inside the idle panel so the user can retry
+            const errEl = document.getElementById('scannerError');
+            errEl.textContent = err.name === 'NotAllowedError'
+                ? 'Camera permission denied. Allow camera access in your browser settings and try again.'
+                : 'Could not start camera: ' + err.message;
+            errEl.classList.remove('d-none');
+            btn.innerHTML = '<i class="bi bi-play-circle-fill me-2"></i>Retry';
+            btn.disabled = false;
         }
     });
 </script>
