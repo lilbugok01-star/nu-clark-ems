@@ -50,12 +50,14 @@
                             <i class="bi bi-house"></i> Home
                         </a>
                     </li>
+                    @if(!Auth::check() || Auth::user()->role !== 'organizer')
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('events') ? 'active' : '' }}"
                             href="{{ route('events') }}">
                             <i class="bi bi-calendar3"></i> Events
                         </a>
                     </li>
+                    @endif
 
                     @auth
                         @php $role = Auth::user()->role; @endphp

@@ -46,7 +46,11 @@
                 </div>
 
                 @auth
-                    @if($isRegistered)
+                    @if(Auth::user()->role !== 'student')
+                        <div class="alert alert-secondary text-center small mb-0 py-2">
+                            <i class="bi bi-info-circle-fill me-1"></i> Registration is open for students only.
+                        </div>
+                    @elseif($isRegistered)
                         <div class="alert alert-success text-center small mb-2 py-2">
                             <i class="bi bi-check-circle-fill me-1"></i> You're registered!
                         </div>
