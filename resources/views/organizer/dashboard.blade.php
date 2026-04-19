@@ -161,29 +161,49 @@
 @push('scripts')
 <script src="https://unpkg.com/html5-qrcode"></script>
 <script>
-    let html5QrcodeScanner;
+    let html5QrCode;
     const scannerModal = document.getElementById('webScannerModal');
 
     scannerModal.addEventListener('shown.bs.modal', function () {
-        html5QrcodeScanner = new Html5QrcodeScanner(
-            "reader", { fps: 10, qrbox: {width: 250, height: 250} }, false);
+        // Initialize the direct scanner instance
+        html5QrCode = new Html5Qrcode("reader");
         
-        html5QrcodeScanner.render(function(decodedText) {
-            // Once scanned, redirect securely to the decoded link
-            html5QrcodeScanner.clear();
-            const modalInstance = bootstrap.Modal.getInstance(scannerModal);
-            if(modalInstance) modalInstance.hide();
-            
-            // Navigate to the scanned URL
-            window.location.href = decodedText;
-        }, function(error) {
-            // Background scan noise (ignore)
+        // Let the user know it's loading the camera...
+        document.getElementById('reader').innerHTML = '<div class="p-4 text-muted"><div class="spinner-border text-primary mb-2" role="status"></div><br>Starting camera...</div>';
+
+        // Explicitly request the rear camera (environment) 
+        html5QrCode.start(
+            { facingMode: "environment" }, 
+            {
+                fps: 10,
+                qrbox: { width: 200, height: 200 } // Slightly smaller out of the box for small mobile screens
+            },
+            function onScanSuccess(decodedText) {
+                // Once scanned, stop the camera and redirect to the verification link
+                html5QrCode.stop().then(() => {
+                    const modalInstance = bootstrap.Modal.getInstance(scannerModal);
+                    if(modalInstance) modalInstance.hide();
+                    
+                    window.location.href = decodedText;
+                });
+            },
+            function onScanFailure(error) {
+                // handle scan failure, usually better to ignore and keep scanning
+            }
+        ).catch(err => {
+            console.error("Camera error:", err);
+            document.getElementById('reader').innerHTML = '<div class="alert alert-danger m-3 text-start small"><strong>Camera access blocked or unavailable.</strong><br>1. Check if your browser blocked permissions.<br>2. On iOS, Safari strictly requires explicitly allowing the camera for this website.</div>';
         });
     });
 
     scannerModal.addEventListener('hidden.bs.modal', function () {
-        if (html5QrcodeScanner) {
-            html5QrcodeScanner.clear();
+        if (html5QrCode) {
+            // Check if it's actually scanning before trying to stop it
+            if (html5QrCode.isScanning) {
+                html5QrCode.stop().catch(err => console.log("Stop error:", err));
+            } else {
+                html5QrCode.clear();
+            }
         }
     });
 </script>
