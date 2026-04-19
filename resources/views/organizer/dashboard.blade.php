@@ -165,44 +165,93 @@
     const scannerModal = document.getElementById('webScannerModal');
 
     scannerModal.addEventListener('shown.bs.modal', function () {
-        // Initialize the direct scanner instance
+        // Ensure container has dimension
+        document.getElementById('reader').style.minHeight = "250px";
+        
         html5QrCode = new Html5Qrcode("reader");
         
-        // Let the user know it's loading the camera...
-        document.getElementById('reader').innerHTML = '<div class="p-4 text-muted"><div class="spinner-border text-primary mb-2" role="status"></div><br>Starting camera...</div>';
+        // Loading state
+        document.getElementById('reader').innerHTML = `
+            <div class="d-flex flex-column align-items-center justify-content-center text-muted" style="height:250px">
+                <div class="spinner-border text-primary mb-3" role="status"></div>
+                <span class="small">Requesting camera access...</span>
+            </div>
+        `;
 
-        // Explicitly request the rear camera (environment) 
-        html5QrCode.start(
-            { facingMode: "environment" }, 
-            {
-                fps: 10,
-                qrbox: { width: 200, height: 200 } // Slightly smaller out of the box for small mobile screens
-            },
-            function onScanSuccess(decodedText) {
-                // Once scanned, stop the camera and redirect to the verification link
-                html5QrCode.stop().then(() => {
-                    const modalInstance = bootstrap.Modal.getInstance(scannerModal);
-                    if(modalInstance) modalInstance.hide();
-                    
-                    window.location.href = decodedText;
+        Html5Qrcode.getCameras().then(devices => {
+            if (devices && devices.length) {
+                let cameraId = devices[0].id;
+                
+                // Prioritize rear/environment camera
+                for (let i = 0; i < devices.length; i++) {
+                    const label = devices[i].label.toLowerCase();
+                    if (label.includes("back") || label.includes("environment") || label.includes("rear")) {
+                        cameraId = devices[i].id;
+                        break;
+                    }
+                }
+
+                html5QrCode.start(
+                    cameraId, 
+                    {
+                        fps: 10,
+                        // Dynamic qrbox size prevents container overflow errors on small mobiles
+                        qrbox: function(viewfinderWidth, viewfinderHeight) {
+                            let minEdgeSize = Math.min(viewfinderWidth, viewfinderHeight);
+                            let qrboxSize = Math.floor(minEdgeSize * 0.75);
+                            return { width: qrboxSize, height: qrboxSize };
+                        }
+                    },
+                    function onScanSuccess(decodedText) {
+                        if(html5QrCode) {
+                            html5QrCode.stop().then(() => {
+                                const modalInstance = bootstrap.Modal.getInstance(scannerModal);
+                                if(modalInstance) modalInstance.hide();
+                                window.location.href = decodedText;
+                            }).catch(err => console.error(err));
+                        }
+                    },
+                    function onScanFailure(error) {
+                        // Keep scanning
+                    }
+                ).catch(err => {
+                    console.error("Camera start error:", err);
+                    document.getElementById('reader').innerHTML = `
+                        <div class="alert alert-danger m-3 text-start small">
+                            <strong>Could not start camera.</strong><br>${err}
+                        </div>
+                    `;
                 });
-            },
-            function onScanFailure(error) {
-                // handle scan failure, usually better to ignore and keep scanning
+            } else {
+                document.getElementById('reader').innerHTML = `
+                    <div class="alert alert-warning m-3 text-start small">
+                        <strong>No cameras found.</strong><br>Check if your device has a working camera.
+                    </div>
+                `;
             }
-        ).catch(err => {
-            console.error("Camera error:", err);
-            document.getElementById('reader').innerHTML = '<div class="alert alert-danger m-3 text-start small"><strong>Camera access blocked or unavailable.</strong><br>1. Check if your browser blocked permissions.<br>2. On iOS, Safari strictly requires explicitly allowing the camera for this website.</div>';
+        }).catch(err => {
+            console.error("Permission error:", err);
+            document.getElementById('reader').innerHTML = `
+                <div class="alert alert-danger m-3 text-start small">
+                    <strong>Camera access blocked.</strong><br>
+                    Please allow camera permissions in your browser settings and try again.
+                </div>
+            `;
         });
     });
 
     scannerModal.addEventListener('hidden.bs.modal', function () {
         if (html5QrCode) {
-            // Check if it's actually scanning before trying to stop it
-            if (html5QrCode.isScanning) {
-                html5QrCode.stop().catch(err => console.log("Stop error:", err));
-            } else {
-                html5QrCode.clear();
+            try {
+                // Try stopping first if running
+                html5QrCode.stop().then(() => {
+                    html5QrCode.clear();
+                }).catch(err => {
+                    // Overrides the warning when stopping a stopped camera
+                    html5QrCode.clear();
+                });
+            } catch (e) {
+                console.log("Cleanup error:", e);
             }
         }
     });
