@@ -165,28 +165,30 @@
     const scannerModal = document.getElementById('webScannerModal');
 
     scannerModal.addEventListener('shown.bs.modal', function () {
-        // Ensure container has dimension
-        document.getElementById('reader').style.minHeight = "250px";
-        
-        html5QrCode = new Html5Qrcode("reader");
-        
-        // Render an explicit Start button. 
-        // iOS WebKit strongly restricts getUserMedia unless preceded by a DIRECT user gesture 
-        // (like a button click) in the exact same event loop. shown.bs.modal is asynchronous and loses this context.
+        // Show the idle/start state first — do NOT instantiate Html5Qrcode yet
+        // because its constructor may mutate #reader and conflict with our innerHTML.
         document.getElementById('reader').innerHTML = `
-            <div class="d-flex flex-column align-items-center justify-content-center text-muted" style="height:250px">
-                <i class="bi bi-qr-code-scan mb-3" style="font-size:2.5rem; color:var(--nu-blue); opacity:0.3"></i>
-                <button type="button" class="btn btn-nu-blue rounded-pill fw-bold" id="startCameraBtn">
-                    <i class="bi bi-play-circle me-1"></i> Start Camera
+            <div class="d-flex flex-column align-items-center justify-content-center" style="height:260px; background: linear-gradient(135deg, #f0f4ff 0%, #e8eeff 100%); border-radius: 12px;">
+                <div style="background: rgba(0,51,160,0.08); border-radius: 50%; width: 80px; height: 80px; display:flex; align-items:center; justify-content:center; margin-bottom: 16px;">
+                    <i class="bi bi-qr-code-scan" style="font-size:2.2rem; color:var(--nu-blue);"></i>
+                </div>
+                <p class="fw-semibold mb-1" style="color:var(--nu-blue); font-size:0.95rem;">Ready to Scan</p>
+                <p class="text-muted small mb-3" style="font-size:0.78rem;">Click below to activate your webcam</p>
+                <button type="button" class="btn fw-bold px-4 py-2 rounded-pill shadow-sm" id="startCameraBtn"
+                    style="background: var(--nu-blue); color:#fff; font-size:0.9rem; letter-spacing:0.3px;">
+                    <i class="bi bi-play-circle-fill me-2"></i>Start Camera
                 </button>
             </div>
         `;
 
         document.getElementById('startCameraBtn').addEventListener('click', function() {
-            // Loading state on button
             const btn = document.getElementById('startCameraBtn');
             btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span> Requesting Access...';
             btn.disabled = true;
+
+            // Instantiate only now — right inside the user gesture handler
+            document.getElementById('reader').innerHTML = '';
+            html5QrCode = new Html5Qrcode("reader");
 
             Html5Qrcode.getCameras().then(devices => {
                 if (devices && devices.length) {
