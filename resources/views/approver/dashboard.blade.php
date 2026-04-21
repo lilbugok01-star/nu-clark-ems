@@ -152,6 +152,9 @@
                                             @endphp
 
                                             @if(!$isOpen)
+                                                <a href="{{ route('approver.venues.form', $venue->id) }}" target="_blank" class="btn btn-sm btn-outline-secondary w-100 fw-bold mb-1" title="View Permission Document">
+                                                    <i class="bi bi-file-earmark-text me-1"></i> View Form
+                                                </a>
                                                 <form action="{{ route('approver.venues.open', $venue->id) }}" method="POST">
                                                     @csrf
                                                     <button type="submit" class="btn btn-sm btn-warning w-100 fw-bold shadow-sm mb-1" style="color:var(--nu-blue)">

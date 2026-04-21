@@ -314,7 +314,7 @@
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Reserved Date *</label>
-                            <input type="date" name="reserved_date" class="form-control" min="{{ now()->addDays(15)->toDateString() }}" required>
+                            <input type="date" name="reserved_date" class="form-control" min="{{ now()->toDateString() }}" required>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Start Time *</label>
