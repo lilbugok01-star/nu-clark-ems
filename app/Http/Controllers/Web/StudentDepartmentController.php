@@ -80,13 +80,13 @@ class StudentDepartmentController extends Controller implements HasMiddleware
             'event_title'        => 'nullable|string',
             'venue_name'         => 'required|string',
             'custom_venue_name'  => 'nullable|string',
-            'reserved_date'      => 'required|date|after_or_equal:+15 days',
+            'reserved_date'      => 'required|date|after_or_equal:today',
             'start_time'         => 'required|date_format:H:i:s,H:i|after_or_equal:08:00',
             'end_time'           => 'required|date_format:H:i:s,H:i|after:start_time|before_or_equal:22:00',
             'expected_attendees' => 'nullable|integer|min:1',
             'purpose'            => 'nullable|string',
         ], [
-            'reserved_date.after_or_equal' => 'Reservations must be made at least 15 days in advance.',
+            'reserved_date.after_or_equal' => 'The reservation date must be today or a future date.',
             'start_time.after_or_equal' => 'Reservation start time must be 08:00 AM or later.',
             'end_time.before_or_equal'  => 'Reservation end time must be 10:00 PM or earlier.',
         ]);
