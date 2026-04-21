@@ -88,32 +88,26 @@ class OrganizerController extends Controller implements HasMiddleware
             $poster_path = $request->file('poster')->store('posters', 's3');
         }
 
-        $status = Auth::user()->role === 'student_development' ? 'published' : 'pending_adviser';
-
+        // Events are published immediately — no signatory or approval workflow required.
         $event = Event::create([
             ...$validated,
             'organizer_id'  => Auth::id(),
             'poster_path'   => $poster_path,
-            'status'        => $status,
+            'status'        => 'published',
             'is_featured'   => $request->boolean('is_featured'),
         ]);
 
-        if ($status === 'published') {
-            // Notify students since it's immediately published without needing an approver signatory
-            $students = \App\Models\User::where('role', 'student')->pluck('id');
-            $notifs = $students->map(fn($uid) => [
-                'user_id'    => $uid,
-                'type'       => 'new_event',
-                'title'      => 'New Event: ' . $event->title,
-                'message'    => "A new event has been posted: {$event->title} on {$event->event_date->format('M d, Y')} at {$event->venue}.",
-                'created_at' => now(),
-                'updated_at' => now(),
-            ])->toArray();
-            \App\Models\AppNotification::insert($notifs);
-        }
-
-        // Notifications to students should only be sent once the event is fully approved and published.
-        // Therefore, we removed the early notification blast from here.
+        // Notify all students immediately since the event is published on creation.
+        $students = \App\Models\User::where('role', 'student')->pluck('id');
+        $notifs = $students->map(fn($uid) => [
+            'user_id'    => $uid,
+            'type'       => 'new_event',
+            'title'      => 'New Event: ' . $event->title,
+            'message'    => "A new event has been posted: {$event->title} on {$event->event_date->format('M d, Y')} at {$event->venue}.",
+            'created_at' => now(),
+            'updated_at' => now(),
+        ])->toArray();
+        \App\Models\AppNotification::insert($notifs);
 
         return redirect()->route('organizer.events')->with('success', 'Event created successfully!');
     }

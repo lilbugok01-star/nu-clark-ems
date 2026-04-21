@@ -29,69 +29,7 @@
         </div>
         @endif
 
-        @if($event)
-        <!-- Shopee-like Status Tracking UI -->
-        <div class="nu-card p-4 mb-4">
-            <h6 class="fw-bold mb-4" style="color:var(--nu-blue)"><i class="bi bi-geo me-2"></i>Approval Status Tracking</h6>
-            
-            <div class="position-relative m-4">
-                <div class="progress" style="height: 4px; position: absolute; top: 18px; left: 10%; right: 10%; z-index: 1;">
-                    @php
-                        $statuses = ['pending_adviser', 'pending_dept_head', 'pending_dean', 'pending_director', 'published'];
-                        $currentIndex = array_search($event->status, $statuses);
-                        if($currentIndex === false) $currentIndex = -1;
-                        if($event->status === 'rejected') $currentIndex = -1; // special case
-                        $progressWidth = max(0, min(100, ($currentIndex / 4) * 100));
-                    @endphp
-                    <div class="progress-bar bg-success" role="progressbar" style="width: {{ $progressWidth }}%;"></div>
-                </div>
-                
-                <div class="d-flex justify-content-between position-relative" style="z-index: 2;">
-                    <!-- Step 1 Adviser -->
-                    <div class="text-center" style="width: 20%;">
-                        <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-2 text-white shadow-sm" style="width: 40px; height: 40px; background-color: {{ $currentIndex >= 0 ? '#198754' : '#dee2e6' }};">
-                            <i class="bi bi-{{ $currentIndex >= 1 ? 'check' : 'person' }} fs-5"></i>
-                        </div>
-                        <div class="fw-bold small {{ $currentIndex >= 0 ? 'text-success' : 'text-muted' }}">Adviser</div>
-                    </div>
-                    <!-- Step 2 Dept Head -->
-                    <div class="text-center" style="width: 20%;">
-                        <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-2 text-white shadow-sm" style="width: 40px; height: 40px; background-color: {{ $currentIndex >= 1 ? '#198754' : '#dee2e6' }};">
-                            <i class="bi bi-{{ $currentIndex >= 2 ? 'check' : 'briefcase' }} fs-5"></i>
-                        </div>
-                        <div class="fw-bold small {{ $currentIndex >= 1 ? 'text-success' : 'text-muted' }}">Dept Head</div>
-                    </div>
-                    <!-- Step 3 Dean -->
-                    <div class="text-center" style="width: 20%;">
-                        <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-2 text-white shadow-sm" style="width: 40px; height: 40px; background-color: {{ $currentIndex >= 2 ? '#198754' : '#dee2e6' }};">
-                            <i class="bi bi-{{ $currentIndex >= 3 ? 'check' : 'award' }} fs-5"></i>
-                        </div>
-                        <div class="fw-bold small {{ $currentIndex >= 2 ? 'text-success' : 'text-muted' }}">Dean</div>
-                    </div>
-                    <!-- Step 4 Director -->
-                    <div class="text-center" style="width: 20%;">
-                        <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-2 text-white shadow-sm" style="width: 40px; height: 40px; background-color: {{ $currentIndex >= 3 ? '#198754' : '#dee2e6' }};">
-                            <i class="bi bi-{{ $currentIndex >= 4 ? 'check' : 'star' }} fs-5"></i>
-                        </div>
-                        <div class="fw-bold small {{ $currentIndex >= 3 ? 'text-success' : 'text-muted' }}">Exec Director</div>
-                    </div>
-                    <!-- Step 5 Published -->
-                    <div class="text-center" style="width: 20%;">
-                        <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-2 text-white shadow-sm" style="width: 40px; height: 40px; background-color: {{ $currentIndex >= 4 ? '#198754' : '#dee2e6' }};">
-                            <i class="bi bi-globe fs-5"></i>
-                        </div>
-                        <div class="fw-bold small {{ $currentIndex >= 4 ? 'text-success' : 'text-muted' }}">Published</div>
-                    </div>
-                </div>
-            </div>
 
-            @if($event->status === 'rejected')
-                <div class="alert alert-danger mt-3 mb-0 small">
-                    <i class="bi bi-x-circle-fill me-1"></i> Your event was rejected during the approval process. Please check your notifications.
-                </div>
-            @endif
-        </div>
-        @endif
 
         <div class="row g-4">
             <!-- Event Details Card -->
