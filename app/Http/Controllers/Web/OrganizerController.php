@@ -70,22 +70,37 @@ class OrganizerController extends Controller implements HasMiddleware
             'title'       => 'required|string|max:255',
             'description' => 'nullable|string',
             'venue'       => 'required|string',
-            'event_date'  => 'required|date|after_or_equal:+15 days',
-            'start_time'  => 'required|date_format:H:i|after_or_equal:08:00',
-            'end_time'    => 'required|date_format:H:i|after:start_time|before_or_equal:22:00',
+            'event_date'  => 'required|date|after_or_equal:today',
+            'start_time'  => 'required|date_format:H:i',
+            'end_time'    => 'required|date_format:H:i|after:start_time',
             'capacity'    => 'required|integer|min:1',
             'category'    => 'nullable|string',
             'is_featured' => 'boolean',
             'poster'      => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
-        ], [
-            'event_date.after_or_equal' => 'Events must be created at least 15 days in advance.',
-            'start_time.after_or_equal' => 'Event start time must be 08:00 AM or later to allow 1-hour ingress from 07:00 AM.',
-            'end_time.before_or_equal'  => 'Event end time must be 10:00 PM or earlier to allow 1-hour egress until 11:00 PM.',
         ]);
 
         $poster_path = null;
         if ($request->hasFile('poster')) {
             $poster_path = $request->file('poster')->store('posters', 's3');
+        }
+
+        // --- Duplicate venue/time conflict check ---
+        $conflict = Event::where('venue', $validated['venue'])
+            ->where('event_date', $validated['event_date'])
+            ->where('status', 'published')
+            ->where(function ($q) use ($validated) {
+                $q->where('start_time', '<', $validated['end_time'])
+                  ->where('end_time',   '>', $validated['start_time']);
+            })
+            ->first();
+
+        if ($conflict) {
+            return back()->withInput()->withErrors([
+                'venue' => 'This venue is already booked for "' . $conflict->title . '" from '
+                    . \Carbon\Carbon::parse($conflict->start_time)->format('h:i A')
+                    . ' to ' . \Carbon\Carbon::parse($conflict->end_time)->format('h:i A')
+                    . ' on that date. Please choose a different venue or time slot.',
+            ]);
         }
 
         // Events are published immediately — no signatory or approval workflow required.
@@ -125,17 +140,13 @@ class OrganizerController extends Controller implements HasMiddleware
             'title'       => 'required|string',
             'description' => 'nullable|string',
             'venue'       => 'required|string',
-            'event_date'  => 'required|date|after_or_equal:+15 days',
-            'start_time'  => 'required|date_format:H:i|after_or_equal:08:00',
-            'end_time'    => 'required|date_format:H:i|after:start_time|before_or_equal:22:00',
+            'event_date'  => 'required|date|after_or_equal:today',
+            'start_time'  => 'required|date_format:H:i',
+            'end_time'    => 'required|date_format:H:i|after:start_time',
             'capacity'    => 'required|integer|min:1',
-            'status'      => 'in:draft,pending_adviser,cancelled,published',
+            'status'      => 'in:draft,cancelled,published',
             'category'    => 'nullable|string',
             'poster'      => 'nullable|image|max:4096',
-        ], [
-            'event_date.after_or_equal' => 'Events must be created at least 15 days in advance.',
-            'start_time.after_or_equal' => 'Event start time must be 08:00 AM or later to allow 1-hour ingress from 07:00 AM.',
-            'end_time.before_or_equal'  => 'Event end time must be 10:00 PM or earlier to allow 1-hour egress until 11:00 PM.',
         ]);
 
         if ($request->hasFile('poster')) {
