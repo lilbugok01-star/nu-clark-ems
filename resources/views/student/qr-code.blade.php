@@ -99,18 +99,7 @@
                                 <input type="hidden" name="photo_data" id="photoData">
                             </div>
 
-                            <div class="text-center text-muted small my-2">— or —</div>
-
-                            <!-- File upload option -->
-                            <div class="mb-4">
-                                <label class="form-label fw-600">Upload from Gallery</label>
-                                <input type="file" name="photo" class="form-control" accept="image/*" id="photoFile"
-                                    onchange="previewFile(event)">
-                                <div id="previewContainer" class="mt-2 d-none">
-                                    <img id="filePreview" class="rounded-3 w-100" style="max-height:200px;object-fit:cover"
-                                        alt="Preview">
-                                </div>
-                            </div>
+                            <div class="mb-4"></div>
 
                             <button type="submit" class="btn btn-nu-blue w-100 fw-700 py-2">
                                 <i class="bi bi-send me-2"></i>Submit Attendance
@@ -186,15 +175,6 @@
             startCamera();
         }
 
-        function previewFile(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = ev => {
-                document.getElementById('filePreview').src = ev.target.result;
-                document.getElementById('previewContainer').classList.remove('d-none');
-            };
-            reader.readAsDataURL(file);
-        }
+
     </script>
 @endpush

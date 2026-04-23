@@ -169,6 +169,10 @@ class StudentController extends Controller implements HasMiddleware
             'photo_data' => 'nullable|string',
         ]);
 
+        if (!$request->hasFile('photo') && empty($request->photo_data)) {
+            return back()->with('error', 'A photo is required for attendance check-in. Please take a selfie.');
+        }
+
         $registration = Registration::with('event')->where('qr_token', $request->qr_token)->first();
 
         if (!$registration) {
@@ -181,17 +185,24 @@ class StudentController extends Controller implements HasMiddleware
 
         // ── Live-window check ──────────────────────────────────────────────
         $event      = $registration->event;
-        $now        = now();
+        $now        = \Carbon\Carbon::now('Asia/Manila');
         $today      = $now->toDateString();
-        $currentTime = $now->format('H:i:s');
 
-        if ($event->event_date->toDateString() !== $today) {
-            return back()->with('error', 'Attendance can only be submitted on the day of the event (' . $event->event_date->format('M d, Y') . ').');
+        $eventDate = $event->event_date instanceof \DateTimeInterface
+            ? $event->event_date->format('Y-m-d')
+            : \Carbon\Carbon::parse($event->event_date)->toDateString();
+
+        if ($eventDate !== $today) {
+            return back()->with('error', 'Attendance can only be submitted on the day of the event (' . \Carbon\Carbon::parse($eventDate)->format('M d, Y') . ').');
         }
 
-        if ($currentTime < $event->start_time || $currentTime > $event->end_time) {
-            $start = \Carbon\Carbon::parse($event->start_time)->format('h:i A');
-            $end   = \Carbon\Carbon::parse($event->end_time)->format('h:i A');
+        $eventStartTime = \Carbon\Carbon::parse($eventDate . ' ' . $event->start_time, 'Asia/Manila');
+        $eventEndTime   = \Carbon\Carbon::parse($eventDate . ' ' . $event->end_time, 'Asia/Manila');
+
+        // Exact time check
+        if ($now->lt($eventStartTime) || $now->gt($eventEndTime)) {
+            $start = $eventStartTime->format('h:i A');
+            $end   = $eventEndTime->format('h:i A');
             return back()->with('error', "Attendance is only open during the event window ({$start} – {$end}).");
         }
         // ────────────────────────────────────────────────────────────────────

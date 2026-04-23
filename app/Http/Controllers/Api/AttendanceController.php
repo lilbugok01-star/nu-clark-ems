@@ -20,8 +20,11 @@ class AttendanceController extends Controller
     {
         $request->validate([
             'qr_token' => 'required|string',
-            'photo'    => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
         ]);
+
+        if (!$request->hasFile('photo') && empty($request->photo_data)) {
+            return response()->json(['status' => 'error', 'message' => 'A photo is required for attendance check-in. Please take a selfie.'], 422);
+        }
 
         // Find the registration by QR token
         $registration = Registration::with('event', 'user')
@@ -44,7 +47,6 @@ class AttendanceController extends Controller
         $event       = $registration->event;
         $now         = \Carbon\Carbon::now('Asia/Manila');
         $today       = $now->toDateString();
-        $currentTime = $now->format('H:i:s');
 
         if ($event->event_date->toDateString() !== $today) {
             \Illuminate\Support\Facades\Log::warning("Attendance Rejected (Date): User [{$registration->user->id}] attempted check-in for event [{$event->id}] scheduled for [{$event->event_date->toDateString()}] but server today is [{$today}].");
@@ -54,10 +56,14 @@ class AttendanceController extends Controller
             ], 422);
         }
 
-        if ($currentTime < $event->start_time || $currentTime > $event->end_time) {
-            $start = \Carbon\Carbon::parse($event->start_time)->format('h:i A');
-            $end   = \Carbon\Carbon::parse($event->end_time)->format('h:i A');
-            \Illuminate\Support\Facades\Log::warning("Attendance Rejected (Time): User [{$registration->user->id}] attempted check-in for event [{$event->id}] at [{$currentTime}] but window is [{$event->start_time} - {$event->end_time}].");
+        $eventStartTime = \Carbon\Carbon::parse($event->event_date->toDateString() . ' ' . $event->start_time, 'Asia/Manila');
+        $eventEndTime   = \Carbon\Carbon::parse($event->event_date->toDateString() . ' ' . $event->end_time, 'Asia/Manila');
+
+        // Exact time check
+        if ($now->lt($eventStartTime) || $now->gt($eventEndTime)) {
+            $start = $eventStartTime->format('h:i A');
+            $end   = $eventEndTime->format('h:i A');
+            \Illuminate\Support\Facades\Log::warning("Attendance Rejected (Time): User [{$registration->user->id}] attempted check-in for event [{$event->id}] at [{$now->format('H:i:s')}] but window is [{$event->start_time} - {$event->end_time}].");
             return response()->json([
                 'status'  => 'error',
                 'message' => "Attendance is only open during the event window ({$start} – {$end}).",

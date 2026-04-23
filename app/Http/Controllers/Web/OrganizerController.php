@@ -263,9 +263,8 @@ class OrganizerController extends Controller implements HasMiddleware
         }
 
         $event = $registration->event;
-        $now = now();
+        $now = \Carbon\Carbon::now('Asia/Manila');
         $today = $now->toDateString();
-        $currentTime = $now->format('H:i:s');
 
         $eventDate = $event->event_date instanceof \DateTimeInterface
             ? $event->event_date->format('Y-m-d')
@@ -278,9 +277,10 @@ class OrganizerController extends Controller implements HasMiddleware
             ]);
         }
 
-        $eventStartTime = \Carbon\Carbon::parse($eventDate . ' ' . $event->start_time);
-        $eventEndTime   = \Carbon\Carbon::parse($eventDate . ' ' . $event->end_time);
+        $eventStartTime = \Carbon\Carbon::parse($eventDate . ' ' . $event->start_time, 'Asia/Manila');
+        $eventEndTime   = \Carbon\Carbon::parse($eventDate . ' ' . $event->end_time, 'Asia/Manila');
 
+        // Exact time check
         if ($now->lt($eventStartTime) || $now->gt($eventEndTime)) {
             $start = $eventStartTime->format('h:i A');
             $end   = $eventEndTime->format('h:i A');
