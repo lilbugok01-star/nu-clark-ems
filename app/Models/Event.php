@@ -29,17 +29,18 @@ class Event extends Model
     public function venueReservation()  { return $this->hasOne(VenueReservation::class); }
     public function approvals()         { return $this->hasMany(EventApproval::class); }
 
-    // Check if event is currently happening right now
     public function isLive(): bool
     {
         $now = now();
-        $today = $now->toDateString();
-        $currentTime = $now->format('H:i:s');
+        
+        if ($this->event_date->toDateString() !== $now->toDateString() || $this->status !== 'published') {
+            return false;
+        }
 
-        return $this->event_date->toDateString() === $today
-            && $currentTime >= $this->start_time
-            && $currentTime <= $this->end_time
-            && $this->status === 'published';
+        $startTime = \Carbon\Carbon::parse($this->event_date->toDateString() . ' ' . $this->start_time);
+        $endTime   = \Carbon\Carbon::parse($this->event_date->toDateString() . ' ' . $this->end_time);
+
+        return $now->between($startTime, $endTime);
     }
 
     // Scopes

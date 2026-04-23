@@ -278,9 +278,12 @@ class OrganizerController extends Controller implements HasMiddleware
             ]);
         }
 
-        if ($currentTime < $event->start_time || $currentTime > $event->end_time) {
-            $start = \Carbon\Carbon::parse($event->start_time)->format('h:i A');
-            $end = \Carbon\Carbon::parse($event->end_time)->format('h:i A');
+        $eventStartTime = \Carbon\Carbon::parse($eventDate . ' ' . $event->start_time);
+        $eventEndTime   = \Carbon\Carbon::parse($eventDate . ' ' . $event->end_time);
+
+        if ($now->lt($eventStartTime) || $now->gt($eventEndTime)) {
+            $start = $eventStartTime->format('h:i A');
+            $end   = $eventEndTime->format('h:i A');
             return view('organizer.scan-result', [
                 'status' => 'error',
                 'message' => "Attendance is only open during the event window ({$start} – {$end}).",
