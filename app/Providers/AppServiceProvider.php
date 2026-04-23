@@ -23,6 +23,8 @@ class AppServiceProvider extends ServiceProvider
             \Illuminate\Support\Facades\URL::forceScheme('https');
         }
 
+        \Illuminate\Pagination\Paginator::useBootstrapFive();
+
         // No global helpers defined here to prevent redeclaration errors during config:cache
     }
 }
