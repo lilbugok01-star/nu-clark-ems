@@ -28,8 +28,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('string_on_venue_reservations', function (Blueprint $table) {
-            //
+        Schema::table('venue_reservations', function (Blueprint $table) {
+            $table->dropColumn('event_title');
         });
     }
 };

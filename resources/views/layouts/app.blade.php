@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'NU Clark EMS') — National University Clark</title>
     <meta name="description"
         content="National University Clark Event Management System — manage events, reservations, and attendance.">

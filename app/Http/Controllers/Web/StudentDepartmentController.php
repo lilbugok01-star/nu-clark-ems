@@ -113,6 +113,16 @@ class StudentDepartmentController extends Controller implements HasMiddleware
             $intersect = array_intersect($v['rooms'], $conflictingRooms);
             $roomName = reset($intersect) ?: $conflict->venue_name;
 
+            // Notify the existing reservation holder about the attempt/conflict
+            if ($conflict->reserved_by && $conflict->reserved_by !== Auth::id()) {
+                \App\Models\AppNotification::create([
+                    'user_id' => $conflict->reserved_by,
+                    'type'    => 'venue_reservation_conflict',
+                    'title'   => "Venue Conflict Attempted: {$roomName}",
+                    'message' => "Another user (" . Auth::user()->name . ") attempted to reserve {$roomName} on {$v['reserved_date']} during your reserved time slot ({$startFormatted} - {$endFormatted}).",
+                ]);
+            }
+
             return back()->with('error', "{$roomName} is already reserved by {$reservedByOrg} from {$startFormatted} to {$endFormatted}.")->withInput();
         }
 
@@ -121,26 +131,30 @@ class StudentDepartmentController extends Controller implements HasMiddleware
         // For backward compatibility save first room
         $firstRoom = $v['rooms'][0];
 
-        $reservation = VenueReservation::create([
-            'event_id'           => $finalEventId,
-            'event_title'        => $finalEventTitle,
-            'venue_name'         => $firstRoom,
-            'reserved_date'      => $v['reserved_date'],
-            'start_time'         => $v['start_time'],
-            'end_time'           => $v['end_time'],
-            'expected_attendees' => $v['expected_attendees'] ?? 50,
-            'purpose'            => $v['purpose'] ?? null,
-            'reserved_by'        => Auth::id(),
-            'status'             => $firstSignatory ? 'pending_' . $firstSignatory->role : 'approved',
-        ]);
-
-        // Save each room selected
-        foreach ($v['rooms'] as $room) {
-            VenueReservationRoom::create([
-                'venue_reservation_id' => $reservation->id,
-                'room_name'            => $room,
+        $reservation = \Illuminate\Support\Facades\DB::transaction(function () use ($v, $finalEventId, $finalEventTitle, $firstRoom, $firstSignatory) {
+            $res = VenueReservation::create([
+                'event_id'           => $finalEventId,
+                'event_title'        => $finalEventTitle,
+                'venue_name'         => $firstRoom,
+                'reserved_date'      => $v['reserved_date'],
+                'start_time'         => $v['start_time'],
+                'end_time'           => $v['end_time'],
+                'expected_attendees' => $v['expected_attendees'] ?? 50,
+                'purpose'            => $v['purpose'] ?? null,
+                'reserved_by'        => Auth::id(),
+                'status'             => $firstSignatory ? 'pending_' . $firstSignatory->role : 'approved',
             ]);
-        }
+
+            // Save each room selected
+            foreach ($v['rooms'] as $room) {
+                VenueReservationRoom::create([
+                    'venue_reservation_id' => $res->id,
+                    'room_name'            => $room,
+                ]);
+            }
+
+            return $res;
+        });
 
         // Log system action
         User::log('create_venue_reservation', $reservation, null, $reservation->toArray());

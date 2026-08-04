@@ -12,7 +12,6 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('registrations', function (Blueprint $table) {
-            $table->index(['user_id', 'event_id'], 'idx_registrations_user_event');
             $table->index('qr_token', 'idx_registrations_qr_token');
         });
 
@@ -21,7 +20,7 @@ return new class extends Migration
             $table->index('status', 'idx_attendances_status');
         });
 
-        Schema::table('app_notifications', function (Blueprint $table) {
+        Schema::table('notifications', function (Blueprint $table) {
             $table->index(['user_id', 'read_at'], 'idx_notifs_user_read');
         });
 
@@ -40,7 +39,6 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('registrations', function (Blueprint $table) {
-            $table->dropIndex('idx_registrations_user_event');
             $table->dropIndex('idx_registrations_qr_token');
         });
 
@@ -49,7 +47,7 @@ return new class extends Migration
             $table->dropIndex('idx_attendances_status');
         });
 
-        Schema::table('app_notifications', function (Blueprint $table) {
+        Schema::table('notifications', function (Blueprint $table) {
             $table->dropIndex('idx_notifs_user_read');
         });
 

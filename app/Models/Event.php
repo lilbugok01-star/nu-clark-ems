@@ -13,7 +13,7 @@ class Event extends Model
     protected $fillable = [
         'title', 'description', 'venue', 'venue_type', 'event_date',
         'start_time', 'end_time', 'capacity', 'organizer_id',
-        'poster_path', 'status', 'is_featured', 'category', 'tags',
+        'poster_path', 'is_featured', 'category', 'tags',
     ];
 
     protected $casts = [

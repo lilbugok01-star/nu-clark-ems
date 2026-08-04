@@ -129,6 +129,7 @@ class AdminController extends Controller implements HasMiddleware
             'student_id' => 'nullable|string|unique:users,student_id|regex:/^\d{4}-\d{6}$/',
             'course_id'  => 'nullable|exists:courses,id',
             'section_id' => 'nullable|exists:sections,id',
+            'e_signature'=> 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ];
 
         if ($request->role === 'student') {
@@ -424,32 +425,34 @@ class AdminController extends Controller implements HasMiddleware
 
         $oldValues = $res->toArray();
 
-        $res->update([
-            'status'          => 'approved',
-            'override_by'     => Auth::id(),
-            'override_at'     => now(),
-            'override_reason' => $validated['override_reason'],
-        ]);
+        \Illuminate\Support\Facades\DB::transaction(function () use ($res, $validated) {
+            $res->update([
+                'status'          => 'approved',
+                'override_by'     => Auth::id(),
+                'override_at'     => now(),
+                'override_reason' => $validated['override_reason'],
+            ]);
 
-        // Auto-approve all signatories via override
-        $activeSignatories = FileHuntingSignatory::where('is_active', 1)->get();
-        foreach ($activeSignatories as $sig) {
-            VenueReservationApproval::updateOrCreate(
-                [
-                    'venue_reservation_id' => $res->id,
-                    'role_level'           => $sig->role,
-                ],
-                [
-                    'approver_id'          => Auth::id(),
-                    'status'               => 'approved',
-                    'comments'             => 'Approved via Admin Override: ' . $validated['override_reason'],
-                    'opened_at'            => now(),
-                ]
-            );
-        }
+            // Auto-approve all signatories via override
+            $activeSignatories = FileHuntingSignatory::where('is_active', 1)->get();
+            foreach ($activeSignatories as $sig) {
+                VenueReservationApproval::updateOrCreate(
+                    [
+                        'venue_reservation_id' => $res->id,
+                        'role_level'           => $sig->role,
+                    ],
+                    [
+                        'approver_id'          => Auth::id(),
+                        'status'               => 'approved',
+                        'comments'             => 'Approved via Admin Override: ' . $validated['override_reason'],
+                        'opened_at'            => now(),
+                    ]
+                );
+            }
+        });
 
         // Log system action
-        User::log('override_venue_reservation', $res, $oldValues, $res->toArray());
+        User::log('override_venue_reservation', $res, $oldValues, $res->fresh()->toArray());
 
         // Notify user
         AppNotification::create([
@@ -487,17 +490,19 @@ class AdminController extends Controller implements HasMiddleware
             'signatories.*.is_active'      => 'sometimes|boolean',
         ]);
 
-        // Wipe existing and re-insert in order
-        FileHuntingSignatory::truncate();
+        // Wipe existing and re-insert in order — wrapped in transaction to prevent data loss
+        \Illuminate\Support\Facades\DB::transaction(function () use ($request) {
+            FileHuntingSignatory::truncate();
 
-        foreach ($request->signatories as $i => $sig) {
-            FileHuntingSignatory::create([
-                'step_order'     => $i + 1,
-                'role'           => $sig['role'],
-                'position_label' => $sig['position_label'],
-                'is_active'      => isset($sig['is_active']) ? 1 : 0,
-            ]);
-        }
+            foreach ($request->signatories as $i => $sig) {
+                FileHuntingSignatory::create([
+                    'step_order'     => $i + 1,
+                    'role'           => $sig['role'],
+                    'position_label' => $sig['position_label'],
+                    'is_active'      => isset($sig['is_active']) ? 1 : 0,
+                ]);
+            }
+        });
 
         User::log('update_signatories_chain', null, null, $request->signatories);
 

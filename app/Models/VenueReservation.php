@@ -67,11 +67,17 @@ class VenueReservation extends Model
 
     public static function getConflict(array $rooms, string $date, string $startTime, string $endTime, ?int $excludeId = null): ?self
     {
+        return self::getConflicts($rooms, $date, $startTime, $endTime, $excludeId)->first();
+    }
+
+    public static function getConflicts(array $rooms, string $date, string $startTime, string $endTime, ?int $excludeId = null)
+    {
         // Parse time with Carbon to construct buffers
         $startWithIngress = \Carbon\Carbon::parse($startTime)->subHour()->format('H:i');
         $endWithEgress    = \Carbon\Carbon::parse($endTime)->addHour()->format('H:i');
 
-        return self::where('reserved_date', $date)
+        return self::with(['reservedBy', 'rooms'])
+            ->where('reserved_date', $date)
             ->whereNotIn('status', ['rejected', 'cancelled'])
             ->where(function ($query) use ($excludeId) {
                 if ($excludeId) {
@@ -88,6 +94,6 @@ class VenueReservation extends Model
                 $q->where('start_time', '<', $endWithEgress)
                   ->where('end_time', '>', $startWithIngress);
             })
-            ->first();
+            ->get();
     }
 }

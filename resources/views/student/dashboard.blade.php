@@ -217,7 +217,12 @@
                                         <span class="text-muted" style="font-size:.7rem"><i class="bi bi-calendar-event me-1"></i>{{ $ev->event_date?->format('M d') }}</span>
                                     </div>
                                     <h6 class="fw-700 mb-1 text-truncate" style="font-size:.88rem;color:var(--nu-blue)" title="{{ $ev->title }}">{{ $ev->title }}</h6>
-                                    <p class="text-muted mb-2 text-truncate" style="font-size:.75rem"><i class="bi bi-geo-alt me-1"></i>{{ $ev->venue }}</p>
+                                    <p class="text-muted mb-1 text-truncate" style="font-size:.75rem"><i class="bi bi-geo-alt me-1"></i>{{ $ev->venue }}</p>
+                                    @if(!empty($ev->recommendation_reason))
+                                    <div class="mb-2">
+                                        <span class="badge bg-light text-dark border" style="font-size:.62rem;font-weight:500;">{{ $ev->recommendation_reason }}</span>
+                                    </div>
+                                    @endif
                                 </div>
                                 <form action="{{ route('student.register', $ev->id) }}" method="POST" class="mt-2">
                                     @csrf

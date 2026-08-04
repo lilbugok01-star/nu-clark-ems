@@ -22,6 +22,10 @@ Route::get('/storage/s3/{path}', function ($path) {
     if (str_contains($path, '..') || str_starts_with($path, '/') || str_starts_with($path, '\\')) {
         abort(403, 'Invalid file path.');
     }
+    // Protect sensitive directories — require authentication
+    if (str_starts_with($path, 'signatures/') && !auth()->check()) {
+        abort(403, 'Unauthorized access to signatures.');
+    }
     // Check local public disk first
     if (\Illuminate\Support\Facades\Storage::disk('public')->exists($path)) {
         $content = \Illuminate\Support\Facades\Storage::disk('public')->get($path);

@@ -15,9 +15,10 @@ class User extends Authenticatable
         'name', 'email', 'password', 'role',
         'student_id', 'course_id', 'section_id',
         'avatar', 'is_active', 'e_signature_path',
+        'email_verification_code',
     ];
 
-    protected $hidden = ['password', 'remember_token'];
+    protected $hidden = ['password', 'remember_token', 'email_verification_code'];
 
     protected function casts(): array
     {

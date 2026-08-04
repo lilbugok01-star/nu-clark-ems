@@ -25,7 +25,7 @@ class Attendance extends Model
 
     public function user()
     {
-        return $this->hasOneThrough(User::class, Registration::class, 'id', 'id', 'registration_id', 'user_id');
+        return $this->registration ? $this->registration->user() : null;
     }
 
     public function student()
