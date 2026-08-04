@@ -33,9 +33,13 @@
     </div>
 
     <!-- Venue Availability Calendar -->
-    <div class="nu-card p-4 mb-4">
-        <h6 class="fw-700 mb-3"><i class="bi bi-calendar3 me-2" style="color:var(--nu-gold)"></i>Venue Availability Calendar</h6>
-        <x-event-calendar calendarId="calendar" eventsUrl="{{ route('student_department.venue.events.json') }}" initialView="timeGridWeek" />
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <div class="nu-card p-4">
+                <h6 class="fw-700 mb-3"><i class="bi bi-calendar3 me-2" style="color:var(--nu-gold)"></i>Venue Availability Calendar</h6>
+                <x-event-calendar calendarId="calendar" eventsUrl="{{ route('student_department.venue.events.json') }}" initialView="timeGridWeek" />
+            </div>
+        </div>
     </div>
     
     @push('scripts')
@@ -52,18 +56,119 @@
                 evInput.disabled = true;
                 evInput.required = false;
             }
+        }
 
-            const vnSelect = document.getElementById('venue_select');
-            const vnInput = document.getElementById('custom_venue_name');
-            if (vnSelect.value === 'Other') {
-                vnInput.style.display = 'block';
-                vnInput.disabled = false;
-                vnInput.required = true;
+        function toggleCustomVenueField() {
+            const customChk = document.getElementById('chk_modal_custom');
+            const customInput = document.getElementById('custom_venue_name_input');
+            const label = document.querySelector(`label[for="${customChk.id}"]`);
+            const icon = label.querySelector('.check-icon');
+
+            if (customChk.checked) {
+                customInput.style.display = 'block';
+                customInput.disabled = false;
+                customInput.required = true;
+                label.classList.add('bg-warning', 'text-dark');
+                if (icon) icon.classList.remove('d-none');
             } else {
-                vnInput.style.display = 'none';
-                vnInput.disabled = true;
-                vnInput.required = false;
+                customInput.style.display = 'none';
+                customInput.disabled = true;
+                customInput.required = false;
+                customInput.value = '';
+                label.classList.remove('bg-warning', 'text-dark');
+                if (icon) icon.classList.add('d-none');
             }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Monitor modal check-boxes to show/hide checkmark icons
+            document.querySelectorAll('.room-checkbox').forEach(cb => {
+                cb.addEventListener('change', function() {
+                    const label = document.querySelector(`label[for="${this.id}"]`);
+                    if (!label) return;
+                    const icon = label.querySelector('.check-icon');
+                    if (this.checked) {
+                        label.classList.add('bg-primary', 'text-white');
+                        if (icon) icon.classList.remove('d-none');
+                    } else {
+                        label.classList.remove('bg-primary', 'text-white');
+                        if (icon) icon.classList.add('d-none');
+                    }
+                });
+            });
+
+            // Set up event listeners for modal changes to dynamically check availability
+            const modalDate = document.querySelector('input[name="reserved_date"]');
+            const modalStart = document.querySelector('input[name="start_time"]');
+            const modalEnd = document.querySelector('input[name="end_time"]');
+
+            if (modalDate && modalStart && modalEnd) {
+                [modalDate, modalStart, modalEnd].forEach(input => {
+                    input.addEventListener('change', updateModalAvailability);
+                });
+            }
+
+
+        });
+
+        function updateModalAvailability() {
+            const dateVal = document.querySelector('input[name="reserved_date"]').value;
+            const startVal = document.querySelector('input[name="start_time"]').value;
+            const endVal = document.querySelector('input[name="end_time"]').value;
+
+            if (!dateVal) return;
+
+            let url = `{{ route('student_department.venue.availability') }}?date=${dateVal}`;
+            if (startVal && endVal) {
+                url += `&start_time=${startVal}&end_time=${endVal}`;
+            }
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    document.querySelectorAll('.room-checkbox').forEach(checkbox => {
+                        const roomVal = checkbox.value;
+                        const label = document.querySelector(`label[for="${checkbox.id}"]`);
+                        if (!label) return;
+                        
+                        const icon = label.querySelector('.check-icon');
+
+                        if (data[roomVal] && data[roomVal].status === 'occupied') {
+                            const res = data[roomVal].reservation;
+                            checkbox.disabled = true;
+                            checkbox.checked = false;
+                            label.classList.add('disabled-occupied');
+                            label.classList.remove('btn-outline-primary', 'bg-primary', 'text-white');
+                            if (icon) icon.classList.add('d-none');
+                            label.setAttribute('title', `${roomVal} is reserved by ${res.reserved_by} for ${res.event_title} (${res.start_time} - ${res.end_time})`);
+                            
+                            let badge = label.querySelector('.occupied-badge');
+                            if (!badge) {
+                                badge = document.createElement('span');
+                                badge.className = 'badge bg-danger ms-auto occupied-badge';
+                                badge.style.fontSize = '0.6rem';
+                                badge.innerHTML = `<i class="bi bi-x-circle-fill"></i> Occupied`;
+                                label.appendChild(badge);
+                            }
+                        } else {
+                            checkbox.disabled = false;
+                            label.classList.remove('disabled-occupied');
+                            label.classList.add('btn-outline-primary');
+                            label.removeAttribute('title');
+                            
+                            const badge = label.querySelector('.occupied-badge');
+                            if (badge) {
+                                badge.remove();
+                            }
+                            // Restore checked class if checked
+                            if (checkbox.checked) {
+                                label.classList.add('bg-primary', 'text-white');
+                                if (icon) icon.classList.remove('d-none');
+                            }
+                        }
+                    });
+                })
+                .catch(error => console.error('Error fetching room availability:', error));
         }
     </script>
     @endpush
@@ -253,17 +358,45 @@
                         </div>
                     </div>
 
-                    @if($res->status === 'rejected' && $res->approvals->where('status', 'rejected')->isNotEmpty())
-                        @php $rejectedNode = $res->approvals->where('status', 'rejected')->last(); @endphp
-                        <div class="alert alert-danger mb-0 border-0 rounded-3 d-flex align-items-start gap-3 p-3">
-                            <i class="bi bi-exclamation-triangle-fill fs-5 mt-1"></i>
-                            <div>
-                                <div class="fw-bold text-danger">Declined by {{ $rejectedNode->approver->name ?? 'Approver' }}</div>
-                                <p class="mb-0 small text-danger">{{ $rejectedNode->comments ?? 'No comment provided.' }}</p>
+                    {{-- Shopee-Style Approval Timeline & Signatory Notes --}}
+                    @if($res->approvals->isNotEmpty())
+                        <div class="mt-3 p-3 rounded-3" style="background:#f8fafc;border:1px solid #e2e8f0">
+                            <div class="fw-700 mb-2 small text-uppercase" style="color:var(--nu-blue);font-size:.72rem;letter-spacing:.03em">
+                                <i class="bi bi-clock-history me-1" style="color:var(--nu-gold)"></i> Approval Timeline & Revision Notes
+                            </div>
+                            <div class="d-flex flex-column gap-2">
+                                @foreach($res->approvals as $appr)
+                                    <div class="d-flex align-items-start gap-2 p-2 rounded-2" style="background:#ffffff;border:1px solid #e2e8f0">
+                                        <div class="flex-shrink-0 mt-1">
+                                            @if($appr->status === 'approved')
+                                                <span class="badge bg-success rounded-circle p-1"><i class="bi bi-check text-white"></i></span>
+                                            @elseif($appr->status === 'rejected')
+                                                <span class="badge bg-danger rounded-circle p-1"><i class="bi bi-x text-white"></i></span>
+                                            @else
+                                                <span class="badge bg-warning rounded-circle p-1"><i class="bi bi-clock text-dark"></i></span>
+                                            @endif
+                                        </div>
+                                        <div class="flex-grow-1" style="font-size:.8rem">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <strong style="color:var(--nu-blue)">{{ $appr->approver->name ?? 'Signatory' }}</strong>
+                                                    <span class="badge bg-light text-dark ms-1" style="font-size:.65rem">{{ ucfirst(str_replace('_', ' ', $appr->role_level)) }}</span>
+                                                </div>
+                                                <span class="text-muted" style="font-size:.7rem">{{ $appr->updated_at?->format('M d, Y h:i A') }}</span>
+                                            </div>
+                                            @if($appr->comments)
+                                                <div class="mt-1.5 p-2 rounded text-dark" style="background:{{ $appr->status === 'rejected' ? '#fef2f2' : '#f1f5f9' }};border-left:3px solid {{ $appr->status === 'rejected' ? '#ef4444' : '#0284c7' }};font-size:.78rem">
+                                                    <i class="bi bi-chat-left-quote-fill me-1" style="color:{{ $appr->status === 'rejected' ? '#dc2626' : '#0284c7' }}"></i> 
+                                                    <strong>Feedback:</strong> {{ $appr->comments }}
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </div>
+                                @endforeach
                             </div>
                         </div>
                     @else
-                        <div class="small text-muted"><i class="bi bi-info-circle me-1"></i> This request has completed the approval process.</div>
+                        <div class="small text-muted mt-2"><i class="bi bi-info-circle me-1"></i> Awaiting first signatory review.</div>
                     @endif
                 </div>
                 @empty
@@ -289,9 +422,19 @@
             <form action="{{ route('student_department.venue.store') }}" method="POST">
                 @csrf
                 <div class="modal-body p-4">
+                    @if ($errors->any())
+                        <div class="alert alert-danger mb-3 py-2 px-3 rounded-3" style="font-size:0.85rem">
+                            <ul class="mb-0 ps-3">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
                     <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label">Link to Event *</label>
+                        <div class="col-md-12">
+                            <label class="form-label fw-bold">Link to Event *</label>
                             <select name="event_id" id="event_select" class="form-select" required onchange="toggleCustomFields()">
                                 <option value="">-- Select your event --</option>
                                 @foreach($myEvents as $ev)
@@ -301,36 +444,155 @@
                             </select>
                             <input type="text" name="event_title" id="custom_event_title" class="form-control mt-2" placeholder="Enter custom event title" style="display:none;" disabled>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Venue / Room *</label>
-                            <select name="venue_name" id="venue_select" class="form-select" required onchange="toggleCustomFields()">
-                                <option value="">-- Select venue --</option>
-                                @foreach(\App\Models\VenueReservation::venueNames() as $vn)
-                                    <option value="{{ $vn }}">{{ $vn }}</option>
-                                @endforeach
-                                <option value="Other">Other (Custom Name)</option>
-                            </select>
-                            <input type="text" name="custom_venue_name" id="custom_venue_name" class="form-control mt-2" placeholder="Enter custom venue name" style="display:none;" disabled>
+                        
+                        <div class="col-md-12">
+                            <label class="form-label fw-bold d-block">Select Venue / Rooms * <span class="text-muted small fw-normal">(Select one or more rooms)</span></label>
+                            
+                            <div class="card border border-light shadow-sm p-3 bg-light-subtle rounded-3">
+                                <ul class="nav nav-pills nav-fill mb-3" id="roomPickerTabs" role="tablist" style="font-size: 0.8rem;">
+                                    <li class="nav-item">
+                                        <button class="nav-link active py-2" id="tab-special-fac" data-bs-toggle="pill" data-bs-target="#pane-special-fac" type="button" role="tab">Facilities</button>
+                                    </li>
+                                    <li class="nav-item">
+                                        <button class="nav-link py-2" id="tab-floor-4" data-bs-toggle="pill" data-bs-target="#pane-floor-4" type="button" role="tab">4th Floor</button>
+                                    </li>
+                                    <li class="nav-item">
+                                        <button class="nav-link py-2" id="tab-floor-5" data-bs-toggle="pill" data-bs-target="#pane-floor-5" type="button" role="tab">5th Floor</button>
+                                    </li>
+                                    <li class="nav-item">
+                                        <button class="nav-link py-2" id="tab-floor-6" data-bs-toggle="pill" data-bs-target="#pane-floor-6" type="button" role="tab">6th Floor</button>
+                                    </li>
+                                    <li class="nav-item">
+                                        <button class="nav-link py-2" id="tab-floor-7-8" data-bs-toggle="pill" data-bs-target="#pane-floor-7-8" type="button" role="tab">7-8th Flr</button>
+                                    </li>
+                                </ul>
+                                
+                                <div class="tab-content" id="roomPickerTabsContent" style="max-height: 250px; overflow-y: auto; padding-right: 5px;">
+                                    <!-- Special Facilities Pane -->
+                                    <div class="tab-pane fade show active" id="pane-special-fac" role="tabpanel">
+                                        <div class="row row-cols-1 row-cols-md-2 g-2">
+                                            @foreach(['NU Clark Gymnasium', 'NU Clark Auditorium', 'NU Clark Library', 'Mini Chapel'] as $room)
+                                            <div class="col">
+                                                <input type="checkbox" name="rooms[]" value="{{ $room }}" id="chk_modal_{{ Str::slug($room) }}" class="btn-check room-checkbox" autocomplete="off">
+                                                <label class="btn btn-outline-primary w-100 text-start py-2 px-3 d-flex justify-content-between align-items-center" for="chk_modal_{{ Str::slug($room) }}">
+                                                    <span><i class="bi bi-building me-2"></i>{{ $room }}</span>
+                                                    <i class="bi bi-check-circle-fill check-icon d-none"></i>
+                                                </label>
+                                            </div>
+                                            @endforeach
+                                            
+                                            <!-- Custom / Other Option -->
+                                            <div class="col-12 mt-2">
+                                                <input type="checkbox" id="chk_modal_custom" class="btn-check" autocomplete="off" onchange="toggleCustomVenueField()">
+                                                <label class="btn btn-outline-warning w-100 text-start py-2 px-3 d-flex justify-content-between align-items-center" for="chk_modal_custom">
+                                                    <span><i class="bi bi-question-circle me-2"></i>Other (Custom Venue Name)</span>
+                                                    <i class="bi bi-check-circle-fill check-icon d-none"></i>
+                                                </label>
+                                                <input type="text" name="rooms[]" id="custom_venue_name_input" class="form-control mt-2" placeholder="Enter custom venue name" style="display:none;" disabled>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- 4th Floor Pane -->
+                                    <div class="tab-pane fade" id="pane-floor-4" role="tabpanel">
+                                        <div class="row row-cols-2 row-cols-md-4 g-2">
+                                            @for($i = 1; $i <= 23; $i++)
+                                                @php $room = "Room 4" . sprintf('%02d', $i); @endphp
+                                                <div class="col">
+                                                    <input type="checkbox" name="rooms[]" value="{{ $room }}" id="chk_modal_{{ Str::slug($room) }}" class="btn-check room-checkbox" autocomplete="off">
+                                                    <label class="btn btn-outline-primary w-100 text-center py-2 px-1 d-flex justify-content-between align-items-center" for="chk_modal_{{ Str::slug($room) }}" style="font-size:0.8rem;">
+                                                        <span class="mx-auto">{{ $room }}</span>
+                                                        <i class="bi bi-check-circle-fill check-icon d-none me-1"></i>
+                                                    </label>
+                                                </div>
+                                            @endfor
+                                        </div>
+                                    </div>
+
+                                    <!-- 5th Floor Pane -->
+                                    <div class="tab-pane fade" id="pane-floor-5" role="tabpanel">
+                                        <div class="row row-cols-2 row-cols-md-4 g-2">
+                                            @for($i = 1; $i <= 23; $i++)
+                                                @php $room = "Room 5" . sprintf('%02d', $i); @endphp
+                                                <div class="col">
+                                                    <input type="checkbox" name="rooms[]" value="{{ $room }}" id="chk_modal_{{ Str::slug($room) }}" class="btn-check room-checkbox" autocomplete="off">
+                                                    <label class="btn btn-outline-primary w-100 text-center py-2 px-1 d-flex justify-content-between align-items-center" for="chk_modal_{{ Str::slug($room) }}" style="font-size:0.8rem;">
+                                                        <span class="mx-auto">{{ $room }}</span>
+                                                        <i class="bi bi-check-circle-fill check-icon d-none me-1"></i>
+                                                    </label>
+                                                </div>
+                                            @endfor
+                                        </div>
+                                    </div>
+
+                                    <!-- 6th Floor Pane -->
+                                    <div class="tab-pane fade" id="pane-floor-6" role="tabpanel">
+                                        <div class="row row-cols-2 row-cols-md-4 g-2">
+                                            @for($i = 1; $i <= 23; $i++)
+                                                @php $room = "Room 6" . sprintf('%02d', $i); @endphp
+                                                <div class="col">
+                                                    <input type="checkbox" name="rooms[]" value="{{ $room }}" id="chk_modal_{{ Str::slug($room) }}" class="btn-check room-checkbox" autocomplete="off">
+                                                    <label class="btn btn-outline-primary w-100 text-center py-2 px-1 d-flex justify-content-between align-items-center" for="chk_modal_{{ Str::slug($room) }}" style="font-size:0.8rem;">
+                                                        <span class="mx-auto">{{ $room }}</span>
+                                                        <i class="bi bi-check-circle-fill check-icon d-none me-1"></i>
+                                                    </label>
+                                                </div>
+                                            @endfor
+                                        </div>
+                                    </div>
+
+                                    <!-- 7th & 8th Floor Pane -->
+                                    <div class="tab-pane fade" id="pane-floor-7-8" role="tabpanel">
+                                        <div class="fw-bold small text-muted mb-2" style="font-size:0.75rem;">7th Floor Classrooms</div>
+                                        <div class="row row-cols-2 row-cols-md-4 g-2 mb-3">
+                                            @for($i = 1; $i <= 23; $i++)
+                                                @php $room = "Room 7" . sprintf('%02d', $i); @endphp
+                                                <div class="col">
+                                                    <input type="checkbox" name="rooms[]" value="{{ $room }}" id="chk_modal_{{ Str::slug($room) }}" class="btn-check room-checkbox" autocomplete="off">
+                                                    <label class="btn btn-outline-primary w-100 text-center py-2 px-1 d-flex justify-content-between align-items-center" for="chk_modal_{{ Str::slug($room) }}" style="font-size:0.8rem;">
+                                                        <span class="mx-auto">{{ $room }}</span>
+                                                        <i class="bi bi-check-circle-fill check-icon d-none me-1"></i>
+                                                    </label>
+                                                </div>
+                                            @endfor
+                                        </div>
+                                        <div class="fw-bold small text-muted mb-2" style="font-size:0.75rem;">8th Floor Classrooms</div>
+                                        <div class="row row-cols-2 row-cols-md-4 g-2">
+                                            @for($i = 1; $i <= 23; $i++)
+                                                @php $room = "Room 8" . sprintf('%02d', $i); @endphp
+                                                <div class="col">
+                                                    <input type="checkbox" name="rooms[]" value="{{ $room }}" id="chk_modal_{{ Str::slug($room) }}" class="btn-check room-checkbox" autocomplete="off">
+                                                    <label class="btn btn-outline-primary w-100 text-center py-2 px-1 d-flex justify-content-between align-items-center" for="chk_modal_{{ Str::slug($room) }}" style="font-size:0.8rem;">
+                                                        <span class="mx-auto">{{ $room }}</span>
+                                                        <i class="bi bi-check-circle-fill check-icon d-none me-1"></i>
+                                                    </label>
+                                                </div>
+                                            @endfor
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
+
                         <div class="col-md-4">
-                            <label class="form-label">Reserved Date *</label>
+                            <label class="form-label fw-bold">Reserved Date *</label>
                             <input type="date" name="reserved_date" class="form-control" min="{{ now()->toDateString() }}" required>
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label">Start Time *</label>
+                            <label class="form-label fw-bold">Start Time *</label>
                             <input type="time" name="start_time" class="form-control" min="08:00" max="22:00" required>
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label">End Time *</label>
+                            <label class="form-label fw-bold">End Time *</label>
                             <input type="time" name="end_time" class="form-control" min="08:00" max="22:00" required>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Expected Attendees</label>
+                            <label class="form-label fw-bold">Expected Attendees</label>
                             <input type="number" name="expected_attendees" class="form-control" min="1" value="50">
                         </div>
-                        <div class="col-12">
-                            <label class="form-label">Purpose / Notes</label>
-                            <textarea name="purpose" class="form-control" rows="2" placeholder="Briefly describe the purpose or special requirements…"></textarea>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Purpose / Notes</label>
+                            <textarea name="purpose" class="form-control" rows="1" placeholder="Brief description…"></textarea>
                         </div>
                     </div>
                 </div>
@@ -342,8 +604,6 @@
         </div>
     </div>
 </div>
-
-
 
 <style>
     .transition-all { transition: all 0.3s ease; }
@@ -361,6 +621,34 @@
         transform: translateY(-5px);
         box-shadow: 0 8px 15px rgba(0,0,0,0.1);
         border-color: var(--nu-blue);
+    }
+    .cursor-pointer { cursor: pointer; }
+    .matrix-card {
+        transition: all 0.2s ease;
+        min-height: 52px;
+    }
+    .matrix-card.available:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(25, 135, 84, 0.15);
+        border-color: #198754 !important;
+    }
+    .matrix-card.occupied {
+        background-color: #f8d7da !important;
+        border-color: #f5c2c7 !important;
+        color: #842029 !important;
+        opacity: 0.8;
+    }
+    .disabled-occupied {
+        background-color: #f8d7da !important;
+        border-color: #f5c2c7 !important;
+        color: #842029 !important;
+        opacity: 0.7;
+        cursor: not-allowed;
+        pointer-events: none;
+        text-decoration: line-through;
+    }
+    .check-icon {
+        font-size: 0.8rem;
     }
 </style>
 @endsection

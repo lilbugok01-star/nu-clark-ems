@@ -63,7 +63,13 @@
         <div class="row mb-3">
             <div class="col-6">
                 <span class="info-label text-uppercase">Venue Request:</span>
-                <span class="info-value">{{ $res->venue_name }}</span>
+                <span class="info-value">
+                    @if($res->rooms->isNotEmpty())
+                        {{ implode(', ', $res->rooms->pluck('room_name')->toArray()) }}
+                    @else
+                        {{ $res->venue_name }}
+                    @endif
+                </span>
             </div>
             <div class="col-6">
                 <span class="info-label text-uppercase">Date:</span>

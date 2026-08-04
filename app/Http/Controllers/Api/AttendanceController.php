@@ -26,20 +26,82 @@ class AttendanceController extends Controller
             return response()->json(['status' => 'error', 'message' => 'A photo is required for attendance check-in. Please take a selfie.'], 422);
         }
 
-        // Find the registration by QR token
-        $registration = Registration::with('event', 'user')
-            ->where('qr_token', $request->qr_token)
-            ->first();
+        $token = $request->qr_token;
+        $parts = explode('|', $token);
+        $registration = null;
+
+        if (count($parts) === 3) {
+            $registrationId = $parts[0];
+            $expiresAt = $parts[1];
+            $signature = $parts[2];
+
+            $expectedSignature = hash_hmac('sha256', $registrationId . '|' . $expiresAt, config('app.key'));
+            if (!hash_equals($expectedSignature, $signature)) {
+                \App\Models\AttendanceAuditLog::create([
+                    'qr_token' => $token,
+                    'action' => 'selfie_checkin',
+                    'status' => 'invalid_signature',
+                    'ip_address' => request()->ip(),
+                    'device_info' => request()->userAgent(),
+                ]);
+                return response()->json(['status' => 'error', 'message' => 'Invalid QR Code signature.'], 422);
+            }
+
+            if (now()->timestamp > $expiresAt) {
+                \App\Models\AttendanceAuditLog::create([
+                    'registration_id' => $registrationId,
+                    'qr_token' => $token,
+                    'action' => 'selfie_checkin',
+                    'status' => 'expired_token',
+                    'ip_address' => request()->ip(),
+                    'device_info' => request()->userAgent(),
+                ]);
+                return response()->json(['status' => 'error', 'message' => 'This QR Code has expired. Please refresh the QR code on the student app.'], 422);
+            }
+
+            $registration = Registration::with('event', 'user')->find($registrationId);
+        } else {
+            $registration = Registration::with('event', 'user')
+                ->where('qr_token', $token)
+                ->first();
+        }
 
         if (!$registration) {
+            \App\Models\AttendanceAuditLog::create([
+                'qr_token' => $token,
+                'action' => 'selfie_checkin',
+                'status' => 'invalid_token',
+                'ip_address' => request()->ip(),
+                'device_info' => request()->userAgent(),
+            ]);
             return response()->json(['status' => 'error', 'message' => 'Invalid QR code.'], 404);
         }
 
         if ($registration->status === 'cancelled') {
+            \App\Models\AttendanceAuditLog::create([
+                'user_id' => $registration->user_id,
+                'event_id' => $registration->event_id,
+                'registration_id' => $registration->id,
+                'qr_token' => $token,
+                'action' => 'selfie_checkin',
+                'status' => 'cancelled_registration',
+                'ip_address' => request()->ip(),
+                'device_info' => request()->userAgent(),
+            ]);
             return response()->json(['status' => 'error', 'message' => 'Registration is cancelled.'], 422);
         }
 
         if ($registration->isExpired()) {
+            \App\Models\AttendanceAuditLog::create([
+                'user_id' => $registration->user_id,
+                'event_id' => $registration->event_id,
+                'registration_id' => $registration->id,
+                'qr_token' => $token,
+                'action' => 'selfie_checkin',
+                'status' => 'expired_registration',
+                'ip_address' => request()->ip(),
+                'device_info' => request()->userAgent(),
+            ]);
             return response()->json(['status' => 'error', 'message' => 'QR code has expired.'], 422);
         }
 
@@ -49,6 +111,16 @@ class AttendanceController extends Controller
         $today       = $now->toDateString();
 
         if ($event->event_date->toDateString() !== $today) {
+            \App\Models\AttendanceAuditLog::create([
+                'user_id' => $registration->user_id,
+                'event_id' => $registration->event_id,
+                'registration_id' => $registration->id,
+                'qr_token' => $token,
+                'action' => 'selfie_checkin',
+                'status' => 'outside_event_window',
+                'ip_address' => request()->ip(),
+                'device_info' => request()->userAgent(),
+            ]);
             \Illuminate\Support\Facades\Log::warning("Attendance Rejected (Date): User [{$registration->user->id}] attempted check-in for event [{$event->id}] scheduled for [{$event->event_date->toDateString()}] but server today is [{$today}].");
             return response()->json([
                 'status'  => 'error',
@@ -59,8 +131,17 @@ class AttendanceController extends Controller
         $eventStartTime = \Carbon\Carbon::parse($event->event_date->toDateString() . ' ' . $event->start_time, 'Asia/Manila');
         $eventEndTime   = \Carbon\Carbon::parse($event->event_date->toDateString() . ' ' . $event->end_time, 'Asia/Manila');
 
-        // Exact time check
         if ($now->lt($eventStartTime) || $now->gt($eventEndTime)) {
+            \App\Models\AttendanceAuditLog::create([
+                'user_id' => $registration->user_id,
+                'event_id' => $registration->event_id,
+                'registration_id' => $registration->id,
+                'qr_token' => $token,
+                'action' => 'selfie_checkin',
+                'status' => 'outside_event_window',
+                'ip_address' => request()->ip(),
+                'device_info' => request()->userAgent(),
+            ]);
             $start = $eventStartTime->format('h:i A');
             $end   = $eventEndTime->format('h:i A');
             \Illuminate\Support\Facades\Log::warning("Attendance Rejected (Time): User [{$registration->user->id}] attempted check-in for event [{$event->id}] at [{$now->format('H:i:s')}] but window is [{$event->start_time} - {$event->end_time}].");
@@ -69,10 +150,18 @@ class AttendanceController extends Controller
                 'message' => "Attendance is only open during the event window ({$start} – {$end}).",
             ], 422);
         }
-        // ────────────────────────────────────────────────────────────────────
 
-        // Check if already checked in
         if ($registration->attendance) {
+            \App\Models\AttendanceAuditLog::create([
+                'user_id' => $registration->user_id,
+                'event_id' => $registration->event_id,
+                'registration_id' => $registration->id,
+                'qr_token' => $token,
+                'action' => 'selfie_checkin',
+                'status' => 'duplicate',
+                'ip_address' => request()->ip(),
+                'device_info' => request()->userAgent(),
+            ]);
             return response()->json([
                 'status'  => 'already_checked_in',
                 'message' => 'Attendance already recorded.',
@@ -80,7 +169,6 @@ class AttendanceController extends Controller
             ]);
         }
 
-        // Store photo
         $photoPath = null;
         if ($request->hasFile('photo')) {
             $photoPath = $request->file('photo')->store(
@@ -92,10 +180,20 @@ class AttendanceController extends Controller
             'registration_id' => $registration->id,
             'photo_path'      => $photoPath,
             'checked_in_at'   => now(),
-            'status'          => 'pending', // awaiting organizer verification
+            'status'          => 'pending',
         ]);
 
-        // Notify student
+        \App\Models\AttendanceAuditLog::create([
+            'user_id' => $registration->user_id,
+            'event_id' => $registration->event_id,
+            'registration_id' => $registration->id,
+            'qr_token' => $token,
+            'action' => 'selfie_checkin',
+            'status' => 'success',
+            'ip_address' => request()->ip(),
+            'device_info' => request()->userAgent(),
+        ]);
+
         AppNotification::create([
             'user_id' => $registration->user_id,
             'type'    => 'attendance_recorded',

@@ -13,15 +13,23 @@
                     @if($reg->attendance)
                         @if($reg->attendance->status === 'verified')
                             <span class="badge bg-success">✓ Attended</span>
+                        @elseif($reg->attendance->status === 'rejected')
+                            <span class="badge bg-danger">Rejected</span>
                         @else
-                            <span class="badge bg-secondary">Unverified</span>
+                            <span class="badge bg-secondary">Pending</span>
                         @endif
                     @else
                         <span class="badge bg-warning text-dark">No Check-in</span>
                     @endif
                 </div>
                 <p class="text-muted small mb-1"><i class="bi bi-calendar me-1"></i>{{ $reg->event->event_date->format('F d, Y') }}</p>
-                <p class="text-muted small"><i class="bi bi-geo-alt me-1"></i>{{ $reg->event->venue }}</p>
+                <p class="text-muted small mb-1"><i class="bi bi-geo-alt me-1"></i>{{ $reg->event->venue }}</p>
+                @if($reg->attendance)
+                    <div class="d-flex gap-3 mt-2">
+                        <span class="text-muted small"><i class="bi bi-box-arrow-in-right me-1 text-success"></i>In: {{ $reg->attendance->checked_in_at ? \Carbon\Carbon::parse($reg->attendance->checked_in_at)->format('h:i A') : '--:--' }}</span>
+                        <span class="text-muted small"><i class="bi bi-box-arrow-right me-1 text-danger"></i>Out: {{ $reg->attendance->checked_out_at ? \Carbon\Carbon::parse($reg->attendance->checked_out_at)->format('h:i A') : '--:--' }}</span>
+                    </div>
+                @endif
             </div>
         </div>
         @endforeach

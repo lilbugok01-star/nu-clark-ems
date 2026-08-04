@@ -13,10 +13,12 @@ class VenueReservation extends Model
         'event_id', 'event_title', 'reserved_by', 'venue_name',
         'reserved_date', 'start_time', 'end_time',
         'expected_attendees', 'status', 'purpose', 'notes',
+        'override_by', 'override_at', 'override_reason',
     ];
 
     protected $casts = [
         'reserved_date' => 'date',
+        'override_at'   => 'datetime',
     ];
 
     public function event()
@@ -29,9 +31,19 @@ class VenueReservation extends Model
         return $this->belongsTo(User::class, 'reserved_by');
     }
 
+    public function overriddenBy()
+    {
+        return $this->belongsTo(User::class, 'override_by');
+    }
+
     public function approvals()
     {
         return $this->hasMany(VenueReservationApproval::class);
+    }
+
+    public function rooms()
+    {
+        return $this->hasMany(VenueReservationRoom::class);
     }
 
     public static function venueNames(): array
@@ -53,27 +65,29 @@ class VenueReservation extends Model
         return $venues;
     }
 
-    /**
-     * Check if a venue is already reserved for a given date/time (conflict check).
-     */
-    public static function hasConflict(string $venueName, string $date, string $startTime, string $endTime, ?int $excludeId = null): bool
+    public static function getConflict(array $rooms, string $date, string $startTime, string $endTime, ?int $excludeId = null): ?self
     {
-        $query = self::where('venue_name', $venueName)
-            ->where('reserved_date', $date)
+        // Parse time with Carbon to construct buffers
+        $startWithIngress = \Carbon\Carbon::parse($startTime)->subHour()->format('H:i');
+        $endWithEgress    = \Carbon\Carbon::parse($endTime)->addHour()->format('H:i');
+
+        return self::where('reserved_date', $date)
             ->whereNotIn('status', ['rejected', 'cancelled'])
-            ->where(function ($q) use ($startTime, $endTime) {
-                $q->whereBetween('start_time', [$startTime, $endTime])
-                  ->orWhereBetween('end_time', [$startTime, $endTime])
-                  ->orWhere(function ($q2) use ($startTime, $endTime) {
-                      $q2->where('start_time', '<=', $startTime)
-                         ->where('end_time', '>=', $endTime);
-                  });
-            });
-
-        if ($excludeId) {
-            $query->where('id', '!=', $excludeId);
-        }
-
-        return $query->exists();
+            ->where(function ($query) use ($excludeId) {
+                if ($excludeId) {
+                    $query->where('id', '!=', $excludeId);
+                }
+            })
+            ->where(function ($query) use ($rooms) {
+                $query->whereHas('rooms', function ($q) use ($rooms) {
+                    $q->whereIn('room_name', $rooms);
+                })
+                ->orWhereIn('venue_name', $rooms);
+            })
+            ->where(function ($q) use ($startWithIngress, $endWithEgress) {
+                $q->where('start_time', '<', $endWithEgress)
+                  ->where('end_time', '>', $startWithIngress);
+            })
+            ->first();
     }
 }

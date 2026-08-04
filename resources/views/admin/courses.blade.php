@@ -4,14 +4,7 @@
 <div class="container-fluid py-4">
     <div class="row">
         <div class="col-lg-2 col-md-3">
-            <div class="dashboard-sidebar rounded-xl mb-4">
-                <div class="text-white-50 small text-uppercase fw-semibold mb-3 ps-2" style="letter-spacing:1px">Admin Panel</div>
-                <a href="{{ route('admin.dashboard') }}" class="sidebar-link"><i class="bi bi-speedometer2"></i> Dashboard</a>
-                <a href="{{ route('admin.users') }}" class="sidebar-link"><i class="bi bi-people"></i> Users</a>
-                <a href="{{ route('admin.courses') }}" class="sidebar-link active"><i class="bi bi-book"></i> Courses</a>
-                <a href="{{ route('admin.reports') }}" class="sidebar-link"><i class="bi bi-bar-chart"></i> Reports</a>
-                <a href="{{ route('admin.notifications') }}" class="sidebar-link"><i class="bi bi-megaphone"></i> Notifications</a>
-            </div>
+            @include('layouts.partials.sidebar-admin')
         </div>
         <div class="col-lg-10 col-md-9">
             <div class="d-flex justify-content-between align-items-center mb-4">

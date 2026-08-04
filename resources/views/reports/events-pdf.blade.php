@@ -33,6 +33,7 @@
                 <th>Venue</th>
                 <th>Capacity</th>
                 <th>Registrations</th>
+                <th>Verified</th>
                 <th>Organizer</th>
                 <th>Status</th>
             </tr>
@@ -46,6 +47,7 @@
                 <td>{{ $e->venue }}</td>
                 <td>{{ $e->capacity }}</td>
                 <td>{{ $e->registrations_count }}</td>
+                <td>{{ $e->verified_count }}</td>
                 <td>{{ $e->organizer->name ?? '-' }}</td>
                 <td><span class="badge {{ $e->status }}">{{ ucfirst($e->status) }}</span></td>
             </tr>

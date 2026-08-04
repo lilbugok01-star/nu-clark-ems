@@ -73,15 +73,17 @@ class ApprovalController extends Controller implements HasMiddleware
     {
         $user = Auth::user();
         $validated = $request->validate([
-            'e_signature' => 'nullable|image|mimes:png,jpg,jpeg|max:2048',
+            'e_signature' => 'nullable|image|mimes:png,jpg,jpeg,webp|max:2048',
         ]);
 
         if ($request->hasFile('e_signature')) {
-            // if ($user->e_signature_path) {
-            //     \Illuminate\Support\Facades\Storage::disk('s3')->delete($user->e_signature_path);
-            // }
-            $user->e_signature_path = $request->file('e_signature')->store('signatures', 's3');
+            try {
+                $user->e_signature_path = $request->file('e_signature')->store('signatures', 's3');
+            } catch (\Throwable $e) {
+                $user->e_signature_path = $request->file('e_signature')->store('signatures', 'public');
+            }
             $user->save();
+            User::log('update_profile', $user, null, ['action' => 'upload_signature', 'path' => $user->e_signature_path]);
         }
 
         return back()->with('success', 'Profile updated successfully.');
@@ -172,6 +174,8 @@ class ApprovalController extends Controller implements HasMiddleware
 
         $event->update(['status' => $nextStatus]);
 
+        User::log('approve_event', $event, ['status' => $currentStatus], ['status' => $nextStatus, 'comments' => $request->comments]);
+
         // When fully approved and published, notify all students
         if ($nextStatus === 'published') {
             $students = User::where('role', 'student')->pluck('id');
@@ -218,6 +222,8 @@ class ApprovalController extends Controller implements HasMiddleware
 
         $event->update(['status' => 'rejected']);
 
+        User::log('reject_event', $event, ['status' => $currentStatus], ['status' => 'rejected', 'comments' => $request->comments]);
+
         return back()->with('success', 'Event rejected.');
     }
 
@@ -246,6 +252,16 @@ class ApprovalController extends Controller implements HasMiddleware
             return back()->with('error', 'You cannot approve this reservation at this stage.');
         }
 
+        // Enforce opened_at check
+        $approval = VenueReservationApproval::where('venue_reservation_id', $res->id)
+            ->where('approver_id', $user->id)
+            ->where('role_level', $user->role)
+            ->first();
+
+        if (!$approval || !$approval->opened_at) {
+            return back()->with('error', 'You must open and review the permission form before approving.');
+        }
+
         $currentSig = FileHuntingSignatory::where('role', $user->role)->where('is_active', 1)->first();
         if (!$currentSig) {
             return back()->with('error', 'You are no longer an active signatory.');
@@ -257,6 +273,8 @@ class ApprovalController extends Controller implements HasMiddleware
                     ->first();
 
         $nextStatus = $nextSig ? 'pending_' . $nextSig->role : 'approved';
+
+        $currentStatus = $res->status;
 
         VenueReservationApproval::updateOrCreate(
             [
@@ -272,6 +290,8 @@ class ApprovalController extends Controller implements HasMiddleware
         );
 
         $res->update(['status' => $nextStatus]);
+
+        User::log('approve_venue', $res, ['status' => $currentStatus], ['status' => $nextStatus, 'comments' => $request->comments]);
 
         return back()->with('success', 'Venue reservation approved.');
     }
@@ -297,6 +317,18 @@ class ApprovalController extends Controller implements HasMiddleware
             return back()->with('error', 'You cannot reject this reservation because it is not in your queue.');
         }
 
+        // Enforce opened_at check
+        $approval = VenueReservationApproval::where('venue_reservation_id', $res->id)
+            ->where('approver_id', $user->id)
+            ->where('role_level', $user->role)
+            ->first();
+
+        if (!$approval || !$approval->opened_at) {
+            return back()->with('error', 'You must open and review the permission form before rejecting.');
+        }
+
+        $currentStatus = $res->status;
+
         VenueReservationApproval::updateOrCreate(
             [
                 'venue_reservation_id' => $res->id,
@@ -311,6 +343,8 @@ class ApprovalController extends Controller implements HasMiddleware
         );
 
         $res->update(['status' => 'rejected']);
+
+        User::log('reject_venue', $res, ['status' => $currentStatus], ['status' => 'rejected', 'comments' => $request->comments]);
 
         return back()->with('success', 'Venue reservation rejected.');
     }

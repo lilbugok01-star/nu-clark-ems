@@ -5,15 +5,7 @@
     <div class="row">
         <!-- Sidebar -->
         <div class="col-lg-2 col-md-3">
-            <div class="dashboard-sidebar rounded-xl mb-4">
-                <div class="text-white-50 small text-uppercase fw-semibold mb-3 ps-2" style="letter-spacing:1px">Organizer</div>
-                <a href="{{ route('organizer.dashboard') }}" class="sidebar-link @if(request()->routeIs('organizer.dashboard')) active @endif"><i class="bi bi-speedometer2"></i> Dashboard</a>
-                <a href="{{ route('organizer.events') }}" class="sidebar-link @if(request()->routeIs('organizer.events')) active @endif"><i class="bi bi-calendar3"></i> My Events</a>
-                <a href="{{ route('organizer.event.create') }}" class="sidebar-link @if(request()->routeIs('organizer.event.create')) active @endif"><i class="bi bi-plus-circle"></i> New Event</a>
-                <a href="{{ route('organizer.analytics') }}" class="sidebar-link @if(request()->routeIs('organizer.analytics')) active @endif"><i class="bi bi-bar-chart"></i> Analytics</a>
-                <hr style="border-color:rgba(255,255,255,0.1)">
-                <button type="button" class="sidebar-link w-100 border-0" style="background:none;text-align:left" data-bs-toggle="modal" data-bs-target="#logoutConfirmModal"><i class="bi bi-box-arrow-right"></i> Logout</button>
-            </div>
+            @include('layouts.partials.sidebar-organizer')
         </div>
 
         <div class="col-lg-10 col-md-9">

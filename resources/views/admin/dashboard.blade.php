@@ -5,17 +5,7 @@
     <div class="row">
         <!-- Sidebar -->
         <div class="col-lg-2 col-md-3">
-            <div class="dashboard-sidebar rounded-xl mb-4">
-                <div class="text-white-50 small text-uppercase fw-semibold mb-3 ps-2" style="letter-spacing:1px">Admin Panel</div>
-                <a href="{{ route('admin.dashboard') }}" class="sidebar-link @if(request()->routeIs('admin.dashboard')) active @endif"><i class="bi bi-speedometer2"></i> Dashboard</a>
-                <a href="{{ route('admin.users') }}" class="sidebar-link @if(request()->routeIs('admin.users')) active @endif"><i class="bi bi-people"></i> Users</a>
-                <a href="{{ route('admin.courses') }}" class="sidebar-link @if(request()->routeIs('admin.courses')) active @endif"><i class="bi bi-book"></i> Courses</a>
-                <a href="{{ route('admin.reports') }}" class="sidebar-link @if(request()->routeIs('admin.reports')) active @endif"><i class="bi bi-bar-chart"></i> Reports</a>
-                <a href="{{ route('admin.notifications') }}" class="sidebar-link @if(request()->routeIs('admin.notifications')) active @endif"><i class="bi bi-megaphone"></i> Notifications</a>
-                <a href="{{ route('events') }}" class="sidebar-link"><i class="bi bi-calendar3"></i> View Events</a>
-                <hr style="border-color:rgba(255,255,255,0.1)">
-                <button type="button" class="sidebar-link w-100 border-0" style="background:none;text-align:left" data-bs-toggle="modal" data-bs-target="#logoutConfirmModal"><i class="bi bi-box-arrow-right"></i> Logout</button>
-            </div>
+            @include('layouts.partials.sidebar-admin')
         </div>
 
         <!-- Content -->

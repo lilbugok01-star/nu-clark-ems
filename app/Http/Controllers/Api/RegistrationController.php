@@ -64,7 +64,10 @@ class RegistrationController extends Controller
     {
         $registrations = Registration::with(['event.organizer', 'attendance'])
             ->where('user_id', $request->user()->id)
-            ->orderByDesc('registered_at')
+            ->join('events', 'registrations.event_id', '=', 'events.id')
+            ->select('registrations.*')
+            ->orderBy('events.event_date', 'asc')
+            ->orderBy('events.start_time', 'asc')
             ->get();
 
         return response()->json($registrations);

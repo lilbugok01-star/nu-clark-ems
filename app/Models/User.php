@@ -46,11 +46,34 @@ class User extends Authenticatable
     public function registrations() { return $this->hasMany(Registration::class); }
     public function events()        { return $this->hasMany(Event::class, 'organizer_id'); }
     public function notifications() { return $this->hasMany(AppNotification::class); }
+    public function systemAuditLogs() { return $this->hasMany(SystemAuditLog::class); }
+    public function attendanceAuditLogs() { return $this->hasMany(AttendanceAuditLog::class); }
 
     public function registeredEvents()
     {
         return $this->belongsToMany(Event::class, 'registrations')
                     ->withPivot('qr_token', 'qr_expires_at', 'status', 'registered_at')
                     ->withTimestamps();
+    }
+
+    /**
+     * Helper to log system actions.
+     */
+    public static function log(string $action, $model = null, ?array $old = null, ?array $new = null): void
+    {
+        try {
+            SystemAuditLog::create([
+                'user_id'    => \Illuminate\Support\Facades\Auth::id(),
+                'action'     => $action,
+                'model_type' => $model ? get_class($model) : null,
+                'model_id'   => $model ? $model->getKey() : null,
+                'old_values' => $old,
+                'new_values' => $new,
+                'ip_address' => request()->ip(),
+                'user_agent' => request()->userAgent(),
+            ]);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("Failed to write system audit log: " . $e->getMessage());
+        }
     }
 }

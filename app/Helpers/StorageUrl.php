@@ -16,10 +16,14 @@ class StorageUrl
             return '';
         }
 
+        // If file exists on local public storage disk, return local asset URL
+        if (\Illuminate\Support\Facades\Storage::disk('public')->exists($path)) {
+            return asset('storage/' . $path);
+        }
+
         $disk = config('filesystems.default', 'local');
 
-        // FORCE S3 proxy for paths known to be stored in S3 (signatures and attendance)
-        // This ensures they work even if the default disk is set to 'local' (common on Railway/Heroku)
+        // FORCE S3 proxy for paths known to be stored in S3 or when default disk is s3
         if ($disk === 's3' || str_starts_with($path, 'signatures/') || str_starts_with($path, 'posters/') || str_starts_with($path, 'attendance/') || str_starts_with($path, 'attendance-photos/')) {
             return route('storage.s3', ['path' => $path]);
         }

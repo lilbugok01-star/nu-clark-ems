@@ -15,20 +15,35 @@
 document.addEventListener('DOMContentLoaded', function() {
     var calEl = document.getElementById('{{ $calendarId }}');
     if(calEl) {
+        var isMobile = window.innerWidth < 768;
         var cal = new FullCalendar.Calendar(calEl, {
-            initialView: '{{ $initialView }}',
-            headerToolbar: {
+            initialView: isMobile ? 'listMonth' : '{{ $initialView }}',
+            headerToolbar: isMobile ? {
+                left: 'prev,next',
+                center: 'title',
+                right: 'listMonth,dayGridMonth'
+            } : {
                 left: 'prev,next today',
                 center: 'title',
                 right: '{{ $rightToolbar }}'
             },
             buttonIcons: false,
-            buttonText: { today: 'Today', month: 'Month', week: 'Week', day: 'Day', prev: ' < ', next: ' > ' },
+            buttonText: { today: 'Today', month: 'Month', week: 'Week', day: 'Day', list: 'List', prev: ' < ', next: ' > ' },
             slotMinTime: '06:00:00',
             slotMaxTime: '23:00:00',
             events: '{!! $eventsUrl !!}',
             eventClick: function(info) { if(typeof showCalendarEventModal === 'function') showCalendarEventModal(info); },
-            height: 'auto'
+            height: 'auto',
+            dayMaxEventRows: isMobile ? 2 : false,
+            eventDisplay: isMobile ? 'dot' : 'auto',
+            windowResize: function(arg) {
+                var nowMobile = window.innerWidth < 768;
+                if (nowMobile && cal.view.type !== 'listMonth') {
+                    cal.changeView('listMonth');
+                } else if (!nowMobile && cal.view.type === 'listMonth') {
+                    cal.changeView('{{ $initialView }}');
+                }
+            }
         });
         cal.render();
     }
@@ -60,6 +75,13 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     #{{ $calendarId }} .fc-icon {
         font-size: 1.25em !important;
+    }
+    @media (max-width: 767px) {
+        #{{ $calendarId }} .fc .fc-toolbar { flex-wrap: wrap; gap: 6px; }
+        #{{ $calendarId }} .fc .fc-toolbar-title { font-size: 0.9rem !important; }
+        #{{ $calendarId }} .fc .fc-button { font-size: 0.72rem !important; padding: 0.25rem 0.5rem !important; }
+        #{{ $calendarId }} .fc .fc-daygrid-event { font-size: 0.7rem; }
+        #{{ $calendarId }} .fc-daygrid-day-events { min-height: 1em !important; }
     }
 </style>
 @endpush

@@ -13,6 +13,8 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 
+use App\Services\EventRecommendationService;
+
 class StudentController extends Controller implements HasMiddleware
 {
     public static function middleware(): array
@@ -28,14 +30,17 @@ class StudentController extends Controller implements HasMiddleware
         ];
     }
 
-    public function dashboard(Request $request)
+    public function dashboard(Request $request, EventRecommendationService $recommendationService)
     {
         $user            = Auth::user()->load('course', 'section');
         $upcoming        = Registration::with('event')
             ->where('user_id', $user->id)
             ->whereHas('event', fn($q) => $q->where('event_date', '>=', now()->toDateString())->where('status', 'published'))
             ->where('status', 'confirmed')
-            ->orderBy('created_at', 'desc')
+            ->join('events', 'registrations.event_id', '=', 'events.id')
+            ->select('registrations.*')
+            ->orderBy('events.event_date', 'asc')
+            ->orderBy('events.start_time', 'asc')
             ->take(3)->get();
 
         $totalRegistered = Registration::where('user_id', $user->id)->where('status', 'confirmed')->count();
@@ -45,10 +50,12 @@ class StudentController extends Controller implements HasMiddleware
         $unreadCount = AppNotification::where('user_id', $user->id)->whereNull('read_at')->count();
         $notifications = AppNotification::where('user_id', $user->id)->orderByDesc('created_at')->take(5)->get();
 
-        return view('student.dashboard', compact('user', 'upcoming', 'totalRegistered', 'totalAttended', 'unreadCount', 'notifications'));
+        $recommended = $recommendationService->getRecommendedEvents($user, 4);
+
+        return view('student.dashboard', compact('user', 'upcoming', 'totalRegistered', 'totalAttended', 'unreadCount', 'notifications', 'recommended'));
     }
 
-    public function events(Request $request)
+    public function events(Request $request, EventRecommendationService $recommendationService)
     {
         $query = Event::with('organizer')->upcoming();
         if ($request->search)   $query->search($request->search);
@@ -61,14 +68,20 @@ class StudentController extends Controller implements HasMiddleware
         $registeredIds = Registration::where('user_id', Auth::id())
             ->where('status', '!=', 'cancelled')->pluck('event_id');
 
-        return view('student.events', compact('events', 'categories', 'registeredIds'));
+        // Personalized recommendations
+        $recommended = $recommendationService->getRecommendedEvents(Auth::user()->load('course'), 4);
+
+        return view('student.events', compact('events', 'categories', 'registeredIds', 'recommended'));
     }
 
     public function myEvents()
     {
         $registrations = Registration::with(['event', 'attendance'])
             ->where('user_id', Auth::id())
-            ->orderByDesc('registered_at')
+            ->join('events', 'registrations.event_id', '=', 'events.id')
+            ->select('registrations.*')
+            ->orderBy('events.event_date', 'asc')
+            ->orderBy('events.start_time', 'asc')
             ->get();
 
         return view('student.my-events', compact('registrations'));
@@ -80,7 +93,13 @@ class StudentController extends Controller implements HasMiddleware
             ->where('user_id', Auth::id())
             ->findOrFail($registrationId);
 
-        $url = route('organizer.scan', ['token' => $registration->qr_token]);
+        // Generate initial signed rotating token
+        $expiresAt = now()->addSeconds(15)->timestamp;
+        $payload = $registration->id . '|' . $expiresAt;
+        $signature = hash_hmac('sha256', $payload, config('app.key'));
+        $rotatingToken = $payload . '|' . $signature;
+
+        $url = route('organizer.scan', ['token' => $rotatingToken]);
 
         $qrCode = QrCode::format('svg')
             ->size(280)
@@ -89,6 +108,33 @@ class StudentController extends Controller implements HasMiddleware
             ->generate($url);
 
         return view('student.qr-code', compact('registration', 'qrCode'));
+    }
+
+    public function getQrToken($registrationId)
+    {
+        $registration = Registration::with('event')
+            ->where('user_id', Auth::id())
+            ->findOrFail($registrationId);
+
+        // Generate signed rotating token (valid for 15 seconds)
+        $expiresAt = now()->addSeconds(15)->timestamp;
+        $payload = $registration->id . '|' . $expiresAt;
+        $signature = hash_hmac('sha256', $payload, config('app.key'));
+        $rotatingToken = $payload . '|' . $signature;
+
+        $url = route('organizer.scan', ['token' => $rotatingToken]);
+
+        $qrSvg = QrCode::format('svg')
+            ->size(280)
+            ->errorCorrection('H')
+            ->merge(public_path('assets/img/NU_shield.png'), 0.25, true)
+            ->generate($url);
+
+        return response()->json([
+            'token' => $rotatingToken,
+            'qr_svg' => (string) $qrSvg,
+            'expires_in' => 15,
+        ]);
     }
 
     public function history()
@@ -246,5 +292,26 @@ class StudentController extends Controller implements HasMiddleware
         ]);
 
         return redirect()->route('student.my-events')->with('success', 'Attendance recorded! Awaiting verification.');
+    }
+
+    public function checkout(Request $request, $registrationId)
+    {
+        $registration = Registration::with('attendance')
+            ->where('user_id', Auth::id())
+            ->findOrFail($registrationId);
+
+        if (!$registration->attendance) {
+            return back()->with('error', 'No check-in record found for this registration.');
+        }
+
+        if ($registration->attendance->checked_out_at) {
+            return back()->with('info', 'You have already checked out of this event.');
+        }
+
+        $registration->attendance->update([
+            'checked_out_at' => now(),
+        ]);
+
+        return back()->with('success', 'Successfully checked out. Thank you for attending!');
     }
 }

@@ -5,8 +5,11 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\VenueReservation;
+use App\Models\VenueReservationRoom;
 use App\Models\VenueReservationApproval;
 use App\Models\FileHuntingSignatory;
+use App\Models\User;
+use App\Http\Requests\VenueReservationStoreRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Routing\Controllers\HasMiddleware;
@@ -30,7 +33,7 @@ class StudentDepartmentController extends Controller implements HasMiddleware
     public function dashboard()
     {
         $user = Auth::user();
-        $allReservations = VenueReservation::with(['event', 'approvals'])
+        $allReservations = VenueReservation::with(['event', 'approvals', 'rooms'])
             ->where('reserved_by', $user->id)
             ->orderByDesc('created_at')
             ->get();
@@ -51,7 +54,7 @@ class StudentDepartmentController extends Controller implements HasMiddleware
 
     public function calendarEvents()
     {
-        $reservations = VenueReservation::with('event')
+        $reservations = VenueReservation::with(['event', 'rooms'])
             ->where(function ($query) {
                 $query->where('status', 'like', 'pending_%')
                       ->orWhere('status', 'approved');
@@ -61,9 +64,14 @@ class StudentDepartmentController extends Controller implements HasMiddleware
         $events = [];
         foreach ($reservations as $r) {
             $eventTitle = $r->event ? $r->event->title : ($r->event_title ?: 'Reserved');
+            
+            // Get all rooms description
+            $roomNames = $r->rooms->pluck('room_name')->toArray();
+            $roomsStr = !empty($roomNames) ? implode(', ', $roomNames) : $r->venue_name;
+            
             $events[] = [
                 'id'    => $r->id,
-                'title' => $eventTitle . ' (' . $r->venue_name . ')',
+                'title' => $eventTitle . ' (' . $roomsStr . ')',
                 'start' => $r->reserved_date->format('Y-m-d') . 'T' . $r->start_time,
                 'end'   => $r->reserved_date->format('Y-m-d') . 'T' . $r->end_time,
                 'color' => $r->status === 'approved' ? '#28a745' : '#ffc107',
@@ -73,66 +81,50 @@ class StudentDepartmentController extends Controller implements HasMiddleware
         return response()->json($events);
     }
 
-    public function storeVenueReservation(Request $request)
+    public function storeVenueReservation(VenueReservationStoreRequest $request)
     {
-        $v = $request->validate([
-            'event_id'           => 'required|string',
-            'event_title'        => 'nullable|string',
-            'venue_name'         => 'required|string',
-            'custom_venue_name'  => 'nullable|string',
-            'reserved_date'      => 'required|date|after_or_equal:today',
-            'start_time'         => 'required|date_format:H:i:s,H:i|after_or_equal:08:00',
-            'end_time'           => 'required|date_format:H:i:s,H:i|after:start_time|before_or_equal:22:00',
-            'expected_attendees' => 'nullable|integer|min:1',
-            'purpose'            => 'nullable|string',
-        ], [
-            'reserved_date.after_or_equal' => 'The reservation date must be today or a future date.',
-            'start_time.after_or_equal' => 'Reservation start time must be 08:00 AM or later.',
-            'end_time.before_or_equal'  => 'Reservation end time must be 10:00 PM or earlier.',
-        ]);
+        $v = $request->validated();
 
         $finalEventId = ($v['event_id'] === 'custom') ? null : $v['event_id'];
         $finalEventTitle = ($v['event_id'] === 'custom') ? $v['event_title'] : null;
-        $finalVenueName = ($v['venue_name'] === 'Other') ? $v['custom_venue_name'] : $v['venue_name'];
-
-        if (!$finalVenueName) {
-            return back()->with('error', 'Please provide a venue name.');
-        }
 
         if ($finalEventId === null && empty($finalEventTitle)) {
-            return back()->with('error', 'Please provide a custom event title.');
+            return back()->with('error', 'Please provide a custom event title.')->withInput();
         }
 
-        // Buffer: 1 hour ingress/egress check
-        $conflict = VenueReservation::where('venue_name', $finalVenueName)
-            ->where('reserved_date', $v['reserved_date'])
-            ->where(function ($query) {
-                $query->where('status', 'like', 'pending_%')
-                      ->orWhere('status', 'approved');
-            })
-            ->where(function ($q) use ($v) {
-                // Adjust times for 1-hour buffer
-                $startWithIngress = \Carbon\Carbon::parse($v['start_time'])->subHour()->format('H:i');
-                $endWithEgress    = \Carbon\Carbon::parse($v['end_time'])->addHour()->format('H:i');
-                $q->whereBetween('start_time', [$startWithIngress, $endWithEgress])
-                  ->orWhereBetween('end_time', [$startWithIngress, $endWithEgress])
-                  ->orWhere(function ($q2) use ($startWithIngress, $endWithEgress) {
-                      $q2->where('start_time', '<=', $startWithIngress)
-                         ->where('end_time', '>=', $endWithEgress);
-                  });
-            })
-            ->exists();
+        // Conflict check on all rooms with 1-hour buffer
+        $conflict = VenueReservation::getConflict(
+            $v['rooms'],
+            $v['reserved_date'],
+            $v['start_time'],
+            $v['end_time']
+        );
 
         if ($conflict) {
-            return back()->with('error', 'The requested venue is unavailable at this time due to conflicting events or ingress/egress constraints.');
+            $reservedByOrg = $conflict->reservedBy->name; // e.g. BSIT Representative
+            $startFormatted = \Carbon\Carbon::parse($conflict->start_time)->format('g:i A');
+            $endFormatted   = \Carbon\Carbon::parse($conflict->end_time)->format('g:i A');
+
+            // Determine conflicting room
+            $conflictingRooms = $conflict->rooms->pluck('room_name')->toArray();
+            if (empty($conflictingRooms)) {
+                $conflictingRooms = [$conflict->venue_name];
+            }
+            $intersect = array_intersect($v['rooms'], $conflictingRooms);
+            $roomName = reset($intersect) ?: $conflict->venue_name;
+
+            return back()->with('error', "{$roomName} is already reserved by {$reservedByOrg} from {$startFormatted} to {$endFormatted}.")->withInput();
         }
 
         $firstSignatory = FileHuntingSignatory::where('is_active', 1)->orderBy('step_order')->first();
 
-        VenueReservation::create([
+        // For backward compatibility save first room
+        $firstRoom = $v['rooms'][0];
+
+        $reservation = VenueReservation::create([
             'event_id'           => $finalEventId,
             'event_title'        => $finalEventTitle,
-            'venue_name'         => $finalVenueName,
+            'venue_name'         => $firstRoom,
             'reserved_date'      => $v['reserved_date'],
             'start_time'         => $v['start_time'],
             'end_time'           => $v['end_time'],
@@ -141,6 +133,17 @@ class StudentDepartmentController extends Controller implements HasMiddleware
             'reserved_by'        => Auth::id(),
             'status'             => $firstSignatory ? 'pending_' . $firstSignatory->role : 'approved',
         ]);
+
+        // Save each room selected
+        foreach ($v['rooms'] as $room) {
+            VenueReservationRoom::create([
+                'venue_reservation_id' => $reservation->id,
+                'room_name'            => $room,
+            ]);
+        }
+
+        // Log system action
+        User::log('create_venue_reservation', $reservation, null, $reservation->toArray());
 
         return back()->with('success', 'Venue reservation request submitted for review.');
     }
@@ -151,16 +154,20 @@ class StudentDepartmentController extends Controller implements HasMiddleware
         if (!str_starts_with($res->status, 'pending_')) {
             return back()->with('error', 'Only pending requests can be cancelled.');
         }
+        
+        $oldValues = $res->toArray();
         $res->status = 'cancelled';
         $res->save();
+
+        User::log('cancel_venue_reservation', $res, $oldValues, $res->toArray());
+
         return back()->with('success', 'Reservation request cancelled successfully.');
     }
 
     public function showPermissionForm($id)
     {
-        $res = VenueReservation::with(['event', 'reservedBy', 'approvals.approver'])->findOrFail($id);
+        $res = VenueReservation::with(['event', 'reservedBy', 'approvals.approver', 'rooms'])->findOrFail($id);
         
-        // Authorization check: Only requestor or approvers/admins can view this form
         $user = Auth::user();
         if ($user->role === 'student' && $res->reserved_by !== $user->id) {
             abort(403, 'Unauthorized access to this document.');
@@ -177,14 +184,94 @@ class StudentDepartmentController extends Controller implements HasMiddleware
 
         if ($request->hasFile('signature')) {
             $user = Auth::user();
-            if ($user->e_signature_path) {
-                \Illuminate\Support\Facades\Storage::disk('s3')->delete($user->e_signature_path);
+            
+            $path = null;
+            try {
+                if ($user->e_signature_path) {
+                    try {
+                        \Illuminate\Support\Facades\Storage::disk('s3')->delete($user->e_signature_path);
+                    } catch (\Throwable $e) {
+                        \Illuminate\Support\Facades\Storage::disk('public')->delete($user->e_signature_path);
+                    }
+                }
+                $path = $request->file('signature')->store('signatures', 's3');
+            } catch (\Throwable $e) {
+                // Fallback to local public disk if S3 fails or is unconfigured
+                $path = $request->file('signature')->store('signatures', 'public');
             }
 
-            $path = $request->file('signature')->store('signatures', 's3');
             $user->update(['e_signature_path' => $path]);
+            
+            User::log('upload_e_signature', $user);
         }
 
         return back()->with('success', 'E-signature uploaded successfully!');
+    }
+
+    public function checkAvailability(Request $request)
+    {
+        $request->validate([
+            'date' => 'required|date',
+            'start_time' => 'nullable|string',
+            'end_time' => 'nullable|string',
+        ]);
+
+        $date = $request->input('date');
+        $startTime = $request->input('start_time');
+        $endTime = $request->input('end_time');
+
+        // Fetch all active (non-rejected, non-cancelled) reservations for this date
+        $reservations = VenueReservation::with(['reservedBy', 'rooms'])
+            ->where('reserved_date', $date)
+            ->whereNotIn('status', ['rejected', 'cancelled'])
+            ->get();
+
+        $roomsAvailability = [];
+        $allRooms = VenueReservation::venueNames();
+
+        foreach ($allRooms as $room) {
+            $roomsAvailability[$room] = [
+                'status' => 'available',
+                'reservation' => null,
+            ];
+        }
+
+        $hasTimeFilter = !empty($startTime) && !empty($endTime);
+        
+        if ($hasTimeFilter) {
+            $startWithIngress = \Carbon\Carbon::parse($startTime)->subHour()->format('H:i');
+            $endWithEgress    = \Carbon\Carbon::parse($endTime)->addHour()->format('H:i');
+        }
+
+        foreach ($reservations as $res) {
+            $overlap = true;
+            if ($hasTimeFilter) {
+                $overlap = ($res->start_time < $endWithEgress && $res->end_time > $startWithIngress);
+            }
+
+            if ($overlap) {
+                $resRooms = $res->rooms->pluck('room_name')->toArray();
+                if (empty($resRooms)) {
+                    $resRooms = [$res->venue_name];
+                }
+
+                foreach ($resRooms as $rName) {
+                    if (isset($roomsAvailability[$rName])) {
+                        $roomsAvailability[$rName] = [
+                            'status' => 'occupied',
+                            'reservation' => [
+                                'id' => $res->id,
+                                'event_title' => $res->event?->title ?? $res->event_title ?? 'Untitled Event',
+                                'reserved_by' => $res->reservedBy->name ?? 'Unknown',
+                                'start_time' => \Carbon\Carbon::parse($res->start_time)->format('g:i A'),
+                                'end_time' => \Carbon\Carbon::parse($res->end_time)->format('g:i A'),
+                            ]
+                        ];
+                    }
+                }
+            }
+        }
+
+        return response()->json($roomsAvailability);
     }
 }

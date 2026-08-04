@@ -36,6 +36,47 @@
         </div>
     </form>
 
+    @if(isset($recommended) && count($recommended) > 0)
+    <div class="mb-4">
+        <div class="nu-card p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h6 class="fw-700 mb-0" style="color:var(--nu-blue)">
+                        <i class="bi bi-stars me-2" style="color:var(--nu-gold)"></i>Recommended For You
+                    </h6>
+                    <p class="text-muted small mb-0" style="font-size:.75rem">Based on your course and interests</p>
+                </div>
+            </div>
+            <div class="row g-3">
+                @foreach($recommended->take(4) as $ev)
+                <div class="col-md-6 col-lg-3">
+                    <div class="h-100 p-3 rounded-3 d-flex flex-column justify-content-between" style="background:var(--gray-50);border:1px solid var(--gray-200)">
+                        <div>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="badge" style="background:rgba(0,48,135,.1);color:var(--nu-blue);font-size:.65rem">{{ $ev->category ?? 'General' }}</span>
+                                <span class="text-muted" style="font-size:.7rem"><i class="bi bi-calendar-event me-1"></i>{{ $ev->event_date?->format('M d') }}</span>
+                            </div>
+                            <h6 class="fw-700 mb-1 text-truncate" style="font-size:.88rem;color:var(--nu-blue)" title="{{ $ev->title }}">{{ $ev->title }}</h6>
+                            <p class="text-muted mb-2 text-truncate" style="font-size:.75rem"><i class="bi bi-geo-alt me-1"></i>{{ $ev->venue }}</p>
+                        </div>
+                        @if(!$registeredIds->contains($ev->id))
+                        <form action="{{ route('student.register', $ev->id) }}" method="POST" class="mt-2">
+                            @csrf
+                            <button type="submit" class="btn btn-nu-blue btn-sm w-100 fw-600" style="font-size:.78rem">
+                                <i class="bi bi-ticket-perforated me-1"></i>Register
+                            </button>
+                        </form>
+                        @else
+                        <span class="badge w-100 text-center py-2" style="background:rgba(22,163,74,.1);color:#16a34a;font-size:.75rem">Already Registered ✓</span>
+                        @endif
+                    </div>
+                </div>
+                @endforeach
+            </div>
+        </div>
+    </div>
+    @endif
+
     <!-- Event Grid -->
     @if($events->count() > 0)
     <div class="row g-4 mb-4">

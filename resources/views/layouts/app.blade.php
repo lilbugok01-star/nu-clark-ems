@@ -183,7 +183,7 @@
                                 @endif
                             </button>
                             <ul class="dropdown-menu dropdown-menu-lg-end shadow-lg rounded-3 notif-dropdown mt-1 p-0"
-                                style="min-width:300px;border:1px solid var(--gray-200);overflow:hidden">
+                                style="min-width:340px;max-width:380px;border:1px solid var(--gray-200);overflow:hidden">
                                 <li class="px-3 py-2 d-flex justify-content-between align-items-center" style="background:var(--nu-blue);border-radius:12px 12px 0 0">
                                     <span class="fw-700 small text-white"><i class="bi bi-bell me-1"
                                             style="color:var(--nu-gold)"></i> Notifications</span>
@@ -193,19 +193,29 @@
                                 </li>
                                 @forelse($bellNotifs as $nn)
                                     <li>
-                                        <a class="dropdown-item py-2 px-3 border-bottom" href="#" style="white-space:normal;font-size:.82rem;color:{{ $nn->read_at ? 'var(--gray-600)' : 'var(--gray-800)' }};
-                                                      font-weight:{{ $nn->read_at ? '400' : '600' }}">
-                                            @if(!$nn->read_at)
-                                                <span class="notif-unread-dot"
-                                                    style="color:var(--nu-gold);font-size:.6rem;vertical-align:middle">●</span>&nbsp;
+                                        <div class="dropdown-item py-2.5 px-3 border-bottom text-wrap" style="font-size:.82rem;color:{{ $nn->read_at ? 'var(--gray-600)' : 'var(--gray-800)' }};
+                                                      background:{{ $nn->read_at ? '#ffffff' : 'rgba(0,48,135,.03)' }}">
+                                            <div class="d-flex justify-content-between align-items-start gap-2 mb-1">
+                                                <div class="fw-700" style="font-size:.84rem;color:var(--nu-blue)">
+                                                    @if(!$nn->read_at)
+                                                        <span class="notif-unread-dot me-1"
+                                                            style="color:var(--nu-gold);font-size:.65rem;vertical-align:middle">●</span>
+                                                    @endif
+                                                    {{ $nn->title }}
+                                                </div>
+                                                <span class="text-muted fw-400 flex-shrink-0" style="font-size:.7rem">
+                                                    {{ $nn->created_at->diffForHumans() }}
+                                                </span>
+                                            </div>
+                                            @if($nn->message)
+                                                <div class="text-secondary fw-400 mt-1" style="font-size:.78rem;line-height:1.4">
+                                                    {{ $nn->message }}
+                                                </div>
                                             @endif
-                                            {{ Str::limit($nn->title, 42) }}
-                                            <div class="text-muted fw-400" style="font-size:.72rem">
-                                                {{ $nn->created_at->diffForHumans() }}</div>
-                                        </a>
+                                        </div>
                                     </li>
                                 @empty
-                                    <li class="text-center py-4 text-muted small">No notifications</li>
+                                    <li class="text-center py-4 text-muted small"><i class="bi bi-bell-slash me-1"></i>No notifications</li>
                                 @endforelse
                             </ul>
                         </div>

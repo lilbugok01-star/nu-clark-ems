@@ -11,6 +11,7 @@ use App\Models\Registration;
 use App\Models\Attendance;
 use App\Models\AppNotification;
 use App\Models\VenueReservation;
+use App\Models\VenueReservationApproval;
 use App\Models\FileHuntingSignatory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -61,6 +62,41 @@ class AdminController extends Controller implements HasMiddleware
         }
 
         return view('admin.dashboard', compact('stats', 'recentUsers', 'recentEvents', 'monthlyData'));
+    }
+
+    public function auditLogs(Request $request)
+    {
+        $sysQuery = \App\Models\SystemAuditLog::with('user')->orderByDesc('created_at');
+        
+        if ($request->filled('action')) {
+            $sysQuery->where('action', 'like', '%' . $request->action . '%');
+        }
+        if ($request->filled('user_id')) {
+            $sysQuery->where('user_id', $request->user_id);
+        }
+        if ($request->filled('date_start')) {
+            $sysQuery->whereDate('created_at', '>=', $request->date_start);
+        }
+        if ($request->filled('date_end')) {
+            $sysQuery->whereDate('created_at', '<=', $request->date_end);
+        }
+        
+        $systemLogs = $sysQuery->paginate(25, ['*'], 'sys_page')->withQueryString();
+
+        $attQuery = \App\Models\AttendanceAuditLog::with(['user', 'event', 'registration'])->orderByDesc('created_at');
+        
+        if ($request->filled('status')) {
+            $attQuery->where('status', $request->status);
+        }
+        if ($request->filled('att_user_id')) {
+            $attQuery->where('user_id', $request->att_user_id);
+        }
+        
+        $attendanceLogs = $attQuery->paginate(25, ['*'], 'att_page')->withQueryString();
+        
+        $users = User::orderBy('name')->get();
+
+        return view('admin.audit-logs', compact('systemLogs', 'attendanceLogs', 'users'));
     }
 
     public function users(Request $request)
@@ -119,13 +155,15 @@ class AdminController extends Controller implements HasMiddleware
             $v['e_signature_path'] = $request->file('e_signature')->store('signatures', 's3');
         }
 
-        User::create($v);
+        $user = User::create($v);
+        User::log('create_user', $user, null, $user->toArray());
         return back()->with('success', 'User created successfully!');
     }
 
     public function updateUser(Request $request, $id)
     {
         $user = User::findOrFail($id);
+        $oldValues = $user->toArray();
         $allRoles = 'admin,organizer,student,adviser,department_head,dean,executive_director,student_development,program_chair,student_department';
 
         $rules = [
@@ -159,6 +197,8 @@ class AdminController extends Controller implements HasMiddleware
 
         $user->update($v);
 
+        User::log('update_user', $user, $oldValues, $user->toArray());
+
         // If role changed, force the user to re-login so they see their new dashboard
         if (isset($v['role']) && $v['role'] !== $oldRole) {
             // Invalidate remember token to force re-authentication
@@ -182,7 +222,10 @@ class AdminController extends Controller implements HasMiddleware
         if ((int)$id === Auth::id()) {
             return back()->with('error', 'You cannot delete your own account.');
         }
-        User::findOrFail($id)->delete();
+        $user = User::findOrFail($id);
+        $oldValues = $user->toArray();
+        $user->delete();
+        User::log('delete_user', $user, $oldValues, null);
         return back()->with('success', 'User deleted.');
     }
 
@@ -196,6 +239,7 @@ class AdminController extends Controller implements HasMiddleware
     {
         $v = $request->validate(['code' => 'required|unique:courses', 'name' => 'required']);
         $course = Course::create($v);
+        User::log('create_course', $course, null, $course->toArray());
 
         // Auto-generate sections for the new course
         $prefix = preg_replace('/[^A-Z]/', '', strtoupper($course->code));
@@ -220,17 +264,74 @@ class AdminController extends Controller implements HasMiddleware
         return back()->with('success', 'Course added successfully along with its sections!');
     }
 
-    public function reports()
+    protected function buildReportEventsQuery(Request $request)
     {
-        $events = Event::with('organizer')
-            ->withCount(['registrations', 'attendances as verified_count' => fn($q) => $q->where('attendances.status', 'verified')])
-            ->orderByDesc('event_date')->paginate(15);
-        return view('admin.reports', compact('events'));
+        $query = Event::with('organizer');
+
+        if ($request->filled('organizer_id')) {
+            $query->where('organizer_id', $request->organizer_id);
+        }
+        if ($request->filled('date_start')) {
+            $query->whereDate('event_date', '>=', $request->date_start);
+        }
+        if ($request->filled('date_end')) {
+            $query->whereDate('event_date', '<=', $request->date_end);
+        }
+        if ($request->filled('course_id')) {
+            $query->whereHas('registrations.user', function($q) use ($request) {
+                $q->where('course_id', $request->course_id);
+            });
+        }
+        if ($request->filled('section_id')) {
+            $query->whereHas('registrations.user', function($q) use ($request) {
+                $q->where('section_id', $request->section_id);
+            });
+        }
+
+        $query->withCount([
+            'registrations as registrations_count' => function($q) use ($request) {
+                $q->where('status', '!=', 'cancelled');
+                if ($request->filled('course_id')) {
+                    $q->whereHas('user', fn($uq) => $uq->where('course_id', $request->course_id));
+                }
+                if ($request->filled('section_id')) {
+                    $q->whereHas('user', fn($uq) => $uq->where('section_id', $request->section_id));
+                }
+            },
+            'attendances as verified_count' => function($q) use ($request) {
+                $q->where('attendances.status', 'verified');
+                if ($request->filled('course_id')) {
+                    $q->whereHas('registration.user', fn($uq) => $uq->where('course_id', $request->course_id));
+                }
+                if ($request->filled('section_id')) {
+                    $q->whereHas('registration.user', fn($uq) => $uq->where('section_id', $request->section_id));
+                }
+            }
+        ]);
+
+        return $query;
     }
 
-    public function exportEventsPdf()
+    public function reports(Request $request)
     {
-        $events = Event::with('organizer')->withCount('registrations')->orderByDesc('event_date')->get();
+        $events = $this->buildReportEventsQuery($request)->orderByDesc('event_date')->paginate(15)->withQueryString();
+
+        $organizers = User::whereIn('role', ['organizer', 'student_development', 'admin'])->orderBy('name')->get();
+        $courses = Course::where('is_active', true)->orderBy('code')->get();
+        $sections = Section::where('is_active', true)->orderBy('name')->get();
+
+        return view('admin.reports', compact('events', 'organizers', 'courses', 'sections'));
+    }
+
+    public function exportEventsPdf(Request $request)
+    {
+        $events = $this->buildReportEventsQuery($request)->orderByDesc('event_date')->get();
+
+        User::log('export_events_pdf', null, null, [
+            'format' => 'pdf',
+            'filters' => $request->only(['organizer_id', 'date_start', 'date_end', 'course_id', 'section_id'])
+        ]);
+
         $pdf = Pdf::loadView('reports.events-pdf', compact('events'))->setPaper('a4', 'landscape');
         return $pdf->download('nu-clark-events-report.pdf');
     }
@@ -264,6 +365,8 @@ class AdminController extends Controller implements HasMiddleware
 
         AppNotification::insert($notifs);
 
+        User::log('send_broadcast_notification', null, null, ['title' => $v['title'], 'role' => $v['role']]);
+
         return back()->with('success', "Notification sent to {$userIds->count()} users.");
     }
 
@@ -285,10 +388,14 @@ class AdminController extends Controller implements HasMiddleware
     public function updateVenueStatus(Request $request, $id)
     {
         $res = VenueReservation::findOrFail($id);
+        $oldValues = $res->toArray();
         $v = $request->validate(['status' => 'required|in:approved,rejected', 'notes' => 'nullable|string']);
         $res->update(['status' => $v['status'], 'notes' => $v['notes'] ?? null]);
         $msg = $v['status'] === 'approved' ? 'approved ✓' : 'rejected ✗';
         $safeNotes = strip_tags($v['notes'] ?? '');
+        
+        User::log('update_venue_status', $res, $oldValues, $res->toArray());
+
         // Notify organizer
         AppNotification::create([
             'user_id' => $res->reserved_by,
@@ -301,8 +408,58 @@ class AdminController extends Controller implements HasMiddleware
 
     public function deleteVenue($id)
     {
-        VenueReservation::findOrFail($id)->delete();
+        $res = VenueReservation::findOrFail($id);
+        $oldValues = $res->toArray();
+        $res->delete();
+        User::log('delete_venue_reservation', $res, $oldValues, null);
         return back()->with('success', 'Venue reservation deleted.');
+    }
+
+    public function overrideVenue(Request $request, $id)
+    {
+        $res = VenueReservation::findOrFail($id);
+        $validated = $request->validate([
+            'override_reason' => 'required|string|min:5|max:500',
+        ]);
+
+        $oldValues = $res->toArray();
+
+        $res->update([
+            'status'          => 'approved',
+            'override_by'     => Auth::id(),
+            'override_at'     => now(),
+            'override_reason' => $validated['override_reason'],
+        ]);
+
+        // Auto-approve all signatories via override
+        $activeSignatories = FileHuntingSignatory::where('is_active', 1)->get();
+        foreach ($activeSignatories as $sig) {
+            VenueReservationApproval::updateOrCreate(
+                [
+                    'venue_reservation_id' => $res->id,
+                    'role_level'           => $sig->role,
+                ],
+                [
+                    'approver_id'          => Auth::id(),
+                    'status'               => 'approved',
+                    'comments'             => 'Approved via Admin Override: ' . $validated['override_reason'],
+                    'opened_at'            => now(),
+                ]
+            );
+        }
+
+        // Log system action
+        User::log('override_venue_reservation', $res, $oldValues, $res->toArray());
+
+        // Notify user
+        AppNotification::create([
+            'user_id' => $res->reserved_by,
+            'type'    => 'venue_reservation',
+            'title'   => "Venue Reservation Approved by Admin Override",
+            'message' => "Your reservation for " . $res->venue_name . " has been force-approved by the administrator. Reason: " . $validated['override_reason'],
+        ]);
+
+        return back()->with('success', 'Venue reservation approved via admin override.');
     }
 
     // ─── File Hunting Module ─────────────────────
@@ -341,6 +498,8 @@ class AdminController extends Controller implements HasMiddleware
                 'is_active'      => isset($sig['is_active']) ? 1 : 0,
             ]);
         }
+
+        User::log('update_signatories_chain', null, null, $request->signatories);
 
         return back()->with('success', 'Signing chain updated successfully.');
     }

@@ -38,14 +38,25 @@ class HomeController extends Controller
         $items = [];
 
         // Published events
+        $categoryColors = [
+            'IT'          => '#0284c7',
+            'Business'    => '#f59e0b',
+            'Nursing'     => '#10b981',
+            'Engineering' => '#8b5cf6',
+            'Academic'    => '#6366f1',
+            'Sports'      => '#ef4444',
+            'Cultural'    => '#ec4899',
+        ];
+
         $events = Event::where('status', 'published')->get();
         foreach ($events as $e) {
+            $color = $categoryColors[$e->category] ?? '#003087';
             $items[] = [
                 'id'    => 'event-' . $e->id,
                 'title' => $e->title,
                 'start' => $e->event_date->format('Y-m-d') . 'T' . $e->start_time,
                 'end'   => $e->event_date->format('Y-m-d') . 'T' . $e->end_time,
-                'color' => '#003087',
+                'color' => $color,
                 'extendedProps' => [
                     'type'     => 'event',
                     'venue'    => $e->venue,
@@ -55,12 +66,10 @@ class HomeController extends Controller
             ];
         }
 
-        // Venue reservations (approved + pending)
+        // Venue reservations (approved only)
         $reservations = \App\Models\VenueReservation::with('event')
-            ->where(function ($q) {
-                $q->where('status', 'like', 'pending_%')
-                  ->orWhere('status', 'approved');
-            })->get();
+            ->where('status', 'approved')
+            ->get();
 
         foreach ($reservations as $r) {
             $eventTitle = $r->event ? $r->event->title : ($r->event_title ?: 'Reserved');

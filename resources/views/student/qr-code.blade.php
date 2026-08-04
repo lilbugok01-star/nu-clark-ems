@@ -33,16 +33,24 @@
                         @endif
                     </div>
 
-                    <div class="d-flex justify-content-center mb-4 p-3"
+                    <div class="d-flex flex-column align-items-center justify-content-center mb-4 p-3 position-relative"
                         style="background:white;border-radius:12px;border:2px solid var(--gray-200)">
-                        {!! $qrCode !!}
+                        <div id="qr-holder" class="d-flex align-items-center justify-content-center">
+                            {!! $qrCode !!}
+                        </div>
+                        
+                        <div class="w-100 mt-3 px-3">
+                            <div class="progress" style="height: 6px;">
+                                <div id="qr-progress-bar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 100%; transition: width 1s linear; background-color: var(--nu-blue) !important;"></div>
+                            </div>
+                            <div class="d-flex justify-content-between mt-1 text-muted" style="font-size:0.75rem;">
+                                <span>Security Rotation Active</span>
+                                <span id="qr-timer-text">Rotates in 15s</span>
+                            </div>
+                        </div>
                     </div>
 
-                    @if($registration->isExpired())
-                        <div class="alert alert-warning text-center rounded-3">
-                            <i class="bi bi-hourglass-split me-1"></i> This QR code has <strong>expired</strong>.
-                        </div>
-                    @elseif($registration->attendance)
+                    @if($registration->attendance)
                         <div class="alert alert-success text-center rounded-3">
                             <i class="bi bi-check-circle-fill me-1"></i>
                             Attendance already submitted.
@@ -51,8 +59,8 @@
                     @else
                         <div class="alert text-center rounded-3"
                             style="background:rgba(0,48,135,.07);border:1px solid rgba(0,48,135,.2);color:var(--nu-blue)">
-                            <i class="bi bi-info-circle me-1"></i>
-                            Valid until <strong>{{ $registration->qr_expires_at?->format('M d, Y H:i') }}</strong>
+                            <i class="bi bi-shield-lock-fill me-1" style="color: var(--nu-gold)"></i>
+                            Rotating QR code active. Screenshot sharing is disabled.
                         </div>
                     @endif
 
@@ -175,6 +183,42 @@
             startCamera();
         }
 
+        // Dynamic QR Code Rotation Script
+        let qrTimeRemaining = 15;
+        const qrTimerText = document.getElementById('qr-timer-text');
+        const qrProgressBar = document.getElementById('qr-progress-bar');
+        const qrHolder = document.getElementById('qr-holder');
+        
+        function startQrCountdown() {
+            setInterval(() => {
+                qrTimeRemaining--;
+                if (qrTimeRemaining <= 0) {
+                    qrTimeRemaining = 15;
+                    refreshQrCode();
+                }
+                if (qrTimerText) qrTimerText.innerText = `Rotates in ${qrTimeRemaining}s`;
+                if (qrProgressBar) qrProgressBar.style.width = `${(qrTimeRemaining / 15) * 100}%`;
+            }, 1000);
+        }
 
+        function refreshQrCode() {
+            fetch('{{ route("student.qr.token", $registration->id) }}')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.qr_svg) {
+                        qrHolder.innerHTML = data.qr_svg;
+                        
+                        const formTokenInput = document.querySelector('input[name="qr_token"]');
+                        if (formTokenInput) {
+                            formTokenInput.value = data.token;
+                        }
+                    }
+                })
+                .catch(err => console.error('Error rotating QR code:', err));
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            startQrCountdown();
+        });
     </script>
 @endpush

@@ -177,7 +177,10 @@
                              style="background:{{ !$n->read_at ? 'rgba(0,48,135,.04)' : 'var(--gray-50)' }};
                                     border-left:3px solid {{ !$n->read_at ? 'var(--nu-gold)' : 'var(--gray-200)' }}">
                             <div class="small {{ !$n->read_at ? 'fw-600' : '' }}" style="color:var(--gray-800)">{{ $n->title }}</div>
-                            <div class="text-muted" style="font-size:.72rem">{{ $n->created_at->diffForHumans() }}</div>
+                            @if($n->message)
+                                <div class="text-muted mt-1" style="font-size:.78rem;line-height:1.4">{{ $n->message }}</div>
+                            @endif
+                            <div class="text-muted mt-1" style="font-size:.68rem">{{ $n->created_at->diffForHumans() }}</div>
                         </div>
                         @empty
                         <div class="text-center py-5">
@@ -189,6 +192,47 @@
                 </div>
             </div>
         </div>{{-- end row --}}
+
+        {{-- Recommended Events --}}
+        @if(isset($recommended) && $recommended->count() > 0)
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="nu-card p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h6 class="fw-700 mb-0" style="color:var(--nu-blue)">
+                                <i class="bi bi-stars me-2" style="color:var(--nu-gold)"></i>Recommended For You
+                            </h6>
+                            <p class="text-muted small mb-0" style="font-size:.75rem">Tailored to your {{ $user->course->code ?? 'program' }} curriculum and interests</p>
+                        </div>
+                        <a href="{{ route('student.events') }}" class="btn btn-outline-secondary btn-sm">Explore All</a>
+                    </div>
+                    <div class="row g-3">
+                        @foreach($recommended as $ev)
+                        <div class="col-md-6 col-lg-3">
+                            <div class="h-100 p-3 rounded-3 d-flex flex-column justify-content-between" style="background:var(--gray-50);border:1px solid var(--gray-200)">
+                                <div>
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="badge" style="background:rgba(0,48,135,.1);color:var(--nu-blue);font-size:.65rem">{{ $ev->category ?? 'General' }}</span>
+                                        <span class="text-muted" style="font-size:.7rem"><i class="bi bi-calendar-event me-1"></i>{{ $ev->event_date?->format('M d') }}</span>
+                                    </div>
+                                    <h6 class="fw-700 mb-1 text-truncate" style="font-size:.88rem;color:var(--nu-blue)" title="{{ $ev->title }}">{{ $ev->title }}</h6>
+                                    <p class="text-muted mb-2 text-truncate" style="font-size:.75rem"><i class="bi bi-geo-alt me-1"></i>{{ $ev->venue }}</p>
+                                </div>
+                                <form action="{{ route('student.register', $ev->id) }}" method="POST" class="mt-2">
+                                    @csrf
+                                    <button type="submit" class="btn btn-nu-blue btn-sm w-100 fw-600" style="font-size:.78rem">
+                                        <i class="bi bi-ticket-perforated me-1"></i>Register
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+        </div>
+        @endif
 
         {{-- Events Calendar --}}
         <div class="row mt-4">

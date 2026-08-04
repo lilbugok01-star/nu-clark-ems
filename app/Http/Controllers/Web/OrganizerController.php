@@ -7,6 +7,7 @@ use App\Models\Event;
 use App\Models\Registration;
 use App\Models\Attendance;
 use App\Models\AppNotification;
+use App\Models\User;
 use App\Exports\AttendanceExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -81,7 +82,11 @@ class OrganizerController extends Controller implements HasMiddleware
 
         $poster_path = null;
         if ($request->hasFile('poster')) {
-            $poster_path = $request->file('poster')->store('posters', 's3');
+            try {
+                $poster_path = $request->file('poster')->store('posters', 's3');
+            } catch (\Throwable $e) {
+                $poster_path = $request->file('poster')->store('posters', 'public');
+            }
         }
 
         // --- Duplicate venue/time conflict check ---
@@ -111,6 +116,8 @@ class OrganizerController extends Controller implements HasMiddleware
             'status'        => 'published',
             'is_featured'   => $request->boolean('is_featured'),
         ]);
+
+        User::log('create_event', $event, null, $event->toArray());
 
         // Notify all students immediately since the event is published on creation.
         $students = \App\Models\User::where('role', 'student')->pluck('id');
@@ -150,10 +157,17 @@ class OrganizerController extends Controller implements HasMiddleware
         ]);
 
         if ($request->hasFile('poster')) {
-            if ($event->poster_path) \Illuminate\Support\Facades\Storage::disk('s3')->delete($event->poster_path);
-            $validated['poster_path'] = $request->file('poster')->store('posters', 's3');
+            try {
+                if ($event->poster_path) \Illuminate\Support\Facades\Storage::disk('s3')->delete($event->poster_path);
+                $validated['poster_path'] = $request->file('poster')->store('posters', 's3');
+            } catch (\Throwable $e) {
+                $validated['poster_path'] = $request->file('poster')->store('posters', 'public');
+            }
         }
+        $old = $event->toArray();
         $event->update($validated);
+
+        User::log('update_event', $event, $old, $event->toArray());
 
         return redirect()->route('organizer.events')->with('success', 'Event updated!');
     }
@@ -161,7 +175,9 @@ class OrganizerController extends Controller implements HasMiddleware
     public function deleteEvent($id)
     {
         $event = Event::where('organizer_id', Auth::id())->findOrFail($id);
+        $old = $event->toArray();
         $event->delete();
+        User::log('delete_event', $event, $old, null);
         return back()->with('success', 'Event deleted.');
     }
 
@@ -183,13 +199,16 @@ class OrganizerController extends Controller implements HasMiddleware
             'notes'  => 'nullable|string|max:500',
         ]);
 
-        $attendance = Attendance::findOrFail($id);
+        $attendance = Attendance::whereHas('registration.event', fn($q) => $q->where('organizer_id', Auth::id()))
+            ->findOrFail($id);
+        $old = $attendance->toArray();
         $attendance->update([
             'status'      => $request->status,
             'verified_by' => Auth::id(),
             'verified_at' => now(),
             'notes'       => $request->notes,
         ]);
+        User::log('verify_attendance', $attendance, $old, $attendance->toArray());
         return back()->with('success', 'Attendance ' . $request->status . '.');
     }
 
@@ -198,13 +217,17 @@ class OrganizerController extends Controller implements HasMiddleware
         $event       = Event::where('organizer_id', Auth::id())->findOrFail($eventId);
         $attendances = Attendance::with(['registration.user.course', 'registration.user.section'])
             ->whereHas('registration', fn($q) => $q->where('event_id', $eventId))->get();
+        
+        User::log('export_attendance_pdf', $event, null, ['format' => 'pdf']);
+
         $pdf = Pdf::loadView('reports.attendance-pdf', compact('event', 'attendances'))->setPaper('a4');
         return $pdf->download("attendance-{$eventId}.pdf");
     }
 
     public function exportExcel($eventId)
     {
-        Event::where('organizer_id', Auth::id())->findOrFail($eventId);
+        $event = Event::where('organizer_id', Auth::id())->findOrFail($eventId);
+        User::log('export_attendance_excel', $event, null, ['format' => 'excel']);
         return Excel::download(new AttendanceExport($eventId), "attendance-{$eventId}.xlsx");
     }
 
@@ -252,13 +275,67 @@ class OrganizerController extends Controller implements HasMiddleware
      */
     public function scanQr($token)
     {
-        $registration = Registration::with(['event', 'user'])->where('qr_token', $token)->first();
+        $parts = explode('|', $token);
+        $registration = null;
+        $isRotating = false;
+
+        if (count($parts) === 3) {
+            $registrationId = $parts[0];
+            $expiresAt = $parts[1];
+            $signature = $parts[2];
+
+            $expectedSignature = hash_hmac('sha256', $registrationId . '|' . $expiresAt, config('app.key'));
+            if (!hash_equals($expectedSignature, $signature)) {
+                \App\Models\AttendanceAuditLog::create([
+                    'qr_token' => $token,
+                    'action' => 'scan_qr',
+                    'status' => 'invalid_signature',
+                    'ip_address' => request()->ip(),
+                    'device_info' => request()->userAgent(),
+                ]);
+                return view('organizer.scan-result', ['status' => 'error', 'message' => 'Invalid QR Code signature. Potential tampering detected.']);
+            }
+
+            if (now()->timestamp > $expiresAt) {
+                \App\Models\AttendanceAuditLog::create([
+                    'registration_id' => $registrationId,
+                    'qr_token' => $token,
+                    'action' => 'scan_qr',
+                    'status' => 'expired_token',
+                    'ip_address' => request()->ip(),
+                    'device_info' => request()->userAgent(),
+                ]);
+                return view('organizer.scan-result', ['status' => 'error', 'message' => 'This QR Code has expired. Please refresh the QR code on the student app.']);
+            }
+
+            $registration = Registration::with(['event', 'user'])->find($registrationId);
+            $isRotating = true;
+        } else {
+            $registration = Registration::with(['event', 'user'])->where('qr_token', $token)->first();
+        }
 
         if (!$registration) {
+            \App\Models\AttendanceAuditLog::create([
+                'qr_token' => $token,
+                'action' => 'scan_qr',
+                'status' => 'invalid_token',
+                'ip_address' => request()->ip(),
+                'device_info' => request()->userAgent(),
+            ]);
             return view('organizer.scan-result', ['status' => 'error', 'message' => 'Invalid QR Code. Registration not found.']);
         }
 
         if ($registration->isExpired()) {
+            \App\Models\AttendanceAuditLog::create([
+                'user_id' => $registration->user_id,
+                'event_id' => $registration->event_id,
+                'registration_id' => $registration->id,
+                'qr_token' => $token,
+                'action' => 'scan_qr',
+                'status' => 'expired_registration',
+                'ip_address' => request()->ip(),
+                'device_info' => request()->userAgent(),
+            ]);
             return view('organizer.scan-result', ['status' => 'error', 'message' => 'This QR Code has expired. Registration is no longer valid.']);
         }
 
@@ -271,6 +348,16 @@ class OrganizerController extends Controller implements HasMiddleware
             : \Carbon\Carbon::parse($event->event_date)->toDateString();
 
         if ($eventDate !== $today) {
+            \App\Models\AttendanceAuditLog::create([
+                'user_id' => $registration->user_id,
+                'event_id' => $registration->event_id,
+                'registration_id' => $registration->id,
+                'qr_token' => $token,
+                'action' => 'scan_qr',
+                'status' => 'outside_event_window',
+                'ip_address' => request()->ip(),
+                'device_info' => request()->userAgent(),
+            ]);
             return view('organizer.scan-result', [
                 'status' => 'error',
                 'message' => 'Attendance can only be scanned on the day of the event (' . \Carbon\Carbon::parse($eventDate)->format('M d, Y') . ').',
@@ -280,8 +367,17 @@ class OrganizerController extends Controller implements HasMiddleware
         $eventStartTime = \Carbon\Carbon::parse($eventDate . ' ' . $event->start_time, 'Asia/Manila');
         $eventEndTime   = \Carbon\Carbon::parse($eventDate . ' ' . $event->end_time, 'Asia/Manila');
 
-        // Exact time check
         if ($now->lt($eventStartTime) || $now->gt($eventEndTime)) {
+            \App\Models\AttendanceAuditLog::create([
+                'user_id' => $registration->user_id,
+                'event_id' => $registration->event_id,
+                'registration_id' => $registration->id,
+                'qr_token' => $token,
+                'action' => 'scan_qr',
+                'status' => 'outside_event_window',
+                'ip_address' => request()->ip(),
+                'device_info' => request()->userAgent(),
+            ]);
             $start = $eventStartTime->format('h:i A');
             $end   = $eventEndTime->format('h:i A');
             return view('organizer.scan-result', [
@@ -291,6 +387,16 @@ class OrganizerController extends Controller implements HasMiddleware
         }
 
         if ($registration->attendance) {
+            \App\Models\AttendanceAuditLog::create([
+                'user_id' => $registration->user_id,
+                'event_id' => $registration->event_id,
+                'registration_id' => $registration->id,
+                'qr_token' => $token,
+                'action' => 'scan_qr',
+                'status' => 'duplicate',
+                'ip_address' => request()->ip(),
+                'device_info' => request()->userAgent(),
+            ]);
             return view('organizer.scan-result', [
                 'status' => 'warning',
                 'message' => 'This student has already checked in.',
@@ -302,6 +408,17 @@ class OrganizerController extends Controller implements HasMiddleware
             'registration_id' => $registration->id,
             'checked_in_at'   => now(),
             'status'          => 'verified',
+        ]);
+
+        \App\Models\AttendanceAuditLog::create([
+            'user_id' => $registration->user_id,
+            'event_id' => $registration->event_id,
+            'registration_id' => $registration->id,
+            'qr_token' => $token,
+            'action' => 'scan_qr',
+            'status' => 'success',
+            'ip_address' => request()->ip(),
+            'device_info' => request()->userAgent(),
         ]);
 
         return view('organizer.scan-result', [

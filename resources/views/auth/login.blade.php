@@ -32,7 +32,7 @@
     </div>
 
     <!-- Password -->
-    <div class="mb-4">
+    <div class="mb-3">
         <div class="d-flex justify-content-between align-items-center mb-1">
             <label class="form-label mb-0 fw-600">Password</label>
             <a href="{{ route('password.request') }}" class="small" style="color:var(--nu-blue)">Forgot password?</a>
@@ -45,6 +45,12 @@
                 <i class="bi bi-eye" id="pwEye" style="color:var(--gray-400)"></i>
             </button>
         </div>
+    </div>
+
+    <!-- Remember Me -->
+    <div class="mb-4 form-check text-start">
+        <input type="checkbox" name="remember" class="form-check-input" id="remember">
+        <label class="form-check-label small text-muted" for="remember">Remember me on this device</label>
     </div>
 
     <button type="submit" class="btn btn-nu-blue w-100 py-2 fw-700 mb-3">
