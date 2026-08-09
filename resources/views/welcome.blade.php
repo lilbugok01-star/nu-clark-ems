@@ -17,11 +17,6 @@
                     <a href="{{ route('events') }}" class="btn btn-gold btn-lg px-4 fw-700">
                         <i class="bi bi-calendar-event me-2"></i>Browse Events
                     </a>
-                    @guest
-                    <a href="{{ route('register') }}" class="btn btn-lg px-4 fw-600" style="background:rgba(255,255,255,.13);color:#fff;border:1px solid rgba(255,255,255,.25);border-radius:var(--radius-sm);backdrop-filter:blur(4px)">
-                        <i class="bi bi-person-plus me-2"></i>Create Account
-                    </a>
-                    @endguest
                 </div>
                 <!-- Quick features -->
                 <div class="d-flex flex-wrap gap-4">
@@ -262,17 +257,11 @@
 <!-- ── CTA ───────────────────────────────────────────── -->
 <section class="py-5" style="background:linear-gradient(135deg,var(--nu-blue-dk),var(--nu-blue))">
     <div class="container text-center py-2">
-        <h2 class="text-white fw-800 mb-2">Ready to join the community?</h2>
-        <p class="mb-4" style="color:rgba(255,255,255,.7)">Create your account and never miss an NU Clark event again.</p>
-        @guest
-        <a href="{{ route('register') }}" class="btn btn-gold btn-lg px-5 fw-700">
-            <i class="bi bi-person-plus me-2"></i>Get Started — It's Free
-        </a>
-        @else
+        <h2 class="text-white fw-800 mb-2">Discover & Attend NU Clark Events</h2>
+        <p class="mb-4" style="color:rgba(255,255,255,.7)">Explore upcoming campus activities and manage your participation effortlessly.</p>
         <a href="{{ route('events') }}" class="btn btn-gold btn-lg px-5 fw-700">
             <i class="bi bi-calendar-event me-2"></i>Browse Events
         </a>
-        @endguest
     </div>
 </section>
 

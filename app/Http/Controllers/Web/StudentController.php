@@ -34,9 +34,9 @@ class StudentController extends Controller implements HasMiddleware
     {
         $user            = Auth::user()->load('course', 'section');
         $upcoming        = Registration::with('event')
-            ->where('user_id', $user->id)
+            ->where('registrations.user_id', $user->id)
             ->whereHas('event', fn($q) => $q->where('event_date', '>=', now()->toDateString())->where('status', 'published'))
-            ->where('status', 'confirmed')
+            ->where('registrations.status', 'confirmed')
             ->join('events', 'registrations.event_id', '=', 'events.id')
             ->select('registrations.*')
             ->orderBy('events.event_date', 'asc')
@@ -77,7 +77,7 @@ class StudentController extends Controller implements HasMiddleware
     public function myEvents()
     {
         $registrations = Registration::with(['event', 'attendance'])
-            ->where('user_id', Auth::id())
+            ->where('registrations.user_id', Auth::id())
             ->join('events', 'registrations.event_id', '=', 'events.id')
             ->select('registrations.*')
             ->orderBy('events.event_date', 'asc')

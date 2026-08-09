@@ -5,9 +5,13 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\AppNotification;
+use App\Mail\VerificationCodeMail;
+use App\Mail\PasswordResetMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Validation\ValidationException;
 
@@ -20,8 +24,8 @@ class AuthController extends Controller
             'email'      => [
                 'required', 'email', 'unique:users',
                 function ($attribute, $value, $fail) {
-                    if (!str_ends_with(strtolower($value), '@student.nu-clark.edu.ph')) {
-                        $fail('Only official NU Clark student emails (@student.nu-clark.edu.ph) are allowed.');
+                    if (!str_ends_with(strtolower($value), '@students.nu-clark.edu.ph')) {
+                        $fail('Only official NU Clark student emails (@students.nu-clark.edu.ph) are allowed.');
                     }
                 },
             ],
@@ -33,14 +37,18 @@ class AuthController extends Controller
             'student_id.regex' => 'The Student ID format must be YYYY-NNNNNN (e.g. 2023-190866).',
         ]);
 
+        // Generate verification code
+        $code = sprintf("%06d", mt_rand(100000, 999999));
+
         $user = User::create([
-            'name'       => $validated['name'],
-            'email'      => $validated['email'],
-            'password'   => Hash::make($validated['password']),
-            'role'       => 'student',
-            'student_id' => $validated['student_id'],
-            'course_id'  => $validated['course_id'],
-            'section_id' => $validated['section_id'],
+            'name'                     => $validated['name'],
+            'email'                    => $validated['email'],
+            'password'                 => Hash::make($validated['password']),
+            'role'                     => 'student',
+            'student_id'               => $validated['student_id'],
+            'course_id'                => $validated['course_id'],
+            'section_id'               => $validated['section_id'],
+            'email_verification_code'  => $code,
         ]);
 
         // Welcome notification
@@ -48,14 +56,21 @@ class AuthController extends Controller
             'user_id' => $user->id,
             'type'    => 'welcome',
             'title'   => 'Welcome to NU Clark Events!',
-            'message' => "Hi {$user->name}, your account has been created. Start browsing upcoming events!",
+            'message' => "Hi {$user->name}, your account has been created. A verification code has been sent to {$user->email}.",
         ]);
+
+        // Send verification code email
+        try {
+            Mail::to($user->email)->send(new VerificationCodeMail($user, $code));
+        } catch (\Exception $e) {
+            Log::error('Failed to send verification email (API): ' . $e->getMessage());
+        }
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
             'status'  => 'success',
-            'message' => 'Registration successful',
+            'message' => 'Registration successful. A verification code has been sent to your email.',
             'user'    => $user->load('course', 'section'),
             'token'   => $token,
         ], 201);
@@ -100,6 +115,74 @@ class AuthController extends Controller
     public function user(Request $request)
     {
         return response()->json($request->user()->load('course', 'section'));
+    }
+
+    /**
+     * Verify email with 6-digit code (API)
+     */
+    public function verifyEmail(Request $request)
+    {
+        $request->validate([
+            'code' => 'required|string|size:6',
+        ]);
+
+        $user = $request->user();
+
+        if ($user->email_verified_at) {
+            return response()->json(['message' => 'Email is already verified.'], 200);
+        }
+
+        if ($user->email_verification_code === $request->code) {
+            $user->forceFill([
+                'email_verified_at'       => now(),
+                'email_verification_code' => null,
+            ])->save();
+
+            User::log('verify_email', $user);
+
+            return response()->json([
+                'status'  => 'success',
+                'message' => 'Email verified successfully!',
+            ]);
+        }
+
+        return response()->json([
+            'message' => 'The verification code is invalid.',
+        ], 422);
+    }
+
+    /**
+     * Resend verification code via email (API)
+     */
+    public function resendVerificationCode(Request $request)
+    {
+        $user = $request->user();
+
+        if ($user->email_verified_at) {
+            return response()->json(['message' => 'Email is already verified.'], 200);
+        }
+
+        $code = sprintf("%06d", mt_rand(100000, 999999));
+
+        $user->update([
+            'email_verification_code' => $code,
+        ]);
+
+        try {
+            Mail::to($user->email)->send(new VerificationCodeMail($user, $code));
+        } catch (\Exception $e) {
+            Log::error('Failed to resend verification email (API): ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Failed to send verification email. Please try again later.',
+            ], 500);
+        }
+
+        User::log('resend_verification_code', $user);
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'A new verification code has been sent to your email.',
+        ]);
     }
 
     public function forgotPassword(Request $request)

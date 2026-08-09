@@ -283,8 +283,7 @@
                         </div>
 
                     @else
-                        <a href="{{ route('login') }}" class="btn btn-outline-gold btn-sm px-3">Log In</a>
-                        <a href="{{ route('register') }}" class="btn btn-gold btn-sm px-3">Sign Up</a>
+                        <a href="{{ route('login') }}" class="btn btn-gold btn-sm px-3">Log In</a>
                     @endauth
                 </div>{{-- end right side --}}
 

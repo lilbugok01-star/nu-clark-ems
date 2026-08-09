@@ -23,6 +23,11 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
 
+        // Ensure unverified students are always redirected to the verification page
+        $middleware->web(append: [
+            \App\Http\Middleware\EnsureEmailVerifiedCustom::class,
+        ]);
+
         $middleware->api(prepend: [
             \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
         ]);

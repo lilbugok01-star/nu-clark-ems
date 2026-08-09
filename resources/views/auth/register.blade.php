@@ -33,13 +33,13 @@
             <div class="input-group">
                 <span class="input-group-text"><i class="bi bi-envelope text-muted"></i></span>
                 <input type="email" name="email" class="form-control"
-                       placeholder="yourname@student.nu-clark.edu.ph"
+                       placeholder="yourname@students.nu-clark.edu.ph"
                        value="{{ old('email') }}" required autocomplete="email"
-                       pattern=".+@student\.nu-clark\.edu\.ph"
-                       title="Must be an official NU Clark student email ending in @student.nu-clark.edu.ph">
+                       pattern=".+@students\.nu-clark\.edu\.ph"
+                       title="Must be an official NU Clark student email ending in @students.nu-clark.edu.ph">
             </div>
             <div class="form-text" style="color:var(--nu-blue);font-size:.75rem">
-                <i class="bi bi-info-circle me-1"></i>Official school email required: <strong>@student.nu-clark.edu.ph</strong>
+                <i class="bi bi-info-circle me-1"></i>Official school email required: <strong>@students.nu-clark.edu.ph</strong>
             </div>
         </div>
 

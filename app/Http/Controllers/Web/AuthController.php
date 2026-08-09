@@ -10,10 +10,14 @@ use App\Models\AppNotification;
 use App\Http\Requests\RegisterRequest;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\ResetPasswordRequest;
+use App\Mail\VerificationCodeMail;
+use App\Mail\PasswordResetMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class AuthController extends Controller
@@ -55,7 +59,9 @@ class AuthController extends Controller
             'admin'              => redirect()->route('admin.dashboard'),
             'organizer'          => redirect()->route('organizer.dashboard'),
             'student_department' => redirect()->route('student_department.dashboard'),
-            'student'            => redirect()->route('student.dashboard'),
+            'student'            => $user->email_verified_at 
+                                        ? redirect()->route('student.dashboard') 
+                                        : redirect()->route('verification.notice'),
             default              => redirect()->route('approver.dashboard'),
         };
     }
@@ -85,13 +91,20 @@ class AuthController extends Controller
             'user_id' => $user->id,
             'type'    => 'welcome',
             'title'   => 'Welcome to NU Clark Events!',
-            'message' => "Hi {$user->name}, your account has been created. Please verify your email using code: {$code}.",
+            'message' => "Hi {$user->name}, your account has been created. Please verify your email — a verification code has been sent to {$user->email}.",
         ]);
+
+        // Send verification code email
+        try {
+            Mail::to($user->email)->send(new VerificationCodeMail($user, $code));
+        } catch (\Exception $e) {
+            Log::error('Failed to send verification email: ' . $e->getMessage());
+        }
 
         Auth::login($user);
         
         return redirect()->route('verification.notice')
-            ->with('success', 'Verification code generated! Please check your mailbox.');
+            ->with('success', 'A verification code has been sent to your email address!');
     }
 
     public function showVerificationNotice()
@@ -101,8 +114,7 @@ class AuthController extends Controller
             return redirect()->route('student.dashboard');
         }
         return view('auth.verification-notice', [
-            'email' => $user->email, 
-            'code'  => $user->email_verification_code
+            'email' => $user->email,
         ]);
     }
 
@@ -115,10 +127,10 @@ class AuthController extends Controller
         $user = Auth::user();
 
         if ($user->email_verification_code === $request->code) {
-            $user->update([
+            $user->forceFill([
                 'email_verified_at'       => now(),
                 'email_verification_code' => null,
-            ]);
+            ])->save();
 
             User::log('verify_email', $user);
 
@@ -138,9 +150,17 @@ class AuthController extends Controller
             'email_verification_code' => $code
         ]);
 
+        // Send new verification code email
+        try {
+            Mail::to($user->email)->send(new VerificationCodeMail($user, $code));
+        } catch (\Exception $e) {
+            Log::error('Failed to resend verification email: ' . $e->getMessage());
+            return back()->with('error', 'Failed to send the verification email. Please try again later.');
+        }
+
         User::log('resend_verification_code', $user);
 
-        return back()->with('success', 'A new verification code has been generated. Check the sandbox mailbox!');
+        return back()->with('success', 'A new verification code has been sent to your email!');
     }
 
     public function forgotPassword(Request $request)
@@ -161,8 +181,15 @@ class AuthController extends Controller
 
         $resetLink = route('password.reset', ['token' => $token, 'email' => $request->email]);
 
-        return back()->with('success', 'Password reset link generated!')
-            ->with('reset_link', $resetLink);
+        // Send password reset email
+        try {
+            Mail::to($user->email)->send(new PasswordResetMail($user, $resetLink));
+        } catch (\Exception $e) {
+            Log::error('Failed to send password reset email: ' . $e->getMessage());
+            return back()->with('error', 'Failed to send the reset email. Please try again later.');
+        }
+
+        return back()->with('success', 'A password reset link has been sent to your email address!');
     }
 
     public function showReset(Request $request)

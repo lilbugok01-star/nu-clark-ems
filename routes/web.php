@@ -100,8 +100,9 @@ Route::post('/force-sync-database', function () {
 Route::middleware('guest')->group(function () {
     Route::get('/login',    [AuthController::class, 'showLogin'])->name('login');
     Route::post('/login',   [AuthController::class, 'login'])->middleware('throttle:login');
-    Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
-    Route::post('/register',[AuthController::class, 'register'])->middleware('throttle:register');
+    Route::get('/register', function () {
+        return redirect()->route('login')->with('error', 'Public registration is disabled. Student accounts are imported by administrators.');
+    })->name('register');
     Route::get('/forgot-password',  [AuthController::class, 'showForgot'])->name('password.request');
     Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->name('password.email')->middleware('throttle:forgot-password');
     Route::get('/reset-password',   [AuthController::class, 'showReset'])->name('password.reset');

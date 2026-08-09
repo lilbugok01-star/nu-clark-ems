@@ -27,7 +27,7 @@
         <div class="input-group">
             <span class="input-group-text"><i class="bi bi-envelope text-muted"></i></span>
             <input type="email" name="email" class="form-control @error('email') is-invalid @enderror"
-                   placeholder="yourname@student.nu-clark.edu.ph" value="{{ old('email') }}" autocomplete="email" required>
+                   placeholder="yourname@students.nu-clark.edu.ph" value="{{ old('email') }}" autocomplete="email" required>
         </div>
     </div>
 
@@ -57,10 +57,6 @@
         <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
     </button>
 
-    <p class="text-center text-muted small mb-0">
-        Don't have an account?
-        <a href="{{ route('register') }}" class="fw-600" style="color:var(--nu-blue)">Create one →</a>
-    </p>
 </form>
 @endsection
 @push('scripts')

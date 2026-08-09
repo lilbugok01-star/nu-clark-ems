@@ -40,6 +40,10 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::post('/logout',  [AuthController::class, 'logout']);
     Route::get('/user',     [AuthController::class, 'user']);
 
+    // Email Verification
+    Route::post('/verify-email',           [AuthController::class, 'verifyEmail']);
+    Route::post('/resend-verification',    [AuthController::class, 'resendVerificationCode']);
+
     // Notifications
     Route::get('/notifications',             [NotificationController::class, 'index']);
     Route::put('/notifications/{id}/read',   [NotificationController::class, 'markRead']);

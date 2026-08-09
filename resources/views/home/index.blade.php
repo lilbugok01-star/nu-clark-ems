@@ -21,11 +21,6 @@
                     <a href="{{ route('events') }}" class="btn btn-gold btn-lg px-4 fw-bold">
                         <i class="bi bi-calendar3 me-2"></i>Browse Events
                     </a>
-                    @guest
-                        <a href="{{ route('register') }}" class="btn btn-outline-light btn-lg px-4">
-                            <i class="bi bi-person-plus me-2"></i>Get Started
-                        </a>
-                    @endguest
                 </div>
             </div>
             <div class="col-lg-5 d-none d-lg-flex justify-content-center fade-in-up stagger-2">
@@ -164,10 +159,10 @@
 @guest
 <section class="py-5" style="background: linear-gradient(135deg, var(--nu-blue), var(--nu-blue-light))">
     <div class="container text-center text-white">
-        <h2 class="fw-bold mb-2">Ready to join the community?</h2>
-        <p class="text-white-75 mb-4">Create your NU Clark Events account and never miss an event again.</p>
-        <a href="{{ route('register') }}" class="btn btn-gold btn-lg px-5 fw-bold">
-            <i class="bi bi-person-plus me-2"></i>Register Now — It's Free
+        <h2 class="fw-bold mb-2">Discover & Attend NU Clark Events</h2>
+        <p class="text-white-75 mb-4">Explore upcoming campus activities and manage your participation effortlessly.</p>
+        <a href="{{ route('events') }}" class="btn btn-gold btn-lg px-5 fw-bold">
+            <i class="bi bi-calendar3 me-2"></i>Browse Events
         </a>
     </div>
 </section>

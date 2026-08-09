@@ -122,7 +122,7 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-600">Email Address <span class="text-danger">*</span></label>
-                            <input type="email" name="email" class="form-control" required placeholder="user@nu-clark.edu.ph">
+                            <input type="email" name="email" class="form-control" required placeholder="user@students.nu-clark.edu.ph">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-600">Password <span class="text-danger">*</span></label>

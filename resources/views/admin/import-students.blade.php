@@ -64,7 +64,7 @@
                             <tbody>
                                 <tr>
                                     <td>Juan dela Cruz</td>
-                                    <td>juan@nu-clark.edu.ph</td>
+                                    <td>juan@students.nu-clark.edu.ph</td>
                                     <td>2022-00001</td>
                                     <td>BSIT</td>
                                     <td>BSIT-3A</td>

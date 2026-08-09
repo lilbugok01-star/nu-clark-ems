@@ -12,6 +12,14 @@ class HomeController extends Controller
 {
     public function index()
     {
+        // Redirect unverified students to the verification page
+        if (Auth::check()) {
+            $user = Auth::user();
+            if ($user->isStudent() && is_null($user->email_verified_at)) {
+                return redirect()->route('verification.notice');
+            }
+        }
+
         // All queries are done inline in welcome.blade.php using @php
         return view('welcome');
     }

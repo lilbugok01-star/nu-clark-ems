@@ -27,8 +27,8 @@ class RegisterRequest extends FormRequest
                 'email',
                 'unique:users',
                 function ($attribute, $value, $fail) {
-                    if (!str_ends_with(strtolower($value), '@student.nu-clark.edu.ph')) {
-                        $fail('Only official NU Clark student emails (@student.nu-clark.edu.ph) are allowed.');
+                    if (!str_ends_with(strtolower($value), '@students.nu-clark.edu.ph')) {
+                        $fail('Only official NU Clark student emails (@students.nu-clark.edu.ph) are allowed.');
                     }
                 },
             ],

@@ -101,11 +101,11 @@ class DatabaseSeeder extends Seeder
         $section = Section::where('name', 'ITE-201')->first();
 
         $studentData = [
-            ['name' => 'Ana Reyes',      'email' => 'ana.reyes@student.nu-clark.edu.ph',      'student_id' => '2022-00001'],
-            ['name' => 'Carlos Bautista','email' => 'carlos.bautista@student.nu-clark.edu.ph', 'student_id' => '2022-00002'],
-            ['name' => 'Maria Garcia',   'email' => 'maria.garcia@student.nu-clark.edu.ph',    'student_id' => '2022-00003'],
-            ['name' => 'John Mendoza',   'email' => 'john.mendoza@student.nu-clark.edu.ph',    'student_id' => '2022-00004'],
-            ['name' => 'Sofia Cruz',     'email' => 'sofia.cruz@student.nu-clark.edu.ph',      'student_id' => '2022-00005'],
+            ['name' => 'Ana Reyes',      'email' => 'ana.reyes@students.nu-clark.edu.ph',      'student_id' => '2022-00001'],
+            ['name' => 'Carlos Bautista','email' => 'carlos.bautista@students.nu-clark.edu.ph', 'student_id' => '2022-00002'],
+            ['name' => 'Maria Garcia',   'email' => 'maria.garcia@students.nu-clark.edu.ph',    'student_id' => '2022-00003'],
+            ['name' => 'John Mendoza',   'email' => 'john.mendoza@students.nu-clark.edu.ph',    'student_id' => '2022-00004'],
+            ['name' => 'Sofia Cruz',     'email' => 'sofia.cruz@students.nu-clark.edu.ph',      'student_id' => '2022-00005'],
         ];
 
         foreach ($studentData as $sd) {

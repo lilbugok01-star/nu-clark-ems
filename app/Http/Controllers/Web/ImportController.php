@@ -52,9 +52,9 @@ class ImportController extends Controller implements HasMiddleware
             // Header row
             fputcsv($handle, ['name', 'email', 'student_id', 'course_code', 'section_name', 'password']);
             // Example rows
-            fputcsv($handle, ['Juan dela Cruz',  'juan.delacruz@nu-clark.edu.ph',  '2022-00001', 'BSIT', 'BSIT-3A', 'Password123!']);
-            fputcsv($handle, ['Maria Santos',    'maria.santos@nu-clark.edu.ph',    '2022-00002', 'BSCS', 'BSCS-2B', 'Password123!']);
-            fputcsv($handle, ['Pedro Reyes',     'pedro.reyes@nu-clark.edu.ph',     '2022-00003', 'BSBA', 'BSBA-1A', 'Password123!']);
+            fputcsv($handle, ['Juan dela Cruz',  'juan.delacruz@students.nu-clark.edu.ph',  '2022-00001', 'BSIT', 'BSIT-3A', 'Password123!']);
+            fputcsv($handle, ['Maria Santos',    'maria.santos@students.nu-clark.edu.ph',    '2022-00002', 'BSCS', 'BSCS-2B', 'Password123!']);
+            fputcsv($handle, ['Pedro Reyes',     'pedro.reyes@students.nu-clark.edu.ph',     '2022-00003', 'BSBA', 'BSBA-1A', 'Password123!']);
             fclose($handle);
         };
         return response()->stream($callback, 200, $headers);

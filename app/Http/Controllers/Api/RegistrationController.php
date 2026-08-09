@@ -63,7 +63,7 @@ class RegistrationController extends Controller
     public function myRegistrations(Request $request)
     {
         $registrations = Registration::with(['event.organizer', 'attendance'])
-            ->where('user_id', $request->user()->id)
+            ->where('registrations.user_id', $request->user()->id)
             ->join('events', 'registrations.event_id', '=', 'events.id')
             ->select('registrations.*')
             ->orderBy('events.event_date', 'asc')
