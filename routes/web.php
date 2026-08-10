@@ -180,6 +180,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::post('/users',            [AdminController::class, 'storeUser'])->name('users.store');
     Route::put('/users/{id}',        [AdminController::class, 'updateUser'])->name('users.update');
     Route::delete('/users/{id}',     [AdminController::class, 'deleteUser'])->name('users.delete');
+    Route::post('/users/{id}/verify-email', [AdminController::class, 'verifyUserEmail'])->name('users.verify-email');
     Route::get('/courses',           [AdminController::class, 'courses'])->name('courses');
     Route::post('/courses',          [AdminController::class, 'storeCourse'])->name('courses.store');
     Route::get('/reports',           [AdminController::class, 'reports'])->name('reports');

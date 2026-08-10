@@ -7,6 +7,15 @@
     <p class="text-muted small">We've sent a 6-digit verification code to <strong>{{ $email }}</strong>. Please check your inbox (and spam folder) and enter the code below.</p>
 </div>
 
+@if(isset($codeHint) && $codeHint)
+    <div class="alert alert-info border-info text-dark small rounded-3 mb-4 text-center">
+        <i class="bi bi-info-circle-fill text-info me-1"></i>
+        <strong>Verification Code (Mail Log Mode):</strong>
+        <div class="fs-4 fw-bold text-nu-blue my-1" style="letter-spacing:0.25em">{{ $codeHint }}</div>
+        <div class="text-muted" style="font-size:0.75rem">Enter this code below to complete your registration.</div>
+    </div>
+@endif
+
 @if(session('success'))
     <div class="alert alert-success alert-dismissible fade show small rounded-3 mb-4" role="alert">
         <i class="bi bi-check-circle-fill me-1"></i> {{ session('success') }}

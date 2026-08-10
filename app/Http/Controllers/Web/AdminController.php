@@ -242,6 +242,19 @@ class AdminController extends Controller implements HasMiddleware
         return back()->with('success', 'User deleted.');
     }
 
+    public function verifyUserEmail($id)
+    {
+        $user = User::findOrFail($id);
+        $user->forceFill([
+            'email_verified_at'       => now(),
+            'email_verification_code' => null,
+        ])->save();
+
+        User::log('admin_verify_user_email', $user);
+
+        return back()->with('success', "Email for {$user->full_name} ({$user->email}) has been verified by Admin!");
+    }
+
     public function courses()
     {
         $courses = Course::with('sections')->get();

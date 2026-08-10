@@ -74,9 +74,24 @@
                             </td>
                             <td class="small">{{ $user->course->code ?? '-' }}</td>
                             <td class="small text-muted">{{ $user->student_id ?? '-' }}</td>
-                            <td><span class="status-dot {{ $user->is_active ? 'bg-success' : 'bg-danger' }}"></span> {{ $user->is_active ? 'Active' : 'Inactive' }}</td>
+                            <td>
+                                <span class="status-dot {{ $user->is_active ? 'bg-success' : 'bg-danger' }}"></span> {{ $user->is_active ? 'Active' : 'Inactive' }}
+                                @if($user->isStudent())
+                                    @if($user->email_verified_at)
+                                        <span class="badge bg-success-subtle text-success border border-success ms-1" style="font-size:0.65rem">Verified</span>
+                                    @else
+                                        <span class="badge bg-warning-subtle text-dark border border-warning ms-1" style="font-size:0.65rem" title="Code: {{ $user->email_verification_code }}">Unverified</span>
+                                    @endif
+                                @endif
+                            </td>
                             <td>
                                 <div class="d-flex gap-1">
+                                    @if($user->isStudent() && !$user->email_verified_at)
+                                    <form action="{{ route('admin.users.verify-email', $user->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Manually verify email for {{ $user->full_name }}?')">
+                                        @csrf
+                                        <button type="submit" class="btn btn-outline-success btn-sm" title="Verify Email (Code: {{ $user->email_verification_code ?? 'N/A' }})"><i class="bi bi-patch-check"></i></button>
+                                    </form>
+                                    @endif
                                     <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#editUserModal"
                                             data-id="{{ $user->id }}" data-first-name="{{ $user->first_name }}" data-middle-name="{{ $user->middle_name }}" data-surname="{{ $user->surname }}" data-role="{{ $user->role }}"
                                             data-active="{{ $user->is_active ? '1' : '0' }}"

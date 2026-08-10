@@ -115,8 +115,14 @@ class AuthController extends Controller
         if ($user->email_verified_at) {
             return redirect()->route('student.dashboard');
         }
+
+        $codeHint = (config('mail.default') === 'log' || config('app.debug'))
+            ? $user->email_verification_code
+            : null;
+
         return view('auth.verification-notice', [
-            'email' => $user->email,
+            'email'    => $user->email,
+            'codeHint' => $codeHint,
         ]);
     }
 
