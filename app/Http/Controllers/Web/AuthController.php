@@ -117,6 +117,9 @@ class AuthController extends Controller
     public function showVerificationNotice()
     {
         $user = Auth::user();
+        if (!$user) {
+            return redirect()->route('login');
+        }
         if ($user->email_verified_at) {
             return redirect()->route('student.dashboard');
         }
@@ -138,8 +141,11 @@ class AuthController extends Controller
         ]);
 
         $user = Auth::user();
+        if (!$user) {
+            return redirect()->route('login')->with('error', 'Session expired. Please log in again.');
+        }
 
-        if ($user->email_verification_code === $request->code) {
+        if ($user->email_verification_code && $user->email_verification_code === $request->code) {
             $user->forceFill([
                 'email_verified_at'       => now(),
                 'email_verification_code' => null,
@@ -157,6 +163,10 @@ class AuthController extends Controller
     public function resendVerificationCode(Request $request)
     {
         $user = Auth::user();
+        if (!$user) {
+            return redirect()->route('login')->with('error', 'Session expired. Please log in again.');
+        }
+
         $code = sprintf("%06d", mt_rand(100000, 999999));
         
         $user->update([
@@ -164,14 +174,19 @@ class AuthController extends Controller
         ]);
 
         // Send new verification code email
+        $mailError = null;
         try {
             Mail::to($user->email)->send(new VerificationCodeMail($user, $code));
         } catch (\Exception $e) {
             Log::error('Failed to resend verification email: ' . $e->getMessage());
-            return back()->with('error', 'Failed to send verification email: ' . $e->getMessage());
+            $mailError = $e->getMessage();
         }
 
         User::log('resend_verification_code', $user);
+
+        if ($mailError) {
+            return back()->with('error', 'Failed to send verification email: ' . $mailError);
+        }
 
         return back()->with('success', 'A new verification code has been sent to your email!');
     }
