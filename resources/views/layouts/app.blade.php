@@ -44,7 +44,8 @@
 
             <div class="collapse navbar-collapse" id="mainNav">
 
-                {{-- Centre nav links --}}
+                {{-- Centre nav links (Hidden for Admin to maintain clean, professional executive layout) --}}
+                @if(!Auth::check() || Auth::user()->role !== 'admin')
                 <ul class="navbar-nav mx-auto gap-1 align-items-lg-center">
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('home') ? 'active' : '' }}" href="{{ route('home') }}">
@@ -121,47 +122,10 @@
                                     <i class="bi bi-ui-checks"></i> Approvals
                                 </a>
                             </li>
-
-                        @elseif($role === 'admin')
-                            <li class="nav-item">
-                                <a class="nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}"
-                                    href="{{ route('admin.dashboard') }}">
-                                    <i class="bi bi-speedometer2"></i> Dashboard
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link {{ request()->routeIs('admin.users*') ? 'active' : '' }}"
-                                    href="{{ route('admin.users') }}">
-                                    <i class="bi bi-people"></i> Users
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link {{ request()->routeIs('admin.venues*') ? 'active' : '' }}"
-                                    href="{{ route('admin.venues') }}">
-                                    <i class="bi bi-building"></i> Venues
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link {{ request()->routeIs('admin.reports*') ? 'active' : '' }}"
-                                    href="{{ route('admin.reports') }}">
-                                    <i class="bi bi-bar-chart-line"></i> Reports
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link {{ request()->routeIs('admin.file-hunting*') ? 'active' : '' }}"
-                                    href="{{ route('admin.file-hunting') }}">
-                                    <i class="bi bi-file-earmark-person"></i> File Hunting
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link {{ request()->routeIs('admin.import*') ? 'active' : '' }}"
-                                    href="{{ route('admin.import') }}">
-                                    <i class="bi bi-upload"></i> Import
-                                </a>
-                            </li>
                         @endif
                     @endauth
                 </ul>
+                @endif
 
                 {{-- Right side --}}
                 <div class="d-flex align-items-center gap-2 mt-2 mt-lg-0">
