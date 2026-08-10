@@ -99,7 +99,7 @@ class AuthController extends Controller
         // Send verification code email
         $mailError = null;
         try {
-            Mail::to($user->email)->send(new VerificationCodeMail($user, $code));
+            VerificationCodeMail::sendCode($user, $code);
         } catch (\Exception $e) {
             Log::error('Failed to send verification email: ' . $e->getMessage());
             $mailError = $e->getMessage();
@@ -176,7 +176,7 @@ class AuthController extends Controller
         // Send new verification code email
         $mailError = null;
         try {
-            Mail::to($user->email)->send(new VerificationCodeMail($user, $code));
+            VerificationCodeMail::sendCode($user, $code);
         } catch (\Exception $e) {
             Log::error('Failed to resend verification email: ' . $e->getMessage());
             $mailError = $e->getMessage();

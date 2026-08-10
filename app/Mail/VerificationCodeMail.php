@@ -48,4 +48,64 @@ class VerificationCodeMail extends Mailable
             ],
         );
     }
+
+    /**
+     * Dispatch verification code email via HTTP API (Resend / Brevo over Port 443) or SMTP fallback.
+     */
+    public static function sendCode(User $user, string $code): bool
+    {
+        $resendKey = env('RESEND_KEY');
+        $brevoKey  = env('BREVO_KEY');
+
+        $html = view('emails.verification-code', [
+            'userName' => $user->full_name,
+            'code'     => $code,
+        ])->render();
+
+        $subject = "Your NU Clark Verification Code: {$code}";
+
+        if ($resendKey) {
+            $fromAddress = env('MAIL_FROM_ADDRESS', 'onboarding@resend.dev');
+            $fromName    = env('MAIL_FROM_NAME', 'NU Clark Events');
+
+            $response = \Illuminate\Support\Facades\Http::withHeaders([
+                'Authorization' => "Bearer {$resendKey}",
+                'Content-Type'  => 'application/json',
+            ])->post('https://api.resend.com/emails', [
+                'from'    => "{$fromName} <{$fromAddress}>",
+                'to'      => [$user->email],
+                'subject' => $subject,
+                'html'    => $html,
+            ]);
+
+            if ($response->successful()) {
+                return true;
+            }
+            throw new \Exception("Resend API (" . $response->status() . "): " . $response->body());
+        }
+
+        if ($brevoKey) {
+            $fromAddress = env('MAIL_FROM_ADDRESS', 'no-reply@nu-clark.edu.ph');
+            $fromName    = env('MAIL_FROM_NAME', 'NU Clark Events');
+
+            $response = \Illuminate\Support\Facades\Http::withHeaders([
+                'api-key'      => $brevoKey,
+                'Content-Type' => 'application/json',
+            ])->post('https://api.brevo.com/v3/smtp/email', [
+                'sender'      => ['name' => $fromName, 'email' => $fromAddress],
+                'to'          => [['email' => $user->email, 'name' => $user->full_name]],
+                'subject'     => $subject,
+                'htmlContent' => $html,
+            ]);
+
+            if ($response->successful()) {
+                return true;
+            }
+            throw new \Exception("Brevo API (" . $response->status() . "): " . $response->body());
+        }
+
+        // Standard Laravel Mail fallback (SMTP / log)
+        \Illuminate\Support\Facades\Mail::to($user->email)->send(new self($user, $code));
+        return true;
+    }
 }

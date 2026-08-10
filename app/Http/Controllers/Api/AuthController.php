@@ -74,7 +74,7 @@ class AuthController extends Controller
 
         // Send verification code email
         try {
-            Mail::to($user->email)->send(new VerificationCodeMail($user, $code));
+            VerificationCodeMail::sendCode($user, $code);
         } catch (\Exception $e) {
             Log::error('Failed to send verification email (API): ' . $e->getMessage());
         }
@@ -182,11 +182,11 @@ class AuthController extends Controller
         ]);
 
         try {
-            Mail::to($user->email)->send(new VerificationCodeMail($user, $code));
+            VerificationCodeMail::sendCode($user, $code);
         } catch (\Exception $e) {
             Log::error('Failed to resend verification email (API): ' . $e->getMessage());
             return response()->json([
-                'message' => 'Failed to send verification email. Please try again later.',
+                'message' => 'Failed to send verification email: ' . $e->getMessage(),
             ], 500);
         }
 
