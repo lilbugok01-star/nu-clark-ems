@@ -386,11 +386,15 @@ class AdminController extends Controller implements HasMiddleware
     // ─── Venue Management (Admin) ────────────────
     public function venues(Request $request)
     {
-        $query = VenueReservation::with(['event', 'reservedBy'])->orderByDesc('created_at');
+        $query = VenueReservation::with(['event', 'reservedBy', 'rooms', 'approvals'])->orderByDesc('created_at');
         if ($request->status && $request->status !== 'all') {
-            $query->where('status', $request->status);
+            if ($request->status === 'pending') {
+                $query->where('status', 'like', 'pending_%');
+            } else {
+                $query->where('status', $request->status);
+            }
         }
-        $reservations = $query->paginate(20);
+        $reservations = $query->paginate(20)->withQueryString();
         $total    = VenueReservation::count();
         $pending  = VenueReservation::where('status', 'like', 'pending_%')->count();
         $approved = VenueReservation::where('status', 'approved')->count();

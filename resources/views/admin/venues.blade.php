@@ -1,131 +1,301 @@
 @extends('layouts.app')
-@section('title', 'Venue Management')
+@section('title', 'Venue Reservation Management')
 @section('content')
-<div class="container py-5">
-    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-        <div>
-            <h4 class="fw-800 mb-0" style="color:var(--nu-blue)"><i class="bi bi-building me-2" style="color:var(--nu-gold)"></i>Venue Reservation Management</h4>
-            <p class="text-muted small mb-0">Review and approve organizer venue requests</p>
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-lg-2 col-md-3">
+            @include('layouts.partials.sidebar-admin')
         </div>
-        <div class="d-flex gap-2">
-            <span class="badge py-2 px-3" style="background:rgba(255,193,7,.15);color:#856404;font-size:.85rem">
-                {{ $pending }} Pending
-            </span>
-        </div>
-    </div>
+        <div class="col-lg-10 col-md-9">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+                <div>
+                    <h4 class="fw-800 mb-0" style="color:var(--nu-blue)">
+                        <i class="bi bi-building me-2" style="color:var(--nu-gold)"></i>Venue Reservation Management
+                    </h4>
+                    <p class="text-muted small mb-0">Review, approve, override, or reject venue reservation requests</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <span class="badge py-2 px-3 rounded-pill fw-700" style="background:rgba(255,193,7,.18);color:#856404;font-size:.85rem">
+                        <i class="bi bi-hourglass-split me-1"></i>{{ $pending }} Pending Review
+                    </span>
+                </div>
+            </div>
 
-    <!-- Stats -->
-    <div class="row g-3 mb-4">
-        <div class="col-md-3 col-6">
-            <div class="stat-card"><div class="stat-value">{{ $total }}</div><div class="stat-label">Total Requests</div></div>
-        </div>
-        <div class="col-md-3 col-6">
-            <div class="stat-card" style="border-color:#ffc107"><div class="stat-value" style="color:#856404">{{ $pending }}</div><div class="stat-label">Pending</div></div>
-        </div>
-        <div class="col-md-3 col-6">
-            <div class="stat-card" style="border-color:#28a745"><div class="stat-value" style="color:#28a745">{{ $approved }}</div><div class="stat-label">Approved</div></div>
-        </div>
-        <div class="col-md-3 col-6">
-            <div class="stat-card" style="border-color:#dc3545"><div class="stat-value" style="color:#dc3545">{{ $rejected }}</div><div class="stat-label">Rejected</div></div>
-        </div>
-    </div>
-
-    <!-- Filter Tabs -->
-    <div class="mb-4">
-        <div class="d-flex gap-2 flex-wrap">
-            @foreach(['all' => 'All Requests','pending' => 'Pending','approved' => 'Approved','rejected' => 'Rejected'] as $val => $lbl)
-            <a href="{{ route('admin.venues', ['status' => $val]) }}"
-               class="btn btn-sm {{ request('status', 'all') === $val ? 'btn-nu-blue' : 'btn-outline-secondary' }}">{{ $lbl }}</a>
-            @endforeach
-        </div>
-    </div>
-
-    <!-- Reservations Table -->
-    <div class="nu-card">
-        <div class="table-responsive">
-            <table class="table nu-table mb-0">
-                <thead>
-                    <tr><th>Requested By</th><th>Event</th><th>Venue</th><th>Date & Time</th><th>Attendees</th><th>Status</th><th>Actions</th></tr>
-                </thead>
-                <tbody>
-                    @forelse($reservations as $res)
-                    <tr>
-                        <td>
-                            <div class="fw-600 small">{{ $res->reservedBy?->full_name ?? '-' }}</div>
-                            <div class="text-muted" style="font-size:.72rem">{{ $res->reservedBy?->email ?? '' }}</div>
-                        </td>
-                        <td class="small">{{ $res->event?->title ?? $res->event_title ?? 'N/A' }}</td>
-                        <td><span class="venue-badge"><i class="bi bi-building me-1"></i>{{ $res->venue_name }}</span></td>
-                        <td class="small">
-                            <div class="fw-600">{{ $res->reserved_date->format('M d, Y') }}</div>
-                            <div class="text-muted">{{ substr($res->start_time,0,5) }} – {{ substr($res->end_time,0,5) }}</div>
-                        </td>
-                        <td class="small text-center">{{ $res->expected_attendees }}</td>
-                        <td>
-                            @if($res->status === 'approved')
-                                <span class="badge-status-published">Approved</span>
-                            @elseif($res->status === 'rejected')
-                                <span class="badge-status-cancelled">Rejected</span>
-                            @else
-                                <span class="badge-status-draft">Pending</span>
-                            @endif
-                        </td>
-                        <td>
-                            @if($res->status === 'pending')
-                            <div class="d-flex gap-1">
-                                <form action="{{ route('admin.venues.status', $res->id) }}" method="POST" class="d-inline">
-                                    @csrf @method('PUT')
-                                    <input type="hidden" name="status" value="approved">
-                                    <button type="submit" class="btn btn-success btn-sm py-1 px-2 fw-600" title="Approve">
-                                        <i class="bi bi-check-lg"></i>
-                                    </button>
-                                </form>
-                                <!-- Reject with notes modal -->
-                                <button class="btn btn-danger btn-sm py-1 px-2" title="Reject"
-                                        data-bs-toggle="modal" data-bs-target="#rejectModal{{ $res->id }}">
-                                    <i class="bi bi-x-lg"></i>
-                                </button>
-                            </div>
-                            @elseif($res->status === 'approved')
-                                <span class="text-muted small">Approved</span>
-                            @else
-                                <span class="text-muted small">Done</span>
-                            @endif
-                        </td>
-                    </tr>
-
-                    <!-- Reject Modal -->
-                    @if($res->status === 'pending')
-                    <div class="modal fade" id="rejectModal{{ $res->id }}" tabindex="-1">
-                        <div class="modal-dialog modal-dialog-centered">
-                            <div class="modal-content rounded-3">
-                                <div class="modal-header"><h6 class="modal-title fw-700">Reject Reservation</h6><button class="btn-close" data-bs-dismiss="modal"></button></div>
-                                <form action="{{ route('admin.venues.status', $res->id) }}" method="POST">
-                                    @csrf @method('PUT')
-                                    <input type="hidden" name="status" value="rejected">
-                                    <div class="modal-body">
-                                        <label class="form-label fw-600">Reason for rejection <span class="text-muted">(optional)</span></label>
-                                        <textarea name="notes" class="form-control" rows="2" placeholder="e.g. Venue already booked for that date"></textarea>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
-                                        <button type="submit" class="btn btn-danger btn-sm fw-700">Reject</button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
+            <!-- Stats Overview Cards -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-3 col-6">
+                    <div class="p-3 bg-white rounded-3 shadow-sm border border-light text-center">
+                        <div class="h3 fw-800 mb-0" style="color:var(--nu-blue)">{{ $total }}</div>
+                        <div class="text-muted small fw-600">Total Requests</div>
                     </div>
-                    @endif
-                    @empty
-                    <tr><td colspan="7" class="text-center text-muted py-5">
-                        <i class="bi bi-building" style="font-size:2.5rem;opacity:.2"></i>
-                        <p class="small mt-2 mb-0">No venue reservations found.</p>
-                    </td></tr>
-                    @endforelse
-                </tbody>
-            </table>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="p-3 bg-white rounded-3 shadow-sm border text-center" style="border-color:#ffebaA !important">
+                        <div class="h3 fw-800 mb-0" style="color:#b45309">{{ $pending }}</div>
+                        <div class="text-muted small fw-600">Pending Approvals</div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="p-3 bg-white rounded-3 shadow-sm border text-center" style="border-color:#bbf7d0 !important">
+                        <div class="h3 fw-800 mb-0" style="color:#15803d">{{ $approved }}</div>
+                        <div class="text-muted small fw-600">Approved</div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="p-3 bg-white rounded-3 shadow-sm border text-center" style="border-color:#fecdd3 !important">
+                        <div class="h3 fw-800 mb-0" style="color:#be123c">{{ $rejected }}</div>
+                        <div class="text-muted small fw-600">Rejected</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Status Filter Tabs -->
+            <div class="mb-4">
+                <div class="d-flex gap-2 flex-wrap">
+                    @foreach(['all' => 'All Requests', 'pending' => 'Pending', 'approved' => 'Approved', 'rejected' => 'Rejected'] as $val => $lbl)
+                        <a href="{{ route('admin.venues', ['status' => $val]) }}"
+                           class="btn btn-sm rounded-pill px-3 fw-600 {{ request('status', 'all') === $val ? 'btn-nu-blue shadow-sm' : 'btn-outline-secondary' }}">
+                            {{ $lbl }}
+                            @if($val === 'pending' && $pending > 0)
+                                <span class="badge rounded-pill bg-warning text-dark ms-1" style="font-size:0.7rem">{{ $pending }}</span>
+                            @endif
+                        </a>
+                    @endforeach
+                </div>
+            </div>
+
+            <!-- Reservations Table Card -->
+            <div class="nu-card bg-white rounded-3 shadow-sm border overflow-hidden">
+                <div class="table-responsive">
+                    <table class="table nu-table align-middle mb-0">
+                        <thead class="table-light">
+                            <tr class="text-uppercase text-secondary small fw-700">
+                                <th>Requested By</th>
+                                <th>Event Details</th>
+                                <th>Reserved Venue / Rooms</th>
+                                <th>Date & Time</th>
+                                <th class="text-center">Attendees</th>
+                                <th>Status</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($reservations as $res)
+                                @php
+                                    $isPending = str_starts_with($res->status, 'pending_');
+                                    
+                                    // Parse multi-rooms array
+                                    $roomList = $res->rooms->pluck('room_name')->toArray();
+                                    if (empty($roomList) && !empty($res->venue_name)) {
+                                        $roomList = [$res->venue_name];
+                                    }
+
+                                    // Role label for pending state
+                                    $pendingRole = str_replace('pending_', '', $res->status);
+                                    $roleLabel = match($pendingRole) {
+                                        'student_development', 'student_dev' => 'Student Dev',
+                                        'program_chair' => 'Program Chair',
+                                        'department_head', 'dept_head' => 'Dept Head',
+                                        'dean' => 'Dean',
+                                        'executive_director', 'director' => 'Exec Director',
+                                        'adviser' => 'Adviser',
+                                        default => ucfirst($pendingRole),
+                                    };
+                                @endphp
+                                <tr>
+                                    <!-- Requested By -->
+                                    <td>
+                                        <div class="fw-700 small text-dark">{{ $res->reservedBy?->full_name ?? 'Unknown User' }}</div>
+                                        <div class="text-muted" style="font-size:.75rem">{{ $res->reservedBy?->email ?? '-' }}</div>
+                                    </td>
+
+                                    <!-- Event Title -->
+                                    <td>
+                                        <div class="fw-600 small text-dark">{{ $res->event?->title ?? $res->event_title ?? 'Untitled Event' }}</div>
+                                        @if($res->purpose)
+                                            <div class="text-muted text-truncate" style="font-size:.72rem;max-width:200px" title="{{ $res->purpose }}">
+                                                {{ $res->purpose }}
+                                            </div>
+                                        @endif
+                                    </td>
+
+                                    <!-- Venue / Multi-Room Display -->
+                                    <td>
+                                        @if(count($roomList) > 1)
+                                            <div class="d-flex flex-wrap gap-1 align-items-center" style="max-width:280px">
+                                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-1 small fw-700 mb-1">
+                                                    <i class="bi bi-building me-1"></i>{{ count($roomList) }} Rooms Reserved
+                                                </span>
+                                                <div class="d-flex flex-wrap gap-1">
+                                                    @foreach($roomList as $r)
+                                                        <span class="badge bg-light text-dark border rounded-2 px-1.5 py-1" style="font-size:0.72rem">
+                                                            <i class="bi bi-door-closed text-secondary me-1"></i>{{ $r }}
+                                                        </span>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                        @elseif(count($roomList) === 1)
+                                            <span class="badge bg-light text-dark border rounded-2 px-2.5 py-1.5 fw-600" style="font-size:0.8rem">
+                                                <i class="bi bi-building text-primary me-1"></i>{{ $roomList[0] }}
+                                            </span>
+                                        @else
+                                            <span class="text-muted small">—</span>
+                                        @endif
+                                    </td>
+
+                                    <!-- Date & Time -->
+                                    <td class="small">
+                                        <div class="fw-700 text-dark"><i class="bi bi-calendar-event me-1 text-primary"></i>{{ $res->reserved_date->format('M d, Y') }}</div>
+                                        <div class="text-muted fw-500" style="font-size:0.75rem">
+                                            <i class="bi bi-clock me-1"></i>{{ \Carbon\Carbon::parse($res->start_time)->format('g:i A') }} – {{ \Carbon\Carbon::parse($res->end_time)->format('g:i A') }}
+                                        </div>
+                                    </td>
+
+                                    <!-- Attendees -->
+                                    <td class="text-center font-monospace fw-700 small">{{ $res->expected_attendees ?? '-' }}</td>
+
+                                    <!-- Status -->
+                                    <td>
+                                        @if($isPending)
+                                            <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2.5 py-1.5 rounded-pill fw-700" style="font-size:0.75rem">
+                                                <i class="bi bi-clock-history me-1"></i>Pending ({{ $roleLabel }})
+                                            </span>
+                                        @elseif($res->status === 'approved')
+                                            @if($res->override_by)
+                                                <span class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1.5 rounded-pill fw-700" style="font-size:0.75rem" title="Approved via Admin Override">
+                                                    <i class="bi bi-shield-check me-1"></i>Approved (Override)
+                                                </span>
+                                            @else
+                                                <span class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1.5 rounded-pill fw-700" style="font-size:0.75rem">
+                                                    <i class="bi bi-check-circle-fill me-1"></i>Approved
+                                                </span>
+                                            @endif
+                                        @elseif($res->status === 'rejected')
+                                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2.5 py-1.5 rounded-pill fw-700" style="font-size:0.75rem">
+                                                <i class="bi bi-x-circle-fill me-1"></i>Rejected
+                                            </span>
+                                        @elseif($res->status === 'cancelled')
+                                            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2.5 py-1.5 rounded-pill fw-700" style="font-size:0.75rem">
+                                                <i class="bi bi-slash-circle me-1"></i>Cancelled
+                                            </span>
+                                        @else
+                                            <span class="badge bg-light text-dark border px-2 py-1 rounded-pill" style="font-size:0.75rem">{{ ucfirst($res->status) }}</span>
+                                        @endif
+                                    </td>
+
+                                    <!-- Actions -->
+                                    <td class="text-end">
+                                        <div class="d-inline-flex gap-1 align-items-center">
+                                            <!-- View Form Document -->
+                                            <a href="{{ route('approver.venues.form', $res->id) }}" target="_blank" class="btn btn-sm btn-outline-secondary py-1 px-2 rounded-2" title="View Permission Document">
+                                                <i class="bi bi-file-earmark-text"></i>
+                                            </a>
+
+                                            @if($isPending)
+                                                <!-- Quick Approve -->
+                                                <form action="{{ route('admin.venues.status', $res->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Quick approve this venue reservation?')">
+                                                    @csrf @method('PUT')
+                                                    <input type="hidden" name="status" value="approved">
+                                                    <button type="submit" class="btn btn-success btn-sm py-1 px-2 rounded-2 fw-700" title="Quick Approve">
+                                                        <i class="bi bi-check-lg"></i>
+                                                    </button>
+                                                </form>
+
+                                                <!-- Admin Force Override Button -->
+                                                <button class="btn btn-warning btn-sm py-1 px-2 rounded-2 text-dark fw-700" title="Admin Force Override"
+                                                        data-bs-toggle="modal" data-bs-target="#overrideModal{{ $res->id }}">
+                                                    <i class="bi bi-shield-lightning"></i>
+                                                </button>
+
+                                                <!-- Reject Modal Button -->
+                                                <button class="btn btn-danger btn-sm py-1 px-2 rounded-2" title="Reject Reservation"
+                                                        data-bs-toggle="modal" data-bs-target="#rejectModal{{ $res->id }}">
+                                                    <i class="bi bi-x-lg"></i>
+                                                </button>
+                                            @endif
+
+                                            <!-- Delete Reservation -->
+                                            <form action="{{ route('admin.venues.delete', $res->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this venue reservation record?')">
+                                                @csrf @method('DELETE')
+                                                <button class="btn btn-outline-danger btn-sm py-1 px-2 rounded-2" title="Delete Reservation">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <!-- Reject Modal -->
+                                <div class="modal fade" id="rejectModal{{ $res->id }}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content rounded-3 border-0 shadow">
+                                            <div class="modal-header bg-danger text-white border-0">
+                                                <h6 class="modal-title fw-800"><i class="bi bi-x-circle me-2"></i>Reject Venue Reservation</h6>
+                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <form action="{{ route('admin.venues.status', $res->id) }}" method="POST">
+                                                @csrf @method('PUT')
+                                                <input type="hidden" name="status" value="rejected">
+                                                <div class="modal-body p-4">
+                                                    <p class="small text-muted mb-3">Rejecting reservation for <strong>{{ $res->event?->title ?? $res->event_title }}</strong> on {{ $res->reserved_date->format('M d, Y') }}.</p>
+                                                    <label class="form-label fw-700 small">Reason for Rejection <span class="text-danger">*</span></label>
+                                                    <textarea name="notes" class="form-control" rows="3" required placeholder="Provide feedback to the requester explaining why this reservation was rejected..."></textarea>
+                                                </div>
+                                                <div class="modal-footer border-top">
+                                                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
+                                                    <button type="submit" class="btn btn-danger btn-sm rounded-pill px-4 fw-700">Submit Rejection</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Admin Override Modal -->
+                                @if($isPending)
+                                <div class="modal fade" id="overrideModal{{ $res->id }}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content rounded-3 border-0 shadow">
+                                            <div class="modal-header bg-warning text-dark border-0">
+                                                <h6 class="modal-title fw-800"><i class="bi bi-shield-lightning me-2"></i>Admin Force Override Approval</h6>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <form action="{{ route('admin.venues.override', $res->id) }}" method="POST">
+                                                @csrf
+                                                <div class="modal-body p-4">
+                                                    <div class="alert alert-warning small py-2 px-3 mb-3">
+                                                        <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                                                        This action will bypass all remaining signatory steps and immediately mark the reservation as <strong>Approved</strong>.
+                                                    </div>
+                                                    <label class="form-label fw-700 small">Reason for Admin Override <span class="text-danger">*</span></label>
+                                                    <textarea name="override_reason" class="form-control" rows="3" required minlength="5" placeholder="State official administrative reason for overriding the approval chain..."></textarea>
+                                                </div>
+                                                <div class="modal-footer border-top">
+                                                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
+                                                    <button type="submit" class="btn btn-warning btn-sm text-dark rounded-pill px-4 fw-800">Confirm Override Approval</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                                @endif
+
+                            @empty
+                                <tr>
+                                    <td colspan="7" class="text-center text-muted py-5">
+                                        <i class="bi bi-building" style="font-size:2.5rem;opacity:.2"></i>
+                                        <p class="small mt-2 mb-0">No venue reservations found for the selected filter.</p>
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Pagination -->
+            <div class="mt-3">{{ $reservations->links() }}</div>
         </div>
     </div>
-    <div class="mt-3">{{ $reservations->links() }}</div>
 </div>
 @endsection
