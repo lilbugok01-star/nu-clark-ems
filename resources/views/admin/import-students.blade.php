@@ -1,16 +1,21 @@
 @extends('layouts.app')
 @section('title', 'Import Students from CSV')
 @section('content')
-<div class="container py-5">
-    <div class="d-flex align-items-center gap-3 mb-4">
-        <a href="{{ route('admin.users') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i></a>
-        <div>
-            <h4 class="fw-800 mb-0" style="color:var(--nu-blue)">
-                <i class="bi bi-file-earmark-spreadsheet me-2" style="color:var(--nu-gold)"></i>Import NU Clark Students
-            </h4>
-            <p class="text-muted small mb-0">Bulk-import existing students from a CSV file — skips duplicates automatically</p>
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-lg-2 col-md-3">
+            @include('layouts.partials.sidebar-admin')
         </div>
-    </div>
+        <div class="col-lg-10 col-md-9">
+            <div class="d-flex align-items-center gap-3 mb-4">
+                <a href="{{ route('admin.users') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i></a>
+                <div>
+                    <h4 class="fw-800 mb-0" style="color:var(--nu-blue)">
+                        <i class="bi bi-file-earmark-spreadsheet me-2" style="color:var(--nu-gold)"></i>Import NU Clark Students
+                    </h4>
+                    <p class="text-muted small mb-0">Bulk-import existing students from a CSV file — skips duplicates automatically</p>
+                </div>
+            </div>
 
     @if(session('success'))
     <div class="alert rounded-3 mb-4 d-flex gap-2" style="background:#dcfce7;border:1px solid #86efac;color:#166534">
@@ -195,7 +200,8 @@
                     @endif
                 </div>
                 @endif
-            </div>
+        </div>
+    </div>
         </div>
     </div>
 </div>

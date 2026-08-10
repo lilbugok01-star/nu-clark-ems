@@ -20,7 +20,9 @@ class UserController extends Controller
         if ($request->search) {
             $search = str_replace(['%', '_'], ['\\%', '\\_'], $request->search);
             $query->where(function($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
+                $q->where('first_name', 'like', "%{$search}%")
+                  ->orWhere('middle_name', 'like', "%{$search}%")
+                  ->orWhere('surname', 'like', "%{$search}%")
                   ->orWhere('email', 'like', "%{$search}%");
             });
         }
@@ -31,7 +33,9 @@ class UserController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name'       => 'required|string|max:255',
+            'first_name'  => 'required|string|max:255',
+            'middle_name' => 'nullable|string|max:255',
+            'surname'     => 'required|string|max:255',
             'email'      => 'required|email|unique:users',
             'password'   => [
                 'required',
@@ -65,7 +69,9 @@ class UserController extends Controller
         $user = User::findOrFail($id);
 
         $validated = $request->validate([
-            'name'       => 'sometimes|string|max:255',
+            'first_name'  => 'sometimes|string|max:255',
+            'middle_name' => 'nullable|string|max:255',
+            'surname'     => 'sometimes|string|max:255',
             'email'      => "sometimes|email|unique:users,email,{$id}",
             'role'       => 'sometimes|in:admin,organizer,student',
             'student_id' => ["sometimes", "nullable", "regex:/^\d{4}-\d{6}$/", "unique:users,student_id,{$id}"],

@@ -27,14 +27,14 @@ class AttendanceExport implements FromCollection, WithHeadings, WithMapping
     {
         return [
             $row->id,
-            $row->registration->user->name ?? '-',
+            $row->registration->user->full_name ?? '-',
             $row->registration->user->student_id ?? '-',
             $row->registration->user->email ?? '-',
             $row->registration->user->course->name ?? '-',
             $row->registration->user->section->name ?? '-',
             $row->checked_in_at?->format('Y-m-d H:i') ?? '-',
             ucfirst($row->status),
-            $row->verifiedBy->name ?? 'Not verified',
+            $row->verifiedBy->full_name ?? 'Not verified',
         ];
     }
 }

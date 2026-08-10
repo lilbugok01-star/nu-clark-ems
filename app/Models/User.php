@@ -44,6 +44,12 @@ class User extends Authenticatable
         ])));
     }
 
+    public function getNameAttribute(): string
+    {
+        return $this->full_name;
+    }
+
+
     // Role helpers
     public function isAdmin(): bool            { return $this->role === 'admin'; }
     public function isOrganizer(): bool        { return $this->role === 'organizer'; }

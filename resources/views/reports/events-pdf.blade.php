@@ -43,13 +43,13 @@
             <tr>
                 <td>{{ $i+1 }}</td>
                 <td>{{ $e->title }}</td>
-                <td>{{ $e->event_date->format('M d, Y') }}</td>
+                <td>{{ $e->event_date ? $e->event_date->format('M d, Y') : 'N/A' }}</td>
                 <td>{{ $e->venue }}</td>
                 <td>{{ $e->capacity }}</td>
-                <td>{{ $e->registrations_count }}</td>
-                <td>{{ $e->verified_count }}</td>
-                <td>{{ $e->organizer->full_name ?? '-' }}</td>
-                <td><span class="badge {{ $e->status }}">{{ ucfirst($e->status) }}</span></td>
+                <td>{{ $e->registrations_count ?? 0 }}</td>
+                <td>{{ $e->verified_count ?? 0 }}</td>
+                <td>{{ $e->organizer?->full_name ?? '-' }}</td>
+                <td><span class="badge {{ $e->status ?? 'draft' }}">{{ ucfirst($e->status ?? 'N/A') }}</span></td>
             </tr>
             @endforeach
         </tbody>

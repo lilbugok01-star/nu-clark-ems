@@ -276,7 +276,7 @@ class StudentDepartmentController extends Controller implements HasMiddleware
                             'reservation' => [
                                 'id' => $res->id,
                                 'event_title' => $res->event?->title ?? $res->event_title ?? 'Untitled Event',
-                                'reserved_by' => $res->reservedBy->name ?? 'Unknown',
+                                'reserved_by' => $res->reservedBy->full_name ?? 'Unknown',
                                 'start_time' => \Carbon\Carbon::parse($res->start_time)->format('g:i A'),
                                 'end_time' => \Carbon\Carbon::parse($res->end_time)->format('g:i A'),
                             ]

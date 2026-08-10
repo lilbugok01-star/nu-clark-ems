@@ -86,10 +86,10 @@
                                 @foreach($recentEvents as $e)
                                 <tr>
                                     <td class="fw-semibold">{{ $e->title }}</td>
-                                    <td>{{ $e->event_date->format('M d, Y') }}</td>
+                                    <td>{{ $e->event_date ? $e->event_date->format('M d, Y') : 'N/A' }}</td>
                                     <td>{{ $e->venue }}</td>
-                                    <td>{{ $e->organizer->name ?? '-' }}</td>
-                                    <td>@php $sl=match($e->status){'pending_adviser','pending_dept_head','pending_dean','pending_director'=>'Pending Approval','published'=>'Published','draft'=>'Draft','cancelled'=>'Cancelled','completed'=>'Completed','rejected'=>'Rejected',default=>ucfirst($e->status)};@endphp<span class="badge-status-{{ $e->status }}">{{ $sl }}</span></td>
+                                    <td>{{ $e->organizer?->full_name ?? '-' }}</td>
+                                    <td>@php $sl=match($e->status ?? ''){ 'pending_adviser','pending_dept_head','pending_dean','pending_director'=>'Pending Approval','published'=>'Published','draft'=>'Draft','cancelled'=>'Cancelled','completed'=>'Completed','rejected'=>'Rejected',default=>ucfirst($e->status ?? 'Unknown')};@endphp<span class="badge-status-{{ $e->status ?? 'draft' }}">{{ $sl }}</span></td>
                                 </tr>
                                 @endforeach
                             </tbody>

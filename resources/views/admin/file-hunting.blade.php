@@ -1,15 +1,20 @@
 @extends('layouts.app')
 @section('title', 'File Hunting & Signatories')
 @section('content')
-<div class="container py-4">
-    <div class="d-flex align-items-center justify-content-between mb-4">
-        <h4 style="color:var(--nu-blue);font-weight:800;margin:0">
-            <i class="bi bi-file-earmark-person"></i> File Hunting Configuration
-        </h4>
-        <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3" onclick="addSignatory()">
-            <i class="bi bi-plus-circle me-1"></i> Add Signatory
-        </button>
-    </div>
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-lg-2 col-md-3">
+            @include('layouts.partials.sidebar-admin')
+        </div>
+        <div class="col-lg-10 col-md-9">
+            <div class="d-flex align-items-center justify-content-between mb-4">
+                <h4 style="color:var(--nu-blue);font-weight:800;margin:0">
+                    <i class="bi bi-file-earmark-person"></i> File Hunting Configuration
+                </h4>
+                <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3" onclick="addSignatory()">
+                    <i class="bi bi-plus-circle me-1"></i> Add Signatory
+                </button>
+            </div>
 
     <div class="row">
         <div class="col-lg-8">
@@ -77,6 +82,8 @@
                     </ul>
                 </div>
             </div>
+        </div>
+    </div>
         </div>
     </div>
 </div>

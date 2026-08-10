@@ -311,13 +311,13 @@ class AdminController extends Controller implements HasMiddleware
                     $q->whereHas('user', fn($uq) => $uq->where('section_id', $request->section_id));
                 }
             },
-            'attendances as verified_count' => function($q) use ($request) {
-                $q->where('attendances.status', 'verified');
+            'registrations as verified_count' => function($q) use ($request) {
+                $q->whereHas('attendance', fn($aq) => $aq->where('status', 'verified'));
                 if ($request->filled('course_id')) {
-                    $q->whereHas('registration.user', fn($uq) => $uq->where('course_id', $request->course_id));
+                    $q->whereHas('user', fn($uq) => $uq->where('course_id', $request->course_id));
                 }
                 if ($request->filled('section_id')) {
-                    $q->whereHas('registration.user', fn($uq) => $uq->where('section_id', $request->section_id));
+                    $q->whereHas('user', fn($uq) => $uq->where('section_id', $request->section_id));
                 }
             }
         ]);
@@ -329,7 +329,7 @@ class AdminController extends Controller implements HasMiddleware
     {
         $events = $this->buildReportEventsQuery($request)->orderByDesc('event_date')->paginate(15)->withQueryString();
 
-        $organizers = User::whereIn('role', ['organizer', 'student_development', 'admin'])->orderBy('name')->get();
+        $organizers = User::whereIn('role', ['organizer', 'student_development', 'admin'])->orderBy('first_name')->orderBy('surname')->get();
         $courses = Course::where('is_active', true)->orderBy('code')->get();
         $sections = Section::where('is_active', true)->orderBy('name')->get();
 
@@ -351,7 +351,7 @@ class AdminController extends Controller implements HasMiddleware
 
     public function notifications()
     {
-        $users = User::select('id', 'name', 'email', 'role')->get();
+        $users = User::select('id', 'first_name', 'middle_name', 'surname', 'email', 'role')->orderBy('first_name')->orderBy('surname')->get();
         return view('admin.notifications', compact('users'));
     }
 

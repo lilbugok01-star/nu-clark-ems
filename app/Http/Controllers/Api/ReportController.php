@@ -18,9 +18,10 @@ class ReportController extends Controller
     public function events(Request $request)
     {
         $events = Event::with('organizer')
-            ->withCount(['registrations', 'attendances as verified_attendance_count' => function($q) {
-                $q->where('attendances.status', 'verified');
-            }])
+            ->withCount([
+                'registrations as registrations_count' => fn($q) => $q->where('status', '!=', 'cancelled'),
+                'registrations as verified_attendance_count' => fn($q) => $q->whereHas('attendance', fn($aq) => $aq->where('status', 'verified'))
+            ])
             ->orderByDesc('event_date')
             ->paginate(20);
 
@@ -93,7 +94,10 @@ class ReportController extends Controller
     public function exportEventsPdf()
     {
         $events = Event::with('organizer')
-            ->withCount('registrations')
+            ->withCount([
+                'registrations as registrations_count' => fn($q) => $q->where('status', '!=', 'cancelled'),
+                'registrations as verified_count' => fn($q) => $q->whereHas('attendance', fn($aq) => $aq->where('status', 'verified'))
+            ])
             ->orderByDesc('event_date')->get();
         $pdf = Pdf::loadView('reports.events-pdf', compact('events'))->setPaper('a4', 'landscape');
         return $pdf->download('events-report.pdf');

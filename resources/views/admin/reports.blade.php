@@ -86,34 +86,34 @@
                                     <span class="badge-category">{{ $e->category ?? 'General' }}</span>
                                 </td>
                                 <td>
-                                    <div class="small fw-500">{{ $e->event_date->format('M d, Y') }}</div>
+                                    <div class="small fw-500">{{ $e->event_date ? $e->event_date->format('M d, Y') : 'N/A' }}</div>
                                     <div class="text-muted small" style="font-size:0.75rem;"><i class="bi bi-geo-alt me-1"></i>{{ $e->venue }}</div>
                                 </td>
-                                <td class="small">{{ $e->organizer->full_name ?? '-' }}</td>
+                                <td class="small">{{ $e->organizer?->full_name ?? '-' }}</td>
                                 <td class="text-center small fw-600">{{ $e->capacity }}</td>
                                 <td class="text-center">
                                     <span class="badge rounded-pill px-2.5 py-1.5 bg-primary-subtle text-primary border" style="font-size:0.75rem;">
-                                        {{ $e->registrations_count }}
+                                        {{ $e->registrations_count ?? 0 }}
                                     </span>
                                 </td>
                                 <td class="text-center">
                                     <span class="badge rounded-pill px-2.5 py-1.5 bg-success-subtle text-success border border-success" style="font-size:0.75rem;">
-                                        {{ $e->verified_count }}
+                                        {{ $e->verified_count ?? 0 }}
                                     </span>
                                 </td>
                                 <td>
                                     @php
-                                        $sl = match($e->status) {
+                                        $sl = match($e->status ?? '') {
                                             'pending_adviser', 'pending_dept_head', 'pending_dean', 'pending_director' => 'Pending Approval',
                                             'published' => 'Published',
                                             'draft' => 'Draft',
                                             'cancelled' => 'Cancelled',
                                             'completed' => 'Completed',
                                             'rejected' => 'Rejected',
-                                            default => ucfirst($e->status)
+                                            default => ucfirst($e->status ?? 'Unknown')
                                         };
                                     @endphp
-                                    <span class="badge-status-{{ $e->status }}">{{ $sl }}</span>
+                                    <span class="badge-status-{{ $e->status ?? 'draft' }}">{{ $sl }}</span>
                                 </td>
                             </tr>
                             @empty

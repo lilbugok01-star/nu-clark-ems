@@ -30,7 +30,7 @@ class EventReportExport implements FromCollection, WithHeadings, WithMapping
             $event->end_time,
             $event->capacity,
             $event->registrations_count,
-            $event->organizer->name ?? '-',
+            $event->organizer->full_name ?? '-',
             ucfirst($event->status),
         ];
     }
