@@ -27,16 +27,9 @@
 
             {{-- Brand --}}
             @php
-                $brandUrl = route('home');
-                if (Auth::check()) {
-                    $brandUrl = match(Auth::user()->role) {
-                        'admin'              => route('admin.dashboard'),
-                        'organizer'          => route('organizer.dashboard'),
-                        'student_department' => route('student_department.dashboard'),
-                        'student'            => route('student.dashboard'),
-                        default              => route('approver.dashboard'),
-                    };
-                }
+                $brandUrl = (Auth::check() && Auth::user()->role === 'admin') 
+                    ? route('admin.dashboard') 
+                    : route('home');
             @endphp
             <a class="navbar-brand d-flex align-items-center gap-2 me-4" href="{{ $brandUrl }}">
                 <div class="nu-logo-wrap flex-shrink-0">
