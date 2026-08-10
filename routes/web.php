@@ -126,6 +126,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/verify-email', [AuthController::class, 'showVerificationNotice'])->name('verification.notice');
     Route::post('/verify-email', [AuthController::class, 'verifyEmail'])->name('verification.verify');
     Route::post('/verify-email/resend', [AuthController::class, 'resendVerificationCode'])->name('verification.resend');
+    Route::get('/verify-email/resend', fn() => redirect()->route('verification.notice'));
 });
 
 // Student
