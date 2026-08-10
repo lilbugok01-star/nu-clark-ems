@@ -73,13 +73,16 @@ class DatabaseSeeder extends Seeder
             }
         }
 
-        $admin = User::firstOrCreate(['email' => 'admin@nu-clark.edu.ph'], [
-            'first_name' => 'System',
-            'surname'    => 'Administrator',
-            'password' => Hash::make('Password123@'),
-            'role'     => 'admin',
-            'is_active'=> true,
-        ]);
+        $admin = User::updateOrCreate(
+            ['email' => 'admin@nu-clark.edu.ph'],
+            [
+                'first_name' => 'System',
+                'surname'    => 'Administrator',
+                'password'   => Hash::make('Password123@'),
+                'role'       => 'admin',
+                'is_active'  => true,
+            ]
+        );
 
         // Create Approvers/Staff FIRST before doing heavy tasks
         $this->call(VenueApproversSeeder::class);
