@@ -97,16 +97,21 @@ class AuthController extends Controller
         ]);
 
         // Send verification code email
+        $mailError = null;
         try {
             Mail::to($user->email)->send(new VerificationCodeMail($user, $code));
         } catch (\Exception $e) {
             Log::error('Failed to send verification email: ' . $e->getMessage());
+            $mailError = $e->getMessage();
         }
 
         Auth::login($user);
         
-        return redirect()->route('verification.notice')
-            ->with('success', 'A verification code has been sent to your email address!');
+        $redirect = redirect()->route('verification.notice');
+        if ($mailError) {
+            return $redirect->with('error', 'Account created, but email delivery failed: ' . $mailError);
+        }
+        return $redirect->with('success', 'A verification code has been sent to your email address!');
     }
 
     public function showVerificationNotice()
