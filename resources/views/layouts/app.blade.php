@@ -128,7 +128,7 @@
                 @endif
 
                 {{-- Right side --}}
-                <div class="d-flex align-items-center gap-2 mt-2 mt-lg-0">
+                <div class="d-flex align-items-center gap-2 mt-2 mt-lg-0 ms-auto">
                     @auth
                         {{-- Notification Bell --}}
                         @php
