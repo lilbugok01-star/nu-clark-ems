@@ -105,41 +105,86 @@
 </div>
 
 <!-- Add User Modal -->
-<div class="modal fade" id="addUserModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content rounded-3 overflow-hidden">
-            <div class="modal-header" style="background:var(--nu-blue);border:none">
-                <h5 class="modal-title text-white fw-700"><i class="bi bi-person-plus me-2" style="color:var(--nu-gold)"></i>Add New User</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+<div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius:16px;overflow:hidden">
+            <!-- Modal Header -->
+            <div class="modal-header px-4 py-3 text-white border-0" style="background:linear-gradient(135deg, #001d50 0%, #003087 100%)">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="d-flex align-items-center justify-content-center rounded-circle" style="width:36px;height:36px;background:rgba(255,184,0,0.18)">
+                        <i class="bi bi-person-plus-fill" style="color:var(--nu-gold);font-size:1.1rem"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title fw-800 mb-0" id="addUserModalLabel" style="font-size:1.1rem;letter-spacing:-0.01em">Add New User</h5>
+                        <div class="text-white-50" style="font-size:0.75rem">Create a new institutional user account</div>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white opacity-75" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form action="{{ route('admin.users.store') }}" method="POST" enctype="multipart/form-data">
+
+            <!-- Modal Form -->
+            <form action="{{ route('admin.users.store') }}" method="POST" enctype="multipart/form-data" id="addUserForm" novalidate>
                 @csrf
-                <div class="modal-body p-4">
+                <div class="modal-body p-4" style="background:#fafafa">
                     <div class="row g-3">
+                        <!-- First Name -->
                         <div class="col-md-4">
-                            <label class="form-label fw-600">First Name <span class="text-danger">*</span></label>
-                            <input type="text" name="first_name" class="form-control" required placeholder="e.g. Juan">
+                            <label class="form-label fw-700 small text-dark mb-1">First Name <span class="text-danger">*</span></label>
+                            <input type="text" name="first_name" class="form-control form-control-lg fs-6" required placeholder="e.g. Juan" style="border-radius:10px;border:1px solid #cbd5e1">
                         </div>
+
+                        <!-- Middle Name -->
                         <div class="col-md-4">
-                            <label class="form-label fw-600">Middle Name</label>
-                            <input type="text" name="middle_name" class="form-control" placeholder="e.g. dela">
+                            <label class="form-label fw-700 small text-dark mb-1">Middle Name</label>
+                            <input type="text" name="middle_name" class="form-control form-control-lg fs-6" placeholder="e.g. dela" style="border-radius:10px;border:1px solid #cbd5e1">
                         </div>
+
+                        <!-- Surname -->
                         <div class="col-md-4">
-                            <label class="form-label fw-600">Surname <span class="text-danger">*</span></label>
-                            <input type="text" name="surname" class="form-control" required placeholder="e.g. Cruz">
+                            <label class="form-label fw-700 small text-dark mb-1">Surname <span class="text-danger">*</span></label>
+                            <input type="text" name="surname" class="form-control form-control-lg fs-6" required placeholder="e.g. Cruz" style="border-radius:10px;border:1px solid #cbd5e1">
                         </div>
+
+                        <!-- Email Address -->
                         <div class="col-md-6">
-                            <label class="form-label fw-600">Email Address <span class="text-danger">*</span></label>
-                            <input type="email" name="email" class="form-control" required placeholder="user@students.nu-clark.edu.ph">
+                            <label class="form-label fw-700 small text-dark mb-1">Email Address <span class="text-danger">*</span></label>
+                            <input type="email" name="email" class="form-control form-control-lg fs-6" required placeholder="user@students.nu-clark.edu.ph" style="border-radius:10px;border:1px solid #cbd5e1">
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-600">Password <span class="text-danger">*</span></label>
-                            <input type="password" name="password" class="form-control" required minlength="8" placeholder="Min. 8 chars, 1 uppercase, 1 number, 1 symbol">
-                            <small class="text-muted">Must contain at least 1 uppercase letter, 1 number, and 1 special character.</small>
+
+                        <!-- Password (No static comment; dynamic feedback on typing) -->
+                        <div class="col-md-6 position-relative">
+                            <label class="form-label fw-700 small text-dark mb-1">Password <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <input type="password" name="password" id="addUserPassword" class="form-control form-control-lg fs-6" required placeholder="Enter password" style="border-top-left-radius:10px;border-bottom-left-radius:10px;border:1px solid #cbd5e1">
+                                <button class="btn btn-outline-secondary" type="button" id="togglePasswordBtn" style="border-top-right-radius:10px;border-bottom-right-radius:10px;border:1px solid #cbd5e1;border-left:none">
+                                    <i class="bi bi-eye" id="togglePasswordIcon"></i>
+                                </button>
+                            </div>
+
+                            <!-- Dynamic Password Validation Feedback Box (Hidden by default) -->
+                            <div id="passwordValidationBox" class="mt-2 p-2.5 rounded-3 shadow-sm" style="display:none;background:#fff;border:1px solid #e2e8f0;font-size:0.78rem">
+                                <div class="fw-700 mb-1 text-secondary" style="font-size:0.72rem;text-transform:uppercase;letter-spacing:0.04em">Password Requirements:</div>
+                                <div class="d-flex flex-column gap-1">
+                                    <div id="reqMinChar" class="d-flex align-items-center gap-1.5 text-danger">
+                                        <i class="bi bi-x-circle-fill"></i> At least 8 characters
+                                    </div>
+                                    <div id="reqUpper" class="d-flex align-items-center gap-1.5 text-danger">
+                                        <i class="bi bi-x-circle-fill"></i> At least 1 uppercase letter (A-Z)
+                                    </div>
+                                    <div id="reqNumber" class="d-flex align-items-center gap-1.5 text-danger">
+                                        <i class="bi bi-x-circle-fill"></i> At least 1 number (0-9)
+                                    </div>
+                                    <div id="reqSymbol" class="d-flex align-items-center gap-1.5 text-danger">
+                                        <i class="bi bi-x-circle-fill"></i> At least 1 special character (!@#$%^&*)
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-600">Role <span class="text-danger">*</span></label>
-                            <select name="role" id="addUserRole" class="form-select" required onchange="handleRoleChange(this.value, 'add')">
+
+                        <!-- Role Selection -->
+                        <div class="col-md-12">
+                            <label class="form-label fw-700 small text-dark mb-1">Role <span class="text-danger">*</span></label>
+                            <select name="role" id="addUserRole" class="form-select form-select-lg fs-6" required onchange="handleRoleChange(this.value, 'add')" style="border-radius:10px;border:1px solid #cbd5e1">
                                 <option value="student">Student</option>
                                 <option value="organizer">Organizer</option>
                                 <option value="student_department">Student Department</option>
@@ -153,18 +198,20 @@
                             </select>
                         </div>
 
-                        {{-- Student-only fields --}}
+                        <!-- Student-only fields container -->
                         <div id="addStudentFields" class="col-12">
-                            <div class="p-3 rounded-3" style="background:rgba(0,48,135,.04);border:1px solid rgba(0,48,135,.12)">
-                                <div class="fw-600 small mb-3" style="color:var(--nu-blue)"><i class="bi bi-mortarboard me-1"></i>Student Information</div>
-                                <div class="row g-2">
+                            <div class="p-3.5 rounded-3 shadow-sm" style="background:#ffffff;border:1px solid #e2e8f0;border-left:4px solid var(--nu-blue)">
+                                <div class="d-flex align-items-center gap-2 fw-700 small mb-3" style="color:var(--nu-blue);font-size:0.85rem">
+                                    <i class="bi bi-mortarboard-fill" style="font-size:1rem"></i> Student Academic Information
+                                </div>
+                                <div class="row g-3">
                                     <div class="col-12">
-                                        <label class="form-label fw-600">Student ID <span class="text-danger">*</span></label>
-                                        <input type="text" name="student_id" id="addStudentId" class="form-control" placeholder="e.g. 2022-00001">
+                                        <label class="form-label fw-700 small text-dark mb-1">Student ID <span class="text-danger">*</span></label>
+                                        <input type="text" name="student_id" id="addStudentId" class="form-control fs-6" placeholder="e.g. 2022-00001" style="border-radius:8px;border:1px solid #cbd5e1">
                                     </div>
                                     <div class="col-md-4 col-12">
-                                        <label class="form-label fw-600">Course <span class="text-danger">*</span></label>
-                                        <select name="course_id" id="addCourseSelect" class="form-select" onchange="filterAdminSections()">
+                                        <label class="form-label fw-700 small text-dark mb-1">Course <span class="text-danger">*</span></label>
+                                        <select name="course_id" id="addCourseSelect" class="form-select fs-6" onchange="filterAdminSections()" style="border-radius:8px;border:1px solid #cbd5e1">
                                             <option value="">— Course —</option>
                                             @foreach($courses as $c)
                                                 <option value="{{ $c->id }}">{{ $c->code }}</option>
@@ -172,8 +219,8 @@
                                         </select>
                                     </div>
                                     <div class="col-md-4 col-6">
-                                        <label class="form-label fw-600">Year Level <span class="text-danger">*</span></label>
-                                        <select id="addYearSelect" class="form-select" onchange="filterAdminSections()">
+                                        <label class="form-label fw-700 small text-dark mb-1">Year Level <span class="text-danger">*</span></label>
+                                        <select id="addYearSelect" class="form-select fs-6" onchange="filterAdminSections()" style="border-radius:8px;border:1px solid #cbd5e1">
                                             <option value="">— Year —</option>
                                             <option value="1">1st Year</option>
                                             <option value="2">2nd Year</option>
@@ -182,8 +229,8 @@
                                         </select>
                                     </div>
                                     <div class="col-md-4 col-6">
-                                        <label class="form-label fw-600">Section <span class="text-danger">*</span></label>
-                                        <select name="section_id" id="addSectionSelect" class="form-select">
+                                        <label class="form-label fw-700 small text-dark mb-1">Section <span class="text-danger">*</span></label>
+                                        <select name="section_id" id="addSectionSelect" class="form-select fs-6" style="border-radius:8px;border:1px solid #cbd5e1">
                                             <option value="">— Section —</option>
                                             @foreach($sections as $s)
                                                 <option value="{{ $s->id }}" data-course="{{ $s->course_id }}" data-year="{{ $s->year_level }}">{{ $s->name }}</option>
@@ -194,19 +241,25 @@
                             </div>
                         </div>
 
-                        {{-- Signature upload for approver roles --}}
+                        <!-- Signature upload for approver roles -->
                         <div id="addSignatureField" class="col-12" style="display:none">
-                            <div class="p-3 rounded-3" style="background:rgba(255,184,0,.06);border:1px solid rgba(255,184,0,.25)">
-                                <div class="fw-600 small mb-2" style="color:var(--nu-blue)"><i class="bi bi-pen me-1" style="color:var(--nu-gold)"></i>E-Signature (Optional)</div>
-                                <input type="file" name="e_signature" class="form-control" accept="image/*">
-                                <small class="text-muted">Upload a signature image (PNG/JPG). Used on permission forms.</small>
+                            <div class="p-3.5 rounded-3 shadow-sm" style="background:#ffffff;border:1px solid #fef3c7;border-left:4px solid var(--nu-gold)">
+                                <div class="d-flex align-items-center gap-2 fw-700 small mb-2" style="color:var(--nu-blue);font-size:0.85rem">
+                                    <i class="bi bi-pen-fill" style="color:var(--nu-gold)"></i> E-Signature (Optional)
+                                </div>
+                                <input type="file" name="e_signature" class="form-control fs-6" accept="image/*" style="border-radius:8px">
+                                <small class="text-muted" style="font-size:0.75rem">Upload a signature image (PNG/JPG). Used on permission forms.</small>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer" style="border-top:2px solid var(--nu-gold)">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-nu-blue fw-700"><i class="bi bi-person-plus me-1"></i>Create User</button>
+
+                <!-- Modal Footer -->
+                <div class="modal-footer px-4 py-3 border-top" style="background:#ffffff;border-top:1px solid #e2e8f0 !important">
+                    <button type="button" class="btn btn-outline-secondary px-4 fw-600 rounded-pill" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-nu-blue px-4 py-2 fw-800 rounded-pill shadow-sm" style="background:var(--nu-blue);color:#fff">
+                        <i class="bi bi-person-plus-fill me-1" style="color:var(--nu-gold)"></i> Create User
+                    </button>
                 </div>
             </form>
         </div>
@@ -215,32 +268,40 @@
 
 <!-- Edit User Modal -->
 <div class="modal fade" id="editUserModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content rounded-3 overflow-hidden">
-            <div class="modal-header" style="background:var(--nu-blue);border:none">
-                <h5 class="modal-title text-white fw-700"><i class="bi bi-pencil-square me-2" style="color:var(--nu-gold)"></i>Edit User</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius:16px;overflow:hidden">
+            <div class="modal-header px-4 py-3 text-white border-0" style="background:linear-gradient(135deg, #001d50 0%, #003087 100%)">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="d-flex align-items-center justify-content-center rounded-circle" style="width:36px;height:36px;background:rgba(255,184,0,0.18)">
+                        <i class="bi bi-pencil-square" style="color:var(--nu-gold);font-size:1.1rem"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title fw-800 mb-0" style="font-size:1.1rem">Edit User Account</h5>
+                        <div class="text-white-50" style="font-size:0.75rem">Update user information and status</div>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white opacity-75" data-bs-dismiss="modal"></button>
             </div>
             <form id="editUserForm" method="POST">
                 @csrf @method('PUT')
-                <div class="modal-body p-4">
+                <div class="modal-body p-4" style="background:#fafafa">
                     <div class="row g-3 mb-3">
                         <div class="col-md-4">
-                            <label class="form-label fw-600">First Name</label>
-                            <input type="text" name="first_name" id="editFirstName" class="form-control">
+                            <label class="form-label fw-700 small text-dark mb-1">First Name</label>
+                            <input type="text" name="first_name" id="editFirstName" class="form-control fs-6" style="border-radius:8px">
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label fw-600">Middle Name</label>
-                            <input type="text" name="middle_name" id="editMiddleName" class="form-control">
+                            <label class="form-label fw-700 small text-dark mb-1">Middle Name</label>
+                            <input type="text" name="middle_name" id="editMiddleName" class="form-control fs-6" style="border-radius:8px">
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label fw-600">Surname</label>
-                            <input type="text" name="surname" id="editSurname" class="form-control">
+                            <label class="form-label fw-700 small text-dark mb-1">Surname</label>
+                            <input type="text" name="surname" id="editSurname" class="form-control fs-6" style="border-radius:8px">
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-600">Role</label>
-                        <select name="role" id="editRole" class="form-select">
+                        <label class="form-label fw-700 small text-dark mb-1">Role</label>
+                        <select name="role" id="editRole" class="form-select fs-6" style="border-radius:8px">
                             <option value="student">Student</option>
                             <option value="organizer">Organizer</option>
                             <option value="student_department">Student Department</option>
@@ -253,15 +314,22 @@
                             <option value="admin">Admin</option>
                         </select>
                     </div>
-                    <div class="form-check form-switch mb-3">
-                        <input type="hidden" name="is_active" value="0">
-                        <input class="form-check-input" type="checkbox" name="is_active" id="editActive" value="1">
-                        <label class="form-check-label fw-600" for="editActive">Active Account</label>
+                    <div class="p-3 rounded-3 shadow-sm bg-white border d-flex align-items-center justify-content-between">
+                        <div>
+                            <div class="fw-700 small text-dark">Account Active Status</div>
+                            <div class="text-muted" style="font-size:0.75rem">Allow or prevent account access</div>
+                        </div>
+                        <div class="form-check form-switch m-0">
+                            <input type="hidden" name="is_active" value="0">
+                            <input class="form-check-input" type="checkbox" name="is_active" id="editActive" value="1" style="width:2.5em;height:1.25em;cursor:pointer">
+                        </div>
                     </div>
                 </div>
-                <div class="modal-footer" style="border-top:2px solid var(--nu-gold)">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-nu-blue fw-700"><i class="bi bi-save me-1"></i>Save Changes</button>
+                <div class="modal-footer px-4 py-3 border-top" style="background:#ffffff">
+                    <button type="button" class="btn btn-outline-secondary px-4 fw-600 rounded-pill" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-nu-blue px-4 py-2 fw-800 rounded-pill shadow-sm" style="background:var(--nu-blue);color:#fff">
+                        <i class="bi bi-save-fill me-1" style="color:var(--nu-gold)"></i> Save Changes
+                    </button>
                 </div>
             </form>
         </div>
@@ -328,8 +396,69 @@ function filterAdminSections() {
     if (!keepCurrent) sel.value = '';
 }
 
+// ── Dynamic Password Requirement Validation On Typing ──────────────────────────────
+const passInput = document.getElementById('addUserPassword');
+const valBox = document.getElementById('passwordValidationBox');
+const toggleBtn = document.getElementById('togglePasswordBtn');
+const toggleIcon = document.getElementById('togglePasswordIcon');
+
+if (toggleBtn && passInput) {
+    toggleBtn.addEventListener('click', function() {
+        const isPass = passInput.type === 'password';
+        passInput.type = isPass ? 'text' : 'password';
+        toggleIcon.className = isPass ? 'bi bi-eye-slash' : 'bi bi-eye';
+    });
+}
+
+if (passInput && valBox) {
+    passInput.addEventListener('input', function() {
+        const val = this.value;
+        if (!val || val.length === 0) {
+            valBox.style.display = 'none';
+            return;
+        }
+
+        const hasMinLen = val.length >= 8;
+        const hasUpper  = /[A-Z]/.test(val);
+        const hasNumber = /[0-9]/.test(val);
+        const hasSymbol = /[^A-Za-z0-9]/.test(val);
+
+        const allValid = hasMinLen && hasUpper && hasNumber && hasSymbol;
+
+        if (allValid) {
+            // Hide box when all requirements are met!
+            valBox.style.display = 'none';
+        } else {
+            valBox.style.display = 'block';
+            updateReqItem('reqMinChar', hasMinLen, 'At least 8 characters');
+            updateReqItem('reqUpper',   hasUpper,  'At least 1 uppercase letter (A-Z)');
+            updateReqItem('reqNumber',  hasNumber, 'At least 1 number (0-9)');
+            updateReqItem('reqSymbol',  hasSymbol, 'At least 1 special character (!@#$%^&*)');
+        }
+    });
+
+    function updateReqItem(id, isValid, labelText) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (isValid) {
+            el.className = 'd-flex align-items-center gap-1.5 text-success fw-600';
+            el.innerHTML = `<i class="bi bi-check-circle-fill text-success"></i> ${labelText}`;
+        } else {
+            el.className = 'd-flex align-items-center gap-1.5 text-danger';
+            el.innerHTML = `<i class="bi bi-x-circle-fill text-danger"></i> ${labelText}`;
+        }
+    }
+}
+
+// Reset password box when modal closes
+document.getElementById('addUserModal')?.addEventListener('hidden.bs.modal', function() {
+    if (valBox) valBox.style.display = 'none';
+    if (passInput) passInput.value = '';
+});
+
 // Init on load – start with student fields visible
 window.addEventListener('load', () => handleRoleChange('student', 'add'));
 </script>
 @endpush
 @endsection
+
