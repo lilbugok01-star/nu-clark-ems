@@ -77,14 +77,12 @@ document.getElementById('verifyForm').addEventListener('submit', function() {
     document.getElementById('verifyText').classList.add('d-none');
     document.getElementById('verifySpinner').classList.remove('d-none');
     btn.style.pointerEvents = 'none';
-    setTimeout(function() { btn.disabled = true; }, 50);
 });
 document.getElementById('resendForm').addEventListener('submit', function() {
     var btn = document.getElementById('resendBtn');
     document.getElementById('resendText').classList.add('d-none');
     document.getElementById('resendSpinner').classList.remove('d-none');
     btn.style.pointerEvents = 'none';
-    setTimeout(function() { btn.disabled = true; }, 50);
 });
 </script>
 
