@@ -26,7 +26,19 @@
         <div class="container-fluid px-4">
 
             {{-- Brand --}}
-            <a class="navbar-brand d-flex align-items-center gap-2 me-4" href="{{ route('home') }}">
+            @php
+                $brandUrl = route('home');
+                if (Auth::check()) {
+                    $brandUrl = match(Auth::user()->role) {
+                        'admin'              => route('admin.dashboard'),
+                        'organizer'          => route('organizer.dashboard'),
+                        'student_department' => route('student_department.dashboard'),
+                        'student'            => route('student.dashboard'),
+                        default              => route('approver.dashboard'),
+                    };
+                }
+            @endphp
+            <a class="navbar-brand d-flex align-items-center gap-2 me-4" href="{{ $brandUrl }}">
                 <div class="nu-logo-wrap flex-shrink-0">
                     <img src="{{ asset('assets/img/NU_shield.png') }}" alt="NU Logo">
                 </div>
@@ -229,6 +241,15 @@
                                             href="{{ route('approver.profile') }}"><i class="bi bi-pen"
                                                 style="color:var(--nu-blue)"></i> E-Signature Profile</a></li>
                                 @elseif(Auth::user()->role === 'admin')
+                                    <li><a class="dropdown-item small py-2 px-3 d-flex align-items-center gap-2"
+                                            href="{{ route('admin.dashboard') }}"><i class="bi bi-speedometer2"
+                                                style="color:var(--nu-blue)"></i> Admin Dashboard</a></li>
+                                    <li><a class="dropdown-item small py-2 px-3 d-flex align-items-center gap-2"
+                                            href="{{ route('admin.venues') }}"><i class="bi bi-building"
+                                                style="color:var(--nu-blue)"></i> Venue Management</a></li>
+                                    <li><a class="dropdown-item small py-2 px-3 d-flex align-items-center gap-2"
+                                            href="{{ route('admin.users') }}"><i class="bi bi-people"
+                                                style="color:var(--nu-blue)"></i> User Management</a></li>
                                     <li><a class="dropdown-item small py-2 px-3 d-flex align-items-center gap-2"
                                             href="{{ route('admin.notifications') }}"><i class="bi bi-bell"
                                                 style="color:var(--nu-blue)"></i> Send Notification</a></li>
