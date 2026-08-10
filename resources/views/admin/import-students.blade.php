@@ -53,7 +53,9 @@
                         <table class="table table-sm mb-0" style="font-size:.78rem">
                             <thead>
                                 <tr style="background:var(--nu-blue);color:#fff">
-                                    <th class="fw-600">name</th>
+                                    <th class="fw-600">first_name</th>
+                                    <th class="fw-600">middle_name</th>
+                                    <th class="fw-600">surname</th>
                                     <th class="fw-600">email</th>
                                     <th class="fw-600">student_id</th>
                                     <th class="fw-600">course_code</th>
@@ -63,7 +65,9 @@
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td>Juan dela Cruz</td>
+                                    <td>Juan</td>
+                                    <td>dela</td>
+                                    <td>Cruz</td>
                                     <td>juan@students.nu-clark.edu.ph</td>
                                     <td>2022-00001</td>
                                     <td>BSIT</td>
@@ -159,7 +163,7 @@
             <div class="nu-card p-4 mb-4">
                 <h6 class="fw-700 mb-3" style="color:var(--nu-blue)"><i class="bi bi-shield-check me-2" style="color:var(--nu-gold)"></i>Import Rules</h6>
                 <ul class="list-unstyled small text-muted mb-0">
-                    @foreach(['Duplicate emails are skipped automatically','Duplicate student IDs are skipped automatically','Unrecognized course/section codes are allowed (no course assigned)','Passwords in CSV override the default password','name and email columns are required','All imported users are set to role: student','Maximum file size: 5 MB','All passwords are hashed — never stored as plain text'] as $rule)
+                    @foreach(['Duplicate emails are skipped automatically','Duplicate student IDs are skipped automatically','Unrecognized course/section codes are allowed (no course assigned)','Passwords in CSV override the default password','first_name, surname, and email columns are required (middle_name is optional)','All imported users are set to role: student','Maximum file size: 5 MB','All passwords are hashed — never stored as plain text'] as $rule)
                     <li class="mb-2 d-flex gap-2">
                         <i class="bi bi-check2 text-success mt-1 flex-shrink-0"></i>
                         {{ $rule }}

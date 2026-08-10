@@ -45,11 +45,12 @@
         <div class="input-group">
             <span class="input-group-text bg-white" style="border-right: none; border-radius: 8px 0 0 8px;"><i class="bi bi-lock text-muted"></i></span>
             <input type="password" name="password" id="password" class="form-control py-2 @error('password') is-invalid @enderror" 
-                   placeholder="Min. 8 chars, mixed case, symbols" required style="border-left: none; border-radius: 0; border: 1px solid var(--gray-200);">
+                   placeholder="Min. 8 chars, 1 uppercase, 1 number, 1 symbol" required style="border-left: none; border-radius: 0; border: 1px solid var(--gray-200);">
             <button type="button" class="input-group-text bg-white" onclick="togglePw('password','eye1')" style="cursor:pointer; border-radius: 0 8px 8px 0;">
                 <i class="bi bi-eye text-muted" id="eye1"></i>
             </button>
         </div>
+        <div class="form-text text-muted small">Must contain at least 1 uppercase letter, 1 number, and 1 special character.</div>
         @error('password')
             <div class="text-danger small mt-1">{{ $message }}</div>
         @enderror

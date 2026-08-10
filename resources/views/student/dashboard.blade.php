@@ -13,7 +13,7 @@
         'end'        => substr($r->event->end_time,   0, 5),
         'qr_url'     => route('student.qr', $r->id),
     ])->values()->toArray();
-    $firstName = explode(' ', $user->name)[0];
+    $firstName = $user->first_name;
 @endphp
 
 <div class="container-fluid py-4 px-4">

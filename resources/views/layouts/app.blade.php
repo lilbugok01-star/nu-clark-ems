@@ -227,16 +227,16 @@
                                 data-bs-toggle="dropdown" style="font-size:.83rem">
                                 <div class="rounded-circle d-flex align-items-center justify-content-center fw-800"
                                     style="width:22px;height:22px;background:rgba(0,48,135,.18);color:var(--nu-blue);font-size:.68rem;flex-shrink:0">
-                                    {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+                                    {{ strtoupper(substr(Auth::user()->first_name, 0, 1)) }}
                                 </div>
-                                <span class="d-none d-sm-inline">{{ explode(' ', Auth::user()->name)[0] }}</span>
+                                <span class="d-none d-sm-inline">{{ Auth::user()->first_name }}</span>
                             </button>
 
                             <ul class="dropdown-menu dropdown-menu-lg-end shadow-lg rounded-3 mt-1 p-0"
                                 style="min-width:215px;border:1px solid var(--gray-200);overflow:hidden">
                                 <li style="background:var(--gray-50);border-radius:12px 12px 0 0">
                                     <div class="px-3 pt-3 pb-2">
-                                        <div class="fw-700 small" style="color:var(--nu-blue)">{{ Auth::user()->name }}
+                                        <div class="fw-700 small" style="color:var(--nu-blue)">{{ Auth::user()->full_name }}
                                         </div>
                                         <div class="text-muted" style="font-size:.75rem">{{ Auth::user()->email }}</div>
                                         <span class="d-inline-block mt-1 px-2 py-0 rounded-pill fw-600"

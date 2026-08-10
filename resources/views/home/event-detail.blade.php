@@ -24,7 +24,7 @@
                         <div class="col-sm-6"><i class="bi bi-geo-alt text-gold me-1"></i> <strong>{{ $event->venue }}</strong></div>
                         <div class="col-sm-6"><i class="bi bi-calendar text-gold me-1"></i> {{ $event->event_date->format('F d, Y') }}</div>
                         <div class="col-sm-6"><i class="bi bi-clock text-gold me-1"></i> {{ substr($event->start_time,0,5) }} – {{ substr($event->end_time,0,5) }}</div>
-                        <div class="col-sm-6"><i class="bi bi-person-circle text-gold me-1"></i> {{ $event->organizer->name }}</div>
+                        <div class="col-sm-6"><i class="bi bi-person-circle text-gold me-1"></i> {{ $event->organizer->full_name }}</div>
                     </div>
                 </div>
             </div>
@@ -87,7 +87,7 @@
                         <i class="bi bi-person-circle" style="color:var(--nu-blue)"></i>
                     </div>
                     <div>
-                        <div class="fw-semibold small">{{ $event->organizer->name }}</div>
+                        <div class="fw-semibold small">{{ $event->organizer->full_name }}</div>
                         <div class="text-muted" style="font-size:0.75rem">{{ $event->organizer->email }}</div>
                     </div>
                 </div>

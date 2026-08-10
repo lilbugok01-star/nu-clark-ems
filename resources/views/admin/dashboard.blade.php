@@ -63,7 +63,7 @@
                                 <i class="bi bi-person-circle" style="color:var(--nu-blue);font-size:0.9rem"></i>
                             </div>
                             <div class="flex-grow-1">
-                                <div class="small fw-semibold">{{ $u->name }}</div>
+                                <div class="small fw-semibold">{{ $u->full_name }}</div>
                                 <div class="text-muted" style="font-size:0.72rem">{{ ucfirst($u->role) }} · {{ $u->created_at->diffForHumans() }}</div>
                             </div>
                         </div>

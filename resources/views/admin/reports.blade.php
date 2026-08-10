@@ -26,7 +26,7 @@
                         <select name="organizer_id" class="form-select form-select-sm">
                             <option value="">-- All Organizers --</option>
                             @foreach($organizers as $org)
-                                <option value="{{ $org->id }}" @if(request('organizer_id') == $org->id) selected @endif>{{ $org->name }}</option>
+                                <option value="{{ $org->id }}" @if(request('organizer_id') == $org->id) selected @endif>{{ $org->full_name }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -89,7 +89,7 @@
                                     <div class="small fw-500">{{ $e->event_date->format('M d, Y') }}</div>
                                     <div class="text-muted small" style="font-size:0.75rem;"><i class="bi bi-geo-alt me-1"></i>{{ $e->venue }}</div>
                                 </td>
-                                <td class="small">{{ $e->organizer->name ?? '-' }}</td>
+                                <td class="small">{{ $e->organizer->full_name ?? '-' }}</td>
                                 <td class="text-center small fw-600">{{ $e->capacity }}</td>
                                 <td class="text-center">
                                     <span class="badge rounded-pill px-2.5 py-1.5 bg-primary-subtle text-primary border" style="font-size:0.75rem;">

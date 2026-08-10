@@ -88,10 +88,10 @@
                                 <div class="d-flex align-items-center gap-2">
                                     <div class="rounded-circle d-flex align-items-center justify-content-center fw-800 flex-shrink-0"
                                          style="width:32px;height:32px;background:rgba(0,48,135,.1);color:var(--nu-blue);font-size:.75rem">
-                                        {{ strtoupper(substr($reg->user->name ?? 'U', 0, 1)) }}
+                                        {{ strtoupper(substr($reg->user->first_name ?? 'U', 0, 1)) }}
                                     </div>
                                     <div>
-                                        <div class="fw-600 small" style="color:var(--nu-blue)">{{ $reg->user->name ?? 'N/A' }}</div>
+                                        <div class="fw-600 small" style="color:var(--nu-blue)">{{ $reg->user->full_name ?? 'N/A' }}</div>
                                         <div class="text-muted" style="font-size:.72rem">{{ $reg->user->email ?? '' }}</div>
                                     </div>
                                 </div>

@@ -96,7 +96,7 @@
         <h6 class="bg-light p-2 fw-bold text-uppercase mb-3" style="border-left: 5px solid #003087;">Department Details</h6>
         <div class="mb-3">
             <span class="info-label text-uppercase">Reserved By:</span>
-            <span class="info-value">{{ $res->reservedBy->name }}</span>
+            <span class="info-value">{{ $res->reservedBy->full_name }}</span>
         </div>
         <div class="mb-3">
             <span class="info-label text-uppercase">Submission Date:</span>
@@ -120,7 +120,7 @@
                 @php 
                     $approval = $res->approvals->where('role_level', $sig->role)->where('status', 'approved')->first(); 
                     $roleUser = \App\Models\User::where('role', $sig->role)->first();
-                    $signerName = $approval ? $approval->approver->name : ($roleUser ? $roleUser->name : 'N/A');
+                    $signerName = $approval ? $approval->approver->full_name : ($roleUser ? $roleUser->full_name : 'N/A');
                 @endphp
                 <div class="col-4 text-center mb-5 signature-block">
                     <div class="signature-box">

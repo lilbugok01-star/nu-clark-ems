@@ -44,7 +44,7 @@
                                 <select name="user_id" class="form-select form-select-sm">
                                     <option value="">-- All Users --</option>
                                     @foreach($users as $u)
-                                        <option value="{{ $u->id }}" @if(request('user_id') == $u->id) selected @endif>{{ $u->name }} ({{ ucfirst($u->role) }})</option>
+                                        <option value="{{ $u->id }}" @if(request('user_id') == $u->id) selected @endif>{{ $u->full_name }} ({{ ucfirst($u->role) }})</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -80,7 +80,7 @@
                                     @forelse($systemLogs as $log)
                                         <tr>
                                             <td>
-                                                <div class="fw-semibold">{{ $log->user->name ?? 'System' }}</div>
+                                                <div class="fw-semibold">{{ $log->user->full_name ?? 'System' }}</div>
                                                 <div class="text-muted small" style="font-size:0.7rem;">{{ ucfirst($log->user->role ?? 'Daemon') }}</div>
                                             </td>
                                             <td>
@@ -143,7 +143,7 @@
                                 <select name="att_user_id" class="form-select form-select-sm">
                                     <option value="">-- All Students --</option>
                                     @foreach($users->where('role', 'student') as $stu)
-                                        <option value="{{ $stu->id }}" @if(request('att_user_id') == $stu->id) selected @endif>{{ $stu->name }} ({{ $stu->student_id }})</option>
+                                        <option value="{{ $stu->id }}" @if(request('att_user_id') == $stu->id) selected @endif>{{ $stu->full_name }} ({{ $stu->student_id }})</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -171,7 +171,7 @@
                                     @forelse($attendanceLogs as $attLog)
                                         <tr>
                                             <td>
-                                                <div class="fw-semibold">{{ $attLog->user->name ?? 'Unknown' }}</div>
+                                                <div class="fw-semibold">{{ $attLog->user->full_name ?? 'Unknown' }}</div>
                                                 <div class="text-muted small" style="font-size:0.7rem;">ID: {{ $attLog->user->student_id ?? '-' }}</div>
                                             </td>
                                             <td>

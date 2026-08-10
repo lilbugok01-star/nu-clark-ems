@@ -35,7 +35,7 @@
         <div class="info-col"><strong>Venue:</strong> {{ $event->venue }}</div>
         <div class="info-col"><strong>Date:</strong> {{ $event->event_date->format('F d, Y') }}</div>
         <div class="info-col"><strong>Time:</strong> {{ substr($event->start_time,0,5) }} – {{ substr($event->end_time,0,5) }}</div>
-        <div class="info-col"><strong>Organizer:</strong> {{ $event->organizer->name ?? '-' }}</div>
+        <div class="info-col"><strong>Organizer:</strong> {{ $event->organizer->full_name ?? '-' }}</div>
     </div>
 
     <div class="stats">
@@ -59,7 +59,7 @@
             @forelse($attendances as $i => $att)
             <tr>
                 <td>{{ $i + 1 }}</td>
-                <td>{{ $att->registration?->user?->name ?? '-' }}</td>
+                <td>{{ $att->registration?->user?->full_name ?? '-' }}</td>
                 <td>{{ $att->registration?->user?->student_id ?? '-' }}</td>
                 <td>{{ $att->registration?->user?->course?->code ?? '' }} {{ $att->registration?->user?->section?->name ?? '' }}</td>
                 <td>{{ $att->checked_in_at?->format('H:i') ?? '-' }}</td>

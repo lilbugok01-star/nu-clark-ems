@@ -44,7 +44,7 @@
                     <tbody>
                         @foreach($users as $user)
                         <tr>
-                            <td class="fw-semibold small">{{ $user->name }}</td>
+                            <td class="fw-semibold small">{{ $user->full_name }}</td>
                             <td class="small text-muted">{{ $user->email }}</td>
                             <td>
                                 @php
@@ -78,7 +78,7 @@
                             <td>
                                 <div class="d-flex gap-1">
                                     <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#editUserModal"
-                                            data-id="{{ $user->id }}" data-name="{{ $user->name }}" data-role="{{ $user->role }}"
+                                            data-id="{{ $user->id }}" data-first-name="{{ $user->first_name }}" data-middle-name="{{ $user->middle_name }}" data-surname="{{ $user->surname }}" data-role="{{ $user->role }}"
                                             data-active="{{ $user->is_active ? '1' : '0' }}"
                                             data-student-id="{{ $user->student_id }}"
                                             data-course-id="{{ $user->course_id }}"
@@ -116,9 +116,17 @@
                 @csrf
                 <div class="modal-body p-4">
                     <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label fw-600">Full Name <span class="text-danger">*</span></label>
-                            <input type="text" name="name" class="form-control" required placeholder="e.g. Juan dela Cruz">
+                        <div class="col-md-4">
+                            <label class="form-label fw-600">First Name <span class="text-danger">*</span></label>
+                            <input type="text" name="first_name" class="form-control" required placeholder="e.g. Juan">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-600">Middle Name</label>
+                            <input type="text" name="middle_name" class="form-control" placeholder="e.g. dela">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-600">Surname <span class="text-danger">*</span></label>
+                            <input type="text" name="surname" class="form-control" required placeholder="e.g. Cruz">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-600">Email Address <span class="text-danger">*</span></label>
@@ -126,7 +134,8 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-600">Password <span class="text-danger">*</span></label>
-                            <input type="password" name="password" class="form-control" required minlength="8" placeholder="Min. 8 characters">
+                            <input type="password" name="password" class="form-control" required minlength="8" placeholder="Min. 8 chars, 1 uppercase, 1 number, 1 symbol">
+                            <small class="text-muted">Must contain at least 1 uppercase letter, 1 number, and 1 special character.</small>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-600">Role <span class="text-danger">*</span></label>
@@ -215,9 +224,19 @@
             <form id="editUserForm" method="POST">
                 @csrf @method('PUT')
                 <div class="modal-body p-4">
-                    <div class="mb-3">
-                        <label class="form-label fw-600">Full Name</label>
-                        <input type="text" name="name" id="editName" class="form-control">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-600">First Name</label>
+                            <input type="text" name="first_name" id="editFirstName" class="form-control">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-600">Middle Name</label>
+                            <input type="text" name="middle_name" id="editMiddleName" class="form-control">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-600">Surname</label>
+                            <input type="text" name="surname" id="editSurname" class="form-control">
+                        </div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-600">Role</label>
@@ -282,7 +301,9 @@ function handleRoleChange(role, context) {
 
 document.getElementById('editUserModal').addEventListener('show.bs.modal', function(e) {
     const btn = e.relatedTarget;
-    document.getElementById('editName').value = btn.dataset.name;
+    document.getElementById('editFirstName').value = btn.dataset.firstName;
+    document.getElementById('editMiddleName').value = btn.dataset.middleName || '';
+    document.getElementById('editSurname').value = btn.dataset.surname;
     document.getElementById('editRole').value = btn.dataset.role;
     document.getElementById('editActive').checked = btn.dataset.active === '1';
     document.getElementById('editUserForm').action = `/admin/users/${btn.dataset.id}`;

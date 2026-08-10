@@ -10,7 +10,7 @@
                 <i class="bi bi-person-circle" style="color:var(--nu-blue);font-size:2rem"></i>
             </div>
             <div>
-                <h5 class="fw-bold mb-0">{{ $user->name }}</h5>
+                <h5 class="fw-bold mb-0">{{ $user->full_name }}</h5>
                 <div class="text-muted small">{{ $user->email }}</div>
                 <span class="badge bg-nu-blue mt-1">{{ ucfirst($user->role) }}</span>
             </div>

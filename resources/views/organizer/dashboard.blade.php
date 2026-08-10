@@ -83,7 +83,7 @@
                                         <div class="modal-dialog modal-dialog-centered">
                                             <div class="modal-content rounded-3 overflow-hidden">
                                                 <div class="modal-header border-0 pb-0">
-                                                    <strong class="small" style="color:var(--nu-blue)">{{ $att->registration->user->name }} — Pending Check-in</strong>
+                                                    <strong class="small" style="color:var(--nu-blue)">{{ $att->registration->user->full_name }} — Pending Check-in</strong>
                                                     <button class="btn-close" data-bs-dismiss="modal"></button>
                                                 </div>
                                                 <div class="modal-body p-2">
@@ -103,7 +103,7 @@
                                     <div class="attendance-photo d-flex align-items-center justify-content-center" style="background:#eee;width:42px;height:42px;border-radius:50%"><i class="bi bi-person text-muted"></i></div>
                                 @endif
                                 <div class="flex-grow-1">
-                                    <div class="small fw-semibold">{{ $att->registration->user->name }}</div>
+                                    <div class="small fw-semibold">{{ $att->registration->user->full_name }}</div>
                                     <div class="text-muted" style="font-size:0.72rem">{{ $att->registration->event->title }}</div>
                                 </div>
                                 <form action="{{ route('organizer.attendance.verify', $att->id) }}" method="POST" class="d-flex gap-1" style="z-index:10;">

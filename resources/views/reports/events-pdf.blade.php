@@ -48,7 +48,7 @@
                 <td>{{ $e->capacity }}</td>
                 <td>{{ $e->registrations_count }}</td>
                 <td>{{ $e->verified_count }}</td>
-                <td>{{ $e->organizer->name ?? '-' }}</td>
+                <td>{{ $e->organizer->full_name ?? '-' }}</td>
                 <td><span class="badge {{ $e->status }}">{{ ucfirst($e->status) }}</span></td>
             </tr>
             @endforeach

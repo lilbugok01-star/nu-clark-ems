@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Validation\Rules\Password as PasswordRule;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
@@ -20,7 +21,9 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $validated = $request->validate([
-            'name'       => 'required|string|max:255',
+            'first_name'  => 'required|string|max:255',
+            'middle_name' => 'nullable|string|max:255',
+            'surname'     => 'required|string|max:255',
             'email'      => [
                 'required', 'email', 'unique:users',
                 function ($attribute, $value, $fail) {
@@ -29,7 +32,15 @@ class AuthController extends Controller
                     }
                 },
             ],
-            'password'   => 'required|min:8|confirmed',
+            'password'   => [
+                'required',
+                'confirmed',
+                PasswordRule::min(8)
+                    ->letters()
+                    ->mixedCase()
+                    ->numbers()
+                    ->symbols(),
+            ],
             'student_id' => 'required|string|unique:users,student_id|regex:/^\d{4}-\d{6}$/',
             'course_id'  => 'required|exists:courses,id',
             'section_id' => 'required|exists:sections,id',
@@ -41,7 +52,9 @@ class AuthController extends Controller
         $code = sprintf("%06d", mt_rand(100000, 999999));
 
         $user = User::create([
-            'name'                     => $validated['name'],
+            'first_name'               => $validated['first_name'],
+            'middle_name'              => $validated['middle_name'] ?? null,
+            'surname'                  => $validated['surname'],
             'email'                    => $validated['email'],
             'password'                 => Hash::make($validated['password']),
             'role'                     => 'student',
@@ -56,7 +69,7 @@ class AuthController extends Controller
             'user_id' => $user->id,
             'type'    => 'welcome',
             'title'   => 'Welcome to NU Clark Events!',
-            'message' => "Hi {$user->name}, your account has been created. A verification code has been sent to {$user->email}.",
+            'message' => "Hi {$user->full_name}, your account has been created. A verification code has been sent to {$user->email}.",
         ]);
 
         // Send verification code email
@@ -199,7 +212,15 @@ class AuthController extends Controller
         $request->validate([
             'token'    => 'required',
             'email'    => 'required|email',
-            'password' => 'required|min:8|confirmed',
+            'password' => [
+                'required',
+                'confirmed',
+                PasswordRule::min(8)
+                    ->letters()
+                    ->mixedCase()
+                    ->numbers()
+                    ->symbols(),
+            ],
         ]);
 
         $status = Password::reset(

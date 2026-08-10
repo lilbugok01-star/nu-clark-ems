@@ -51,7 +51,7 @@
                     @forelse($reservations as $res)
                     <tr>
                         <td>
-                            <div class="fw-600 small">{{ $res->reservedBy?->name ?? '-' }}</div>
+                            <div class="fw-600 small">{{ $res->reservedBy?->full_name ?? '-' }}</div>
                             <div class="text-muted" style="font-size:.72rem">{{ $res->reservedBy?->email ?? '' }}</div>
                         </td>
                         <td class="small">{{ $res->event?->title ?? $res->event_title ?? 'N/A' }}</td>

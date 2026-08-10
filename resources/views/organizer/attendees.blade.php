@@ -58,7 +58,7 @@
                 <tbody>
                     @foreach($attendances as $att)
                     <tr>
-                        <td class="fw-600 small">{{ $att->registration?->user?->name ?? '-' }}</td>
+                        <td class="fw-600 small">{{ $att->registration?->user?->full_name ?? '-' }}</td>
                         <td class="text-muted small">{{ $att->registration?->user?->student_id ?? '-' }}</td>
                         <td class="small">
                             {{ $att->registration?->user?->course?->code ?? '' }}
@@ -75,7 +75,7 @@
                                     <div class="modal-dialog modal-dialog-centered">
                                         <div class="modal-content rounded-3 overflow-hidden">
                                             <div class="modal-header border-0 pb-0">
-                                                <strong class="small" style="color:var(--nu-blue)">{{ $att->registration?->user?->name ?? 'Student' }}</strong>
+                                                <strong class="small" style="color:var(--nu-blue)">{{ $att->registration?->user?->full_name ?? 'Student' }}</strong>
                                                 <button class="btn-close" data-bs-dismiss="modal"></button>
                                             </div>
                                             <div class="modal-body p-2">

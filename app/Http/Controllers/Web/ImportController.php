@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rules\Password;
 
 class ImportController extends Controller implements HasMiddleware
 {
@@ -50,11 +51,11 @@ class ImportController extends Controller implements HasMiddleware
         $callback = function () {
             $handle = fopen('php://output', 'w');
             // Header row
-            fputcsv($handle, ['name', 'email', 'student_id', 'course_code', 'section_name', 'password']);
+            fputcsv($handle, ['first_name', 'middle_name', 'surname', 'email', 'student_id', 'course_code', 'section_name', 'password']);
             // Example rows
-            fputcsv($handle, ['Juan dela Cruz',  'juan.delacruz@students.nu-clark.edu.ph',  '2022-00001', 'BSIT', 'BSIT-3A', 'Password123!']);
-            fputcsv($handle, ['Maria Santos',    'maria.santos@students.nu-clark.edu.ph',    '2022-00002', 'BSCS', 'BSCS-2B', 'Password123!']);
-            fputcsv($handle, ['Pedro Reyes',     'pedro.reyes@students.nu-clark.edu.ph',     '2022-00003', 'BSBA', 'BSBA-1A', 'Password123!']);
+            fputcsv($handle, ['Juan',  'dela',   'Cruz',   'juan.delacruz@students.nu-clark.edu.ph',  '2022-00001', 'BSIT', 'BSIT-3A', 'Password123!']);
+            fputcsv($handle, ['Maria', '',       'Santos', 'maria.santos@students.nu-clark.edu.ph',    '2022-00002', 'BSCS', 'BSCS-2B', 'Password123!']);
+            fputcsv($handle, ['Pedro', 'Garcia', 'Reyes',  'pedro.reyes@students.nu-clark.edu.ph',     '2022-00003', 'BSBA', 'BSBA-1A', 'Password123!']);
             fclose($handle);
         };
         return response()->stream($callback, 200, $headers);
@@ -69,7 +70,14 @@ class ImportController extends Controller implements HasMiddleware
     {
         $request->validate([
             'csv_file'         => 'required|file|mimes:csv,txt|max:5120',
-            'default_password' => 'required|string|min:8|max:72',
+            'default_password' => [
+                'required',
+                Password::min(8)
+                    ->letters()
+                    ->mixedCase()
+                    ->numbers()
+                    ->symbols(),
+            ],
             'default_role'     => 'required|in:student',
             'skip_errors'      => 'nullable|boolean',
         ]);
@@ -88,10 +96,37 @@ class ImportController extends Controller implements HasMiddleware
                 $rowNum++;
                 if (count($line) < 5) { $skipped++; continue; }
 
-                [$name, $email, $studentId, $courseCode, $sectionName, $plainPass] = array_pad(array_map('trim', $line), 6, '');
+                [$firstNameOrName, $col2, $col3, $col4, $col5, $col6, $col7, $col8] = array_pad(array_map('trim', $line), 8, '');
+
+                // Detect CSV format: new format has 8 columns (first_name, middle_name, surname, email, student_id, course_code, section_name, password)
+                // Legacy format has 6 columns (name, email, student_id, course_code, section_name, password)
+                if (count($line) >= 7) {
+                    // New format: first_name, middle_name, surname, email, student_id, course_code, section_name, password
+                    $firstName   = $firstNameOrName;
+                    $middleName  = $col2 ?: null;
+                    $surname     = $col3;
+                    $email       = $col4;
+                    $studentId   = $col5;
+                    $courseCode  = $col6;
+                    $sectionName = $col7;
+                    $plainPass   = $col8;
+                } else {
+                    // Legacy format: name, email, student_id, course_code, section_name, password
+                    // Auto-split name into parts
+                    $nameParts = preg_split('/\s+/', $firstNameOrName);
+                    $firstName  = $nameParts[0] ?? '';
+                    $surname    = count($nameParts) > 1 ? array_pop($nameParts) : '';
+                    array_shift($nameParts);
+                    $middleName = count($nameParts) > 0 ? implode(' ', $nameParts) : null;
+                    $email       = $col2;
+                    $studentId   = $col3;
+                    $courseCode  = $col4;
+                    $sectionName = $col5;
+                    $plainPass   = $col6;
+                }
 
                 // Validation
-                if (!$name || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                if (!$firstName || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
                     $skipped++;
                     $errorList[] = "Row {$rowNum}: invalid name or email — skipped.";
                     continue;
@@ -111,7 +146,9 @@ class ImportController extends Controller implements HasMiddleware
                 $section = Section::where('name', $sectionName)->first();
 
                 User::create([
-                    'name'       => $name,
+                    'first_name'  => $firstName,
+                    'middle_name' => $middleName,
+                    'surname'     => $surname,
                     'email'      => $email,
                     'student_id' => $studentId ?: null,
                     'course_id'  => $course?->id,

@@ -12,11 +12,14 @@ class User extends Authenticatable
     use HasApiTokens, HasFactory, Notifiable;
 
     protected $fillable = [
-        'name', 'email', 'password', 'role',
+        'first_name', 'middle_name', 'surname',
+        'email', 'password', 'role',
         'student_id', 'course_id', 'section_id',
         'avatar', 'is_active', 'e_signature_path',
         'email_verification_code', 'email_verified_at',
     ];
+
+    protected $appends = ['full_name'];
 
     protected $hidden = ['password', 'remember_token', 'email_verification_code'];
 
@@ -27,6 +30,18 @@ class User extends Authenticatable
             'password'          => 'hashed',
             'is_active'         => 'boolean',
         ];
+    }
+
+    /**
+     * Get the user's full name.
+     */
+    public function getFullNameAttribute(): string
+    {
+        return trim(implode(' ', array_filter([
+            $this->first_name,
+            $this->middle_name,
+            $this->surname,
+        ])));
     }
 
     // Role helpers

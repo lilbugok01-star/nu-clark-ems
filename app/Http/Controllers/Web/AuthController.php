@@ -74,7 +74,9 @@ class AuthController extends Controller
         $code = sprintf("%06d", mt_rand(100000, 999999));
 
         $user = User::create([
-            'name'                     => $v['name'],
+            'first_name'               => $v['first_name'],
+            'middle_name'              => $v['middle_name'] ?? null,
+            'surname'                  => $v['surname'],
             'email'                    => $v['email'],
             'password'                 => Hash::make($v['password']),
             'student_id'               => $v['student_id'],
@@ -91,7 +93,7 @@ class AuthController extends Controller
             'user_id' => $user->id,
             'type'    => 'welcome',
             'title'   => 'Welcome to NU Clark Events!',
-            'message' => "Hi {$user->name}, your account has been created. Please verify your email — a verification code has been sent to {$user->email}.",
+            'message' => "Hi {$user->full_name}, your account has been created. Please verify your email — a verification code has been sent to {$user->email}.",
         ]);
 
         // Send verification code email

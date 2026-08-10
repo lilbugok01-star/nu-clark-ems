@@ -66,7 +66,7 @@
                                                 &nbsp;&nbsp;<i class="bi bi-geo-alt"></i> {{ $event->venue }}
                                             </div>
                                             <div class="small text-secondary mb-2">
-                                                <strong>Organizer:</strong> {{ $event->organizer->name }}
+                                                <strong>Organizer:</strong> {{ $event->organizer->full_name }}
                                                 <br>
                                                 {{ Str::limit($event->description, 100) }}
                                             </div>
@@ -139,7 +139,7 @@
                                                 &nbsp;&nbsp;<i class="bi bi-people"></i> {{ $venue->expected_attendees }} attendees
                                             </div>
                                             <div class="small text-secondary mb-2">
-                                                <strong>Department:</strong> {{ $venue->reservedBy->name }}
+                                                <strong>Department:</strong> {{ $venue->reservedBy->full_name }}
                                                 @if($venue->purpose)
                                                     <br><strong>Purpose:</strong> {{ $venue->purpose }}
                                                 @endif

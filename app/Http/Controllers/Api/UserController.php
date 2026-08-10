@@ -8,6 +8,7 @@ use App\Models\Course;
 use App\Models\Section;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules\Password;
 
 class UserController extends Controller
 {
@@ -32,7 +33,14 @@ class UserController extends Controller
         $validated = $request->validate([
             'name'       => 'required|string|max:255',
             'email'      => 'required|email|unique:users',
-            'password'   => 'required|min:8',
+            'password'   => [
+                'required',
+                Password::min(8)
+                    ->letters()
+                    ->mixedCase()
+                    ->numbers()
+                    ->symbols(),
+            ],
             'role'       => 'required|in:admin,organizer,student',
             'student_id' => 'nullable|string|unique:users,student_id|regex:/^\d{4}-\d{6}$/',
             'course_id'  => 'nullable|exists:courses,id',

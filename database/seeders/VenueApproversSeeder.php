@@ -14,12 +14,12 @@ class VenueApproversSeeder extends Seeder
     public function run(): void
     {
         $users = [
-            ['name' => 'Dr. Arnell A. Diego', 'email' => 'exec@nu-clark.edu.ph', 'role' => 'executive_director'],
-            ['name' => 'Ronielle B. Antonio', 'email' => 'chair@nu-clark.edu.ph', 'role' => 'program_chair'],
-            ['name' => 'Rafaela Mae M. Landayan', 'email' => 'dean@nu-clark.edu.ph', 'role' => 'dean'],
-            ['name' => 'Engr Vernie B Garcia', 'email' => 'studdev@nu-clark.edu.ph', 'role' => 'student_development'],
-            ['name' => 'BSIT Representative', 'email' => 'bsit@nu-clark.edu.ph', 'role' => 'student_department'],
-            ['name' => 'BSBA Representative', 'email' => 'bsba@nu-clark.edu.ph', 'role' => 'student_department']
+            ['first_name' => 'Arnell',       'middle_name' => 'A.',  'surname' => 'Diego',    'email' => 'exec@nu-clark.edu.ph',    'role' => 'executive_director'],
+            ['first_name' => 'Ronielle',     'middle_name' => 'B.',  'surname' => 'Antonio',  'email' => 'chair@nu-clark.edu.ph',   'role' => 'program_chair'],
+            ['first_name' => 'Rafaela Mae',  'middle_name' => 'M.',  'surname' => 'Landayan', 'email' => 'dean@nu-clark.edu.ph',    'role' => 'dean'],
+            ['first_name' => 'Vernie',       'middle_name' => 'B',   'surname' => 'Garcia',   'email' => 'studdev@nu-clark.edu.ph', 'role' => 'student_development'],
+            ['first_name' => 'BSIT',         'middle_name' => null,  'surname' => 'Representative', 'email' => 'bsit@nu-clark.edu.ph', 'role' => 'student_department'],
+            ['first_name' => 'BSBA',         'middle_name' => null,  'surname' => 'Representative', 'email' => 'bsba@nu-clark.edu.ph', 'role' => 'student_department']
         ];
 
         foreach ($users as $u) {

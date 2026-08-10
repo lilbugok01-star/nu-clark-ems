@@ -17,14 +17,24 @@
     @csrf
 
     <div class="row g-3 mb-1">
-        <!-- Full Name -->
-        <div class="col-12">
-            <label class="form-label fw-600">Full Name <span class="text-danger">*</span></label>
+        <!-- Name Fields -->
+        <div class="col-md-4">
+            <label class="form-label fw-600">First Name <span class="text-danger">*</span></label>
             <div class="input-group">
                 <span class="input-group-text"><i class="bi bi-person text-muted"></i></span>
-                <input type="text" name="name" class="form-control" placeholder="e.g. Juan dela Cruz"
-                       value="{{ old('name') }}" required autocomplete="name">
+                <input type="text" name="first_name" class="form-control" placeholder="e.g. Juan"
+                       value="{{ old('first_name') }}" required autocomplete="given-name">
             </div>
+        </div>
+        <div class="col-md-4">
+            <label class="form-label fw-600">Middle Name</label>
+            <input type="text" name="middle_name" class="form-control" placeholder="e.g. dela"
+                   value="{{ old('middle_name') }}" autocomplete="additional-name">
+        </div>
+        <div class="col-md-4">
+            <label class="form-label fw-600">Surname <span class="text-danger">*</span></label>
+            <input type="text" name="surname" class="form-control" placeholder="e.g. Cruz"
+                   value="{{ old('surname') }}" required autocomplete="family-name">
         </div>
 
         <!-- Email -->

@@ -74,8 +74,9 @@ class DatabaseSeeder extends Seeder
         }
 
         $admin = User::firstOrCreate(['email' => 'admin@nu-clark.edu.ph'], [
-            'name'     => 'System Administrator',
-            'password' => Hash::make('password'),
+            'first_name' => 'System',
+            'surname'    => 'Administrator',
+            'password' => Hash::make('Password123@'),
             'role'     => 'admin',
             'is_active'=> true,
         ]);
@@ -85,13 +86,17 @@ class DatabaseSeeder extends Seeder
 
         // ── Organizers ────────────────────────────
         $org1 = User::firstOrCreate(['email' => 'organizer@nu-clark.edu.ph'], [
-            'name'     => 'Dr. Maria Santos',
+            'first_name'  => 'Maria',
+            'middle_name' => null,
+            'surname'     => 'Santos',
             'password' => Hash::make('password'),
             'role'     => 'organizer',
         ]);
 
         $org2 = User::firstOrCreate(['email' => 'faculty@nu-clark.edu.ph'], [
-            'name'     => 'Prof. Juan dela Cruz',
+            'first_name'  => 'Juan',
+            'middle_name' => 'dela',
+            'surname'     => 'Cruz',
             'password' => Hash::make('password'),
             'role'     => 'organizer',
         ]);
@@ -101,11 +106,11 @@ class DatabaseSeeder extends Seeder
         $section = Section::where('name', 'ITE-201')->first();
 
         $studentData = [
-            ['name' => 'Ana Reyes',      'email' => 'ana.reyes@students.nu-clark.edu.ph',      'student_id' => '2022-00001'],
-            ['name' => 'Carlos Bautista','email' => 'carlos.bautista@students.nu-clark.edu.ph', 'student_id' => '2022-00002'],
-            ['name' => 'Maria Garcia',   'email' => 'maria.garcia@students.nu-clark.edu.ph',    'student_id' => '2022-00003'],
-            ['name' => 'John Mendoza',   'email' => 'john.mendoza@students.nu-clark.edu.ph',    'student_id' => '2022-00004'],
-            ['name' => 'Sofia Cruz',     'email' => 'sofia.cruz@students.nu-clark.edu.ph',      'student_id' => '2022-00005'],
+            ['first_name' => 'Ana',    'surname' => 'Reyes',    'email' => 'ana.reyes@students.nu-clark.edu.ph',      'student_id' => '2022-00001'],
+            ['first_name' => 'Carlos', 'surname' => 'Bautista', 'email' => 'carlos.bautista@students.nu-clark.edu.ph', 'student_id' => '2022-00002'],
+            ['first_name' => 'Maria',  'surname' => 'Garcia',   'email' => 'maria.garcia@students.nu-clark.edu.ph',    'student_id' => '2022-00003'],
+            ['first_name' => 'John',   'surname' => 'Mendoza',  'email' => 'john.mendoza@students.nu-clark.edu.ph',    'student_id' => '2022-00004'],
+            ['first_name' => 'Sofia',  'surname' => 'Cruz',     'email' => 'sofia.cruz@students.nu-clark.edu.ph',      'student_id' => '2022-00005'],
         ];
 
         foreach ($studentData as $sd) {

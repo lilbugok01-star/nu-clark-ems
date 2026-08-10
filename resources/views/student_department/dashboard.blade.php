@@ -379,7 +379,7 @@
                                         <div class="flex-grow-1" style="font-size:.8rem">
                                             <div class="d-flex justify-content-between align-items-center">
                                                 <div>
-                                                    <strong style="color:var(--nu-blue)">{{ $appr->approver->name ?? 'Signatory' }}</strong>
+                                                    <strong style="color:var(--nu-blue)">{{ $appr->approver->full_name ?? 'Signatory' }}</strong>
                                                     <span class="badge bg-light text-dark ms-1" style="font-size:.65rem">{{ ucfirst(str_replace('_', ' ', $appr->role_level)) }}</span>
                                                 </div>
                                                 <span class="text-muted" style="font-size:.7rem">{{ $appr->updated_at?->format('M d, Y h:i A') }}</span>

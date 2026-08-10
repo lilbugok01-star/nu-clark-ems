@@ -16,6 +16,7 @@ use App\Models\FileHuntingSignatory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules\Password;
 use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Routing\Controllers\HasMiddleware;
@@ -94,7 +95,7 @@ class AdminController extends Controller implements HasMiddleware
         
         $attendanceLogs = $attQuery->paginate(25, ['*'], 'att_page')->withQueryString();
         
-        $users = User::orderBy('name')->get();
+        $users = User::orderBy('surname')->orderBy('first_name')->get();
 
         return view('admin.audit-logs', compact('systemLogs', 'attendanceLogs', 'users'));
     }
@@ -108,7 +109,7 @@ class AdminController extends Controller implements HasMiddleware
             $search = trim($request->search);
             // Replace percent and underscore to prevent LIKE wildcards abuse
             $search = str_replace(['%', '_'], ['\%', '\_'], $search);
-            $query->where(fn($q) => $q->where('name', 'like', "%{$search}%")->orWhere('email', 'like', "%{$search}%"));
+            $query->where(fn($q) => $q->where('first_name', 'like', "%{$search}%")->orWhere('middle_name', 'like', "%{$search}%")->orWhere('surname', 'like', "%{$search}%")->orWhere('email', 'like', "%{$search}%"));
         }
         
         $users   = $query->paginate(20);
@@ -122,9 +123,18 @@ class AdminController extends Controller implements HasMiddleware
         $allRoles = 'admin,organizer,student,adviser,department_head,dean,executive_director,student_development,program_chair,student_department';
 
         $rules = [
-            'name'       => 'required|string',
+            'first_name'  => 'required|string|max:255',
+            'middle_name' => 'nullable|string|max:255',
+            'surname'     => 'required|string|max:255',
             'email'      => 'required|email|unique:users',
-            'password'   => 'required|min:8',
+            'password'   => [
+                'required',
+                Password::min(8)
+                    ->letters()
+                    ->mixedCase()
+                    ->numbers()
+                    ->symbols(),
+            ],
             'role'       => 'required|in:' . $allRoles,
             'student_id' => 'nullable|string|unique:users,student_id|regex:/^\d{4}-\d{6}$/',
             'course_id'  => 'nullable|exists:courses,id',
@@ -168,7 +178,9 @@ class AdminController extends Controller implements HasMiddleware
         $allRoles = 'admin,organizer,student,adviser,department_head,dean,executive_director,student_development,program_chair,student_department';
 
         $rules = [
-            'name'      => 'sometimes|string',
+            'first_name'  => 'sometimes|string|max:255',
+            'middle_name' => 'nullable|string|max:255',
+            'surname'     => 'sometimes|string|max:255',
             'role'      => 'sometimes|in:' . $allRoles,
             'is_active' => 'sometimes|boolean',
         ];

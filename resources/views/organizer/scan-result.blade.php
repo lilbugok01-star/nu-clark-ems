@@ -15,7 +15,7 @@
 
             <div class="p-3 mb-4 text-start" style="background: rgba(0,48,135,0.05); border-left: 4px solid var(--nu-blue); border-radius: 8px;">
                 <p class="mb-1 fw-700" style="color:var(--nu-blue)">
-                    <i class="bi bi-person me-2"></i> {{ $registration->user->name ?? 'Student' }}
+                    <i class="bi bi-person me-2"></i> {{ $registration->user->full_name ?? 'Student' }}
                 </p>
                 <p class="mb-1 text-muted small">
                     <i class="bi bi-card-text me-2"></i> {{ $registration->user->student_id ?? 'N/A' }}
@@ -35,7 +35,7 @@
 
             <div class="p-3 mb-4 text-start" style="background: rgba(255,193,7,0.1); border-left: 4px solid var(--bs-warning); border-radius: 8px;">
                 <p class="mb-1 fw-700">
-                    <i class="bi bi-person me-2"></i> {{ $registration->user->name ?? 'Student' }}
+                    <i class="bi bi-person me-2"></i> {{ $registration->user->full_name ?? 'Student' }}
                 </p>
                 <p class="mb-0 text-muted small">
                     <i class="bi bi-calendar-event me-2"></i> {{ $registration->event->title ?? '' }}
