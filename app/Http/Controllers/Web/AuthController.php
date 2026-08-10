@@ -163,7 +163,7 @@ class AuthController extends Controller
             Mail::to($user->email)->send(new VerificationCodeMail($user, $code));
         } catch (\Exception $e) {
             Log::error('Failed to resend verification email: ' . $e->getMessage());
-            return back()->with('error', 'Failed to send the verification email. Please try again later.');
+            return back()->with('error', 'Failed to send verification email: ' . $e->getMessage());
         }
 
         User::log('resend_verification_code', $user);
