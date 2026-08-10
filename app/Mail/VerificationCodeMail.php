@@ -81,7 +81,12 @@ class VerificationCodeMail extends Mailable
             if ($response->successful()) {
                 return true;
             }
-            throw new \Exception("Resend API (" . $response->status() . "): " . $response->body());
+
+            if (!$brevoKey) {
+                $errJson = $response->json();
+                $msg = $errJson['message'] ?? $response->body();
+                throw new \Exception("Resend API: " . $msg);
+            }
         }
 
         if ($brevoKey) {
@@ -101,7 +106,9 @@ class VerificationCodeMail extends Mailable
             if ($response->successful()) {
                 return true;
             }
-            throw new \Exception("Brevo API (" . $response->status() . "): " . $response->body());
+            $errJson = $response->json();
+            $msg = $errJson['message'] ?? $response->body();
+            throw new \Exception("Brevo API: " . $msg);
         }
 
         // Standard Laravel Mail fallback (SMTP / log)
