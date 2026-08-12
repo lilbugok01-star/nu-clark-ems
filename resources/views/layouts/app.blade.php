@@ -51,7 +51,7 @@
 
                 {{-- Centre nav links (Hidden for Admin to maintain clean, professional executive layout) --}}
                 @if(!Auth::check() || Auth::user()->role !== 'admin')
-                <ul class="navbar-nav mx-auto gap-1 align-items-lg-center">
+                <ul class="navbar-nav navbar-center-nav mx-auto gap-1 align-items-lg-center">
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('home') ? 'active' : '' }}" href="{{ route('home') }}">
                             <i class="bi bi-house"></i> Home

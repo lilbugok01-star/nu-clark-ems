@@ -40,3 +40,18 @@
 .nu-site-name { color: #fff; font-weight: 700; font-size: .875rem; line-height: 1.1; }
 .nu-campus    { color: var(--nu-gold); font-size: .68rem; font-weight: 500; letter-spacing: .04em; }
 
+/* Perfect centering for middle navbar items on desktop screens */
+@media (min-width: 992px) {
+    .nu-navbar .container-fluid {
+        position: relative;
+    }
+    .nu-navbar .navbar-center-nav {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        margin: 0 !important;
+        z-index: 10;
+    }
+}
+
