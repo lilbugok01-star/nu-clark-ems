@@ -19,34 +19,8 @@
 <div class="container-fluid py-4 px-4">
 <div class="row g-4">
 
-    {{-- ─── SIDEBAR ─────────────────────────────── --}}
-    <div class="col-lg-2 col-md-3">
-        <div class="dashboard-sidebar">
-            <div class="sidebar-section-label">Student Menu</div>
-            <a href="{{ route('student.dashboard') }}" class="sidebar-link {{ request()->routeIs('student.dashboard') ? 'active' : '' }}">
-                <i class="bi bi-speedometer2"></i> Dashboard
-            </a>
-            <a href="{{ route('student.events') }}" class="sidebar-link {{ request()->routeIs('student.events') ? 'active' : '' }}">
-                <i class="bi bi-calendar3"></i> Browse Events
-            </a>
-            <a href="{{ route('student.my-events') }}" class="sidebar-link {{ request()->routeIs('student.my-events') ? 'active' : '' }}">
-                <i class="bi bi-ticket-perforated"></i> My Events
-            </a>
-            <a href="{{ route('student.history') }}" class="sidebar-link {{ request()->routeIs('student.history') ? 'active' : '' }}">
-                <i class="bi bi-clock-history"></i> History
-            </a>
-            <a href="{{ route('student.profile') }}" class="sidebar-link {{ request()->routeIs('student.profile') ? 'active' : '' }}">
-                <i class="bi bi-person"></i> Profile
-            </a>
-            <hr style="border-color:rgba(255,255,255,.15);margin:.8rem 0">
-            <button type="button" class="sidebar-link" style="color:rgba(255,100,100,.85);background:none;border:0;width:100%;text-align:left" data-bs-toggle="modal" data-bs-target="#logoutConfirmModal">
-                    <i class="bi bi-box-arrow-right"></i> Logout
-                </button>
-        </div>
-    </div>
-
     {{-- ─── MAIN CONTENT ─────────────────────────── --}}
-    <div class="col-lg-10 col-md-9">
+    <div class="col-12">
 
         {{-- Header --}}
         <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">

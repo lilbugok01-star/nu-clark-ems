@@ -3,12 +3,7 @@
 @section('content')
 <div class="container-fluid py-4">
     <div class="row">
-        <!-- Sidebar -->
-        <div class="col-lg-2 col-md-3">
-            @include('layouts.partials.sidebar-organizer')
-        </div>
-
-        <div class="col-lg-10 col-md-9">
+        <div class="col-12">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h4 class="fw-bold mb-0" style="color:var(--nu-blue)">Organizer Dashboard</h4>
                 <div class="d-flex gap-2">

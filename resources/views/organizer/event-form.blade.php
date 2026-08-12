@@ -51,7 +51,15 @@
                             <label class="form-label">Category</label>
                             <select name="category" class="form-select">
                                 <option value="">-- Select Category --</option>
-                                @foreach(['Academic','Social','Sports','Cultural','Leadership','Technology','Seminar','Workshop','Competition','Other'] as $cat)
+                                @php
+                                    $dbCategories = \Illuminate\Support\Facades\Schema::hasTable('event_categories') 
+                                        ? \App\Models\EventCategory::active()->pluck('name')->toArray() 
+                                        : [];
+                                    $categories = !empty($dbCategories) 
+                                        ? $dbCategories 
+                                        : ['Academic','Social','Sports','Cultural','Leadership','Technology','Seminar','Workshop','Competition','Other'];
+                                @endphp
+                                @foreach($categories as $cat)
                                     <option value="{{ $cat }}" {{ old('category', $event->category ?? '') === $cat ? 'selected' : '' }}>{{ $cat }}</option>
                                 @endforeach
                             </select>
@@ -133,9 +141,15 @@
                         <div class="col-md-3">
                             <label class="form-label">Status</label>
                             <select name="status" class="form-select">
-                                @foreach(['published','draft','cancelled','completed'] as $s)
-                                    <option value="{{ $s }}" {{ ($event->status ?? 'published') === $s ? 'selected' : '' }}>{{ ucfirst($s) }}</option>
-                                @endforeach
+                                @if(Auth::user()->role === 'admin')
+                                    @foreach(['published','draft','cancelled','completed'] as $s)
+                                        <option value="{{ $s }}" {{ ($event->status ?? 'published') === $s ? 'selected' : '' }}>{{ ucfirst($s) }}</option>
+                                    @endforeach
+                                @else
+                                    @foreach(['published','cancelled'] as $s)
+                                        <option value="{{ $s }}" {{ ($event->status ?? 'published') === $s ? 'selected' : '' }}>{{ ucfirst($s) }}</option>
+                                    @endforeach
+                                @endif
                             </select>
                         </div>
                         @endif

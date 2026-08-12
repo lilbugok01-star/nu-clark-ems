@@ -12,6 +12,12 @@
     <a href="{{ route('admin.reports') }}" class="sidebar-link @if(request()->routeIs('admin.reports*')) active @endif">
         <i class="bi bi-bar-chart"></i> Reports
     </a>
+    <a href="{{ route('admin.analytics') }}" class="sidebar-link @if(request()->routeIs('admin.analytics*')) active @endif">
+        <i class="bi bi-graph-up-arrow"></i> Analytics
+    </a>
+    <a href="{{ route('admin.financial') }}" class="sidebar-link @if(request()->routeIs('admin.financial*') || request()->routeIs('admin.event.budget*') || request()->routeIs('admin.event.payments*')) active @endif">
+        <i class="bi bi-cash-stack"></i> Financial
+    </a>
     <a href="{{ route('admin.venues') }}" class="sidebar-link @if(request()->routeIs('admin.venues*')) active @endif">
         <i class="bi bi-building"></i> Venues
     </a>

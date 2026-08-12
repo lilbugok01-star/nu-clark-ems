@@ -10,6 +10,9 @@ use App\Http\Controllers\Web\AdminController;
 use App\Http\Controllers\Web\ImportController;
 use App\Http\Controllers\Web\StudentDepartmentController;
 use App\Http\Controllers\Web\ApprovalController;
+use App\Http\Controllers\Web\AnalyticsController;
+use App\Http\Controllers\Web\FinancialController;
+use App\Http\Controllers\Web\ProposalController;
 
 // ── Public Routes ────────────────────────────────────────────────────────────
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -119,6 +122,16 @@ Route::middleware('auth')->group(function () {
             ->update(['read_at' => now()]);
         return response()->json(['ok' => true]);
     })->name('notifications.markRead');
+
+    // Event Proposals
+    Route::get('/proposals', [ProposalController::class, 'index'])->name('proposals.index');
+    Route::get('/proposals/create/{eventId}', [ProposalController::class, 'create'])->name('proposal.create');
+    Route::post('/proposals', [ProposalController::class, 'store'])->name('proposal.store');
+    Route::get('/proposals/{id}', [ProposalController::class, 'show'])->name('proposal.show');
+    Route::post('/proposals/{id}/submit', [ProposalController::class, 'submit'])->name('proposal.submit');
+    Route::post('/proposals/{id}/approve', [ProposalController::class, 'approve'])->name('proposal.approve');
+    Route::post('/proposals/{id}/reject', [ProposalController::class, 'reject'])->name('proposal.reject');
+    Route::get('/proposals/{id}/export-pdf', [ProposalController::class, 'exportPdf'])->name('proposal.export-pdf');
 });
 
 // Email Verification Routes
@@ -186,6 +199,9 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::post('/courses',          [AdminController::class, 'storeCourse'])->name('courses.store');
     Route::get('/reports',           [AdminController::class, 'reports'])->name('reports');
     Route::get('/reports/events/pdf',[AdminController::class, 'exportEventsPdf'])->name('reports.events.pdf');
+    Route::get('/analytics',         [AnalyticsController::class, 'dashboard'])->name('analytics');
+    Route::get('/analytics/export-pdf', [AnalyticsController::class, 'exportPdf'])->name('analytics.export-pdf');
+    Route::get('/analytics/student/{id}', [AnalyticsController::class, 'studentProfile'])->name('analytics.student');
     Route::get('/notifications',     [AdminController::class, 'notifications'])->name('notifications');
     Route::post('/notifications/send',[AdminController::class, 'sendNotification'])->name('notifications.send');
     // Venue management
@@ -202,6 +218,17 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/import',              [ImportController::class, 'showImport'])->name('import');
     Route::get('/import/template',     [ImportController::class, 'downloadTemplate'])->name('import.template');
     Route::post('/import',             [ImportController::class, 'importStudents'])->name('import.run');
+
+    // Financial Management
+    Route::get('/financial', [FinancialController::class, 'dashboard'])->name('financial');
+    Route::get('/financial/event/{id}/budget', [FinancialController::class, 'eventBudget'])->name('event.budget');
+    Route::post('/financial/event/{id}/budget', [FinancialController::class, 'storeBudgetItem'])->name('event.budget.store');
+    Route::put('/financial/budget/{id}', [FinancialController::class, 'updateBudgetItem'])->name('budget.update');
+    Route::delete('/financial/budget/{id}', [FinancialController::class, 'deleteBudgetItem'])->name('budget.delete');
+    Route::get('/financial/event/{id}/payments', [FinancialController::class, 'eventPayments'])->name('event.payments');
+    Route::post('/financial/event/{id}/payments', [FinancialController::class, 'storePayment'])->name('event.payments.store');
+    Route::delete('/financial/payment/{id}', [FinancialController::class, 'deletePayment'])->name('payment.delete');
+    Route::get('/financial/event/{id}/export-pdf', [FinancialController::class, 'exportPdf'])->name('financial.export-pdf');
 });
 
 // Approver Flow

@@ -22,3 +22,13 @@
     font-size: .875rem;
 }
 
+/* Hide native browser password reveal buttons (Edge/Chrome)
+   to prevent doubling with our custom Bootstrap icon toggle */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+    display: none !important;
+}
+input[type="password"]::-webkit-credentials-auto-fill-button,
+input[type="password"]::-webkit-textfield-decoration-container {
+    display: none !important;
+}

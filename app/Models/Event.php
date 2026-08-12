@@ -13,7 +13,7 @@ class Event extends Model
     protected $fillable = [
         'title', 'description', 'venue', 'venue_type', 'event_date',
         'start_time', 'end_time', 'capacity', 'organizer_id',
-        'poster_path', 'is_featured', 'category', 'tags',
+        'poster_path', 'is_featured', 'category', 'tags', 'status',
     ];
 
     protected $casts = [
@@ -28,6 +28,9 @@ class Event extends Model
     public function attendances()       { return $this->hasManyThrough(Attendance::class, Registration::class); }
     public function venueReservation()  { return $this->hasOne(VenueReservation::class); }
     public function approvals()         { return $this->hasMany(EventApproval::class); }
+    public function budgetItems()       { return $this->hasMany(EventBudget::class); }
+    public function payments()          { return $this->hasMany(EventPayment::class); }
+    public function proposals()         { return $this->hasMany(EventProposal::class); }
 
     public function isLive(): bool
     {

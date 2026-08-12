@@ -103,6 +103,12 @@
                                     <i class="bi bi-person-check"></i> Attendees
                                 </a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs('proposals.*') || request()->routeIs('proposal.*') ? 'active' : '' }}"
+                                    href="{{ route('proposals.index') }}">
+                                    <i class="bi bi-file-earmark-text"></i> Proposals
+                                </a>
+                            </li>
                             @if($role === 'student_development')
                             <li class="nav-item">
                                 <a class="nav-link {{ request()->routeIs('approver.dashboard') ? 'active' : '' }}"

@@ -143,6 +143,12 @@ class OrganizerController extends Controller implements HasMiddleware
     public function updateEvent(Request $request, $id)
     {
         $event = Event::where('organizer_id', Auth::id())->findOrFail($id);
+
+        // Only admin can set draft/completed status; organizers can only set published/cancelled
+        $allowedStatuses = Auth::user()->role === 'admin'
+            ? 'in:draft,cancelled,published,completed'
+            : 'in:cancelled,published';
+
         $validated = $request->validate([
             'title'       => 'required|string',
             'description' => 'nullable|string',
@@ -151,7 +157,7 @@ class OrganizerController extends Controller implements HasMiddleware
             'start_time'  => 'required|date_format:H:i',
             'end_time'    => 'required|date_format:H:i|after:start_time',
             'capacity'    => 'required|integer|min:1',
-            'status'      => 'in:draft,cancelled,published',
+            'status'      => $allowedStatuses,
             'category'    => 'nullable|string',
             'poster'      => 'nullable|image|max:4096',
         ]);
