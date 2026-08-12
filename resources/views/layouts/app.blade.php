@@ -49,8 +49,6 @@
 
             <div class="collapse navbar-collapse" id="mainNav">
 
-                {{-- Centre nav links (Hidden for Admin to maintain clean, professional executive layout) --}}
-                @if(!Auth::check() || Auth::user()->role !== 'admin')
                 <ul class="navbar-nav navbar-center-nav mx-auto gap-1 align-items-lg-center">
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('home') ? 'active' : '' }}" href="{{ route('home') }}">
@@ -69,7 +67,39 @@
                     @auth
                         @php $role = Auth::user()->role; @endphp
 
-                        @if($role === 'student')
+                        @if($role === 'admin')
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}"
+                                    href="{{ route('admin.dashboard') }}">
+                                    <i class="bi bi-speedometer2"></i> Dashboard
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs('admin.users*') ? 'active' : '' }}"
+                                    href="{{ route('admin.users') }}">
+                                    <i class="bi bi-people"></i> Users
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs('admin.reports*') ? 'active' : '' }}"
+                                    href="{{ route('admin.reports') }}">
+                                    <i class="bi bi-bar-chart"></i> Reports
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs('admin.analytics*') ? 'active' : '' }}"
+                                    href="{{ route('admin.analytics') }}">
+                                    <i class="bi bi-graph-up-arrow"></i> Analytics
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs('admin.financial*') ? 'active' : '' }}"
+                                    href="{{ route('admin.financial') }}">
+                                    <i class="bi bi-cash-stack"></i> Financial
+                                </a>
+                            </li>
+
+                        @elseif($role === 'student')
                             <li class="nav-item">
                                 <a class="nav-link {{ request()->routeIs('student.dashboard') ? 'active' : '' }}"
                                     href="{{ route('student.dashboard') }}">
@@ -136,7 +166,6 @@
                         @endif
                     @endauth
                 </ul>
-                @endif
 
                 {{-- Right side --}}
                 <div class="d-flex align-items-center gap-2 mt-2 mt-lg-0 ms-auto">
