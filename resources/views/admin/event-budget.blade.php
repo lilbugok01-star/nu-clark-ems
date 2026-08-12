@@ -12,7 +12,7 @@
         <div class="col-lg-10 col-md-9 p-4">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div class="d-flex align-items-center">
-                    <a href="{{ route('admin.financial.dashboard') }}" class="btn btn-sm btn-outline-secondary me-3">
+                    <a href="{{ route('admin.financial') }}" class="btn btn-sm btn-outline-secondary me-3">
                         <i class="bi bi-arrow-left"></i> Back
                     </a>
                     <h3 class="fw-bold mb-0" style="color: var(--nu-blue);">Budget: {{ $event->title }}</h3>

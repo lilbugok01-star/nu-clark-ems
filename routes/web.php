@@ -221,11 +221,14 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 
     // Financial Management
     Route::get('/financial', [FinancialController::class, 'dashboard'])->name('financial');
+    Route::get('/financial/dashboard', [FinancialController::class, 'dashboard'])->name('financial.dashboard');
     Route::get('/financial/event/{id}/budget', [FinancialController::class, 'eventBudget'])->name('event.budget');
+    Route::get('/financial/budget/{id}', [FinancialController::class, 'eventBudget'])->name('financial.budget');
     Route::post('/financial/event/{id}/budget', [FinancialController::class, 'storeBudgetItem'])->name('event.budget.store');
     Route::put('/financial/budget/{id}', [FinancialController::class, 'updateBudgetItem'])->name('budget.update');
     Route::delete('/financial/budget/{id}', [FinancialController::class, 'deleteBudgetItem'])->name('budget.delete');
     Route::get('/financial/event/{id}/payments', [FinancialController::class, 'eventPayments'])->name('event.payments');
+    Route::get('/financial/payments/{id}', [FinancialController::class, 'eventPayments'])->name('financial.payments');
     Route::post('/financial/event/{id}/payments', [FinancialController::class, 'storePayment'])->name('event.payments.store');
     Route::delete('/financial/payment/{id}', [FinancialController::class, 'deletePayment'])->name('payment.delete');
     Route::get('/financial/event/{id}/export-pdf', [FinancialController::class, 'exportPdf'])->name('financial.export-pdf');

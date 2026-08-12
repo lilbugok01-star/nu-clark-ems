@@ -83,18 +83,21 @@
                                     @endphp
                                     <tr>
                                         <td><strong>{{ $event->title }}</strong></td>
-                                        <td>{{ \Carbon\Carbon::parse($event->start_date)->format('M d, Y') }}</td>
+                                        <td>{{ $event->event_date ? $event->event_date->format('M d, Y') : 'N/A' }}</td>
                                         <td>₱{{ number_format($event->total_estimated_budget ?? 0, 2) }}</td>
                                         <td>₱{{ number_format($event->total_actual_spent ?? 0, 2) }}</td>
                                         <td>₱{{ number_format($event->total_income ?? 0, 2) }}</td>
                                         <td>₱{{ number_format($event->total_expenses ?? 0, 2) }}</td>
                                         <td class="fw-bold {{ $plColor }}">₱{{ number_format($pl, 2) }}</td>
                                         <td class="text-end">
-                                            <a href="{{ route('admin.financial.budget', $event->id) }}" class="btn btn-sm btn-outline-primary" title="Budget">
-                                                <i class="bi bi-calculator"></i>
+                                            <a href="{{ route('admin.event.budget', $event->id) }}" class="btn btn-sm btn-outline-primary" title="Budget">
+                                                <i class="bi bi-calculator"></i> Budget
                                             </a>
-                                            <a href="{{ route('admin.financial.payments', $event->id) }}" class="btn btn-sm btn-outline-success" title="Payments">
-                                                <i class="bi bi-credit-card"></i>
+                                            <a href="{{ route('admin.event.payments', $event->id) }}" class="btn btn-sm btn-outline-success" title="Payments">
+                                                <i class="bi bi-credit-card"></i> Payments
+                                            </a>
+                                            <a href="{{ route('admin.financial.export-pdf', $event->id) }}" class="btn btn-sm btn-outline-danger" title="Export PDF">
+                                                <i class="bi bi-file-earmark-pdf"></i>
                                             </a>
                                         </td>
                                     </tr>

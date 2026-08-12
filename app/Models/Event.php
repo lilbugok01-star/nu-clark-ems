@@ -29,6 +29,7 @@ class Event extends Model
     public function venueReservation()  { return $this->hasOne(VenueReservation::class); }
     public function approvals()         { return $this->hasMany(EventApproval::class); }
     public function budgetItems()       { return $this->hasMany(EventBudget::class); }
+    public function budgets()           { return $this->hasMany(EventBudget::class); }
     public function payments()          { return $this->hasMany(EventPayment::class); }
     public function proposals()         { return $this->hasMany(EventProposal::class); }
 

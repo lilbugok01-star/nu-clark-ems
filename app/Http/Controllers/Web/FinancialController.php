@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Barryvdh\DomPDF\Facade\Pdf;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Schema;
 
 class FinancialController extends Controller implements HasMiddleware
 {
@@ -32,31 +32,62 @@ class FinancialController extends Controller implements HasMiddleware
     // Financial Dashboard - overview of all events' financial data
     public function dashboard(Request $request)
     {
-        $query = Event::with(['budgets', 'payments']);
-        
+        $hasBudgetTable = Schema::hasTable('event_budgets');
+        $hasPaymentTable = Schema::hasTable('event_payments');
+
+        $query = Event::query();
+
+        if ($hasBudgetTable && $hasPaymentTable) {
+            $query->with(['budgets', 'payments']);
+        }
+
         if (Auth::user()->role === 'organizer') {
             $query->where('organizer_id', Auth::id());
         }
 
-        $events = $query->get();
+        $events = $query->orderByDesc('event_date')->paginate(15);
 
         $totalEstimatedBudget = 0;
         $totalActualSpent = 0;
         $totalIncome = 0;
         $totalExpenses = 0;
+        $eventsWithBudgetCount = 0;
 
         foreach ($events as $event) {
-            $totalEstimatedBudget += $event->budgets->sum('estimated_amount');
-            $totalActualSpent += $event->budgets->sum('actual_amount');
-            
-            $totalIncome += $event->payments->where('payment_type', 'income')->sum('amount');
-            $totalExpenses += $event->payments->where('payment_type', 'expense')->sum('amount');
+            $eventEst = ($hasBudgetTable && $event->relationLoaded('budgets')) ? (float) $event->budgets->sum('estimated_amount') : 0;
+            $eventAct = ($hasBudgetTable && $event->relationLoaded('budgets')) ? (float) $event->budgets->sum('actual_amount') : 0;
+            $eventInc = ($hasPaymentTable && $event->relationLoaded('payments')) ? (float) $event->payments->where('payment_type', 'income')->sum('amount') : 0;
+            $eventExp = ($hasPaymentTable && $event->relationLoaded('payments')) ? (float) $event->payments->where('payment_type', 'expense')->sum('amount') : 0;
+
+            $event->total_estimated_budget = $eventEst;
+            $event->total_actual_spent = $eventAct;
+            $event->total_income = $eventInc;
+            $event->total_expenses = $eventExp;
+
+            if ($eventEst > 0 || $eventAct > 0) {
+                $eventsWithBudgetCount++;
+            }
+
+            $totalEstimatedBudget += $eventEst;
+            $totalActualSpent += $eventAct;
+            $totalIncome += $eventInc;
+            $totalExpenses += $eventExp;
         }
 
         $netProfitLoss = $totalIncome - $totalExpenses;
 
+        $stats = [
+            'total_estimated_budget'   => $totalEstimatedBudget,
+            'total_actual_spent'       => $totalActualSpent,
+            'total_income'             => $totalIncome,
+            'total_expenses'           => $totalExpenses,
+            'net_profit_loss'          => $netProfitLoss,
+            'total_events_with_budget' => $eventsWithBudgetCount,
+        ];
+
         return view('admin.financial-dashboard', compact(
             'events', 
+            'stats',
             'totalEstimatedBudget', 
             'totalActualSpent', 
             'totalIncome', 
@@ -68,21 +99,32 @@ class FinancialController extends Controller implements HasMiddleware
     // Event Budget Management - view and manage budget for specific event
     public function eventBudget($eventId)
     {
-        $query = Event::with(['budgets' => function($q) {
-            $q->orderBy('category', 'asc');
-        }]);
+        $hasBudgetTable = Schema::hasTable('event_budgets');
+
+        $query = Event::query();
+        if ($hasBudgetTable) {
+            $query->with(['budgets' => function($q) {
+                $q->orderBy('category', 'asc');
+            }]);
+        }
 
         if (Auth::user()->role === 'organizer') {
             $query->where('organizer_id', Auth::id());
         }
 
         $event = $query->findOrFail($eventId);
-        $budgetItems = $event->budgets;
+        $budgetItems = $hasBudgetTable ? $event->budgets : collect();
+
+        $estimated = (float) $budgetItems->sum('estimated_amount');
+        $actual = (float) $budgetItems->sum('actual_amount');
+        $variance = $estimated - $actual;
 
         $totals = [
-            'estimated' => $budgetItems->sum('estimated_amount'),
-            'actual' => $budgetItems->sum('actual_amount'),
-            'variance' => $budgetItems->sum('estimated_amount') - $budgetItems->sum('actual_amount')
+            'estimated'       => $estimated,
+            'actual'          => $actual,
+            'variance'        => $variance,
+            'total_estimated' => $estimated,
+            'total_actual'    => $actual,
         ];
 
         $categories = EventBudget::budgetCategories();
@@ -99,11 +141,11 @@ class FinancialController extends Controller implements HasMiddleware
         }
 
         $validated = $request->validate([
-            'category' => 'required|string',
-            'description' => 'required|string',
+            'category'         => 'required|string',
+            'description'      => 'required|string',
             'estimated_amount' => 'required|numeric|min:0',
-            'actual_amount' => 'nullable|numeric|min:0',
-            'status' => 'required|in:planned,approved,spent,cancelled'
+            'actual_amount'    => 'nullable|numeric|min:0',
+            'status'           => 'required|in:planned,approved,spent,cancelled'
         ]);
 
         $validated['event_id'] = $eventId;
@@ -126,11 +168,11 @@ class FinancialController extends Controller implements HasMiddleware
         }
 
         $validated = $request->validate([
-            'category' => 'required|string',
-            'description' => 'required|string',
+            'category'         => 'required|string',
+            'description'      => 'required|string',
             'estimated_amount' => 'required|numeric|min:0',
-            'actual_amount' => 'nullable|numeric|min:0',
-            'status' => 'required|in:planned,approved,spent,cancelled'
+            'actual_amount'    => 'nullable|numeric|min:0',
+            'status'           => 'required|in:planned,approved,spent,cancelled'
         ]);
 
         $old = $budgetItem->toArray();
@@ -162,22 +204,32 @@ class FinancialController extends Controller implements HasMiddleware
     // Event Payments - view and manage payments for specific event
     public function eventPayments($eventId)
     {
-        $query = Event::with(['payments' => function($q) {
-            $q->orderBy('payment_date', 'desc');
-        }]);
+        $hasPaymentTable = Schema::hasTable('event_payments');
+
+        $query = Event::query();
+        if ($hasPaymentTable) {
+            $query->with(['payments' => function($q) {
+                $q->orderBy('payment_date', 'desc');
+            }]);
+        }
 
         if (Auth::user()->role === 'organizer') {
             $query->where('organizer_id', Auth::id());
         }
 
         $event = $query->findOrFail($eventId);
-        $payments = $event->payments;
+        $payments = $hasPaymentTable ? $event->payments : collect();
+
+        $income = (float) $payments->where('payment_type', 'income')->sum('amount');
+        $expense = (float) $payments->where('payment_type', 'expense')->sum('amount');
 
         $totals = [
-            'income' => $payments->where('payment_type', 'income')->sum('amount'),
-            'expense' => $payments->where('payment_type', 'expense')->sum('amount'),
+            'income'        => $income,
+            'expense'       => $expense,
+            'net'           => $income - $expense,
+            'total_income'  => $income,
+            'total_expense' => $expense,
         ];
-        $totals['net'] = $totals['income'] - $totals['expense'];
 
         $paymentMethods = EventPayment::paymentMethods();
 
@@ -193,22 +245,21 @@ class FinancialController extends Controller implements HasMiddleware
         }
 
         $validated = $request->validate([
-            'payment_type' => 'required|in:income,expense',
-            'amount' => 'required|numeric|min:0.01',
-            'description' => 'required|string',
-            'payment_method' => 'nullable|string',
-            'payment_date' => 'required|date',
-            'receipt' => 'nullable|file|mimes:jpg,png,pdf|max:5120',
+            'payment_type'     => 'required|in:income,expense',
+            'amount'           => 'required|numeric|min:0.01',
+            'description'      => 'required|string',
+            'payment_method'   => 'nullable|string',
+            'payment_date'     => 'required|date',
+            'receipt'          => 'nullable|file|mimes:jpg,png,pdf|max:5120',
             'reference_number' => 'nullable|string',
-            'notes' => 'nullable|string'
+            'notes'            => 'nullable|string'
         ]);
 
         $validated['event_id'] = $eventId;
         $validated['recorded_by'] = Auth::id();
 
         if ($request->hasFile('receipt')) {
-            $path = $request->file('receipt')->store('receipts', 's3');
-            // If S3 doesn't work locally, could add fallback, but instructions say "same pattern as poster upload"
+            $path = $request->file('receipt')->store('receipts', 'public');
             $validated['receipt_path'] = $path;
         }
 
@@ -249,10 +300,10 @@ class FinancialController extends Controller implements HasMiddleware
         $event = $query->findOrFail($eventId);
 
         $totals = [
-            'estimated_budget' => $event->budgets->sum('estimated_amount'),
-            'actual_spent' => $event->budgets->sum('actual_amount'),
-            'income' => $event->payments->where('payment_type', 'income')->sum('amount'),
-            'expense' => $event->payments->where('payment_type', 'expense')->sum('amount')
+            'estimated_budget' => (float) $event->budgets->sum('estimated_amount'),
+            'actual_spent'     => (float) $event->budgets->sum('actual_amount'),
+            'income'           => (float) $event->payments->where('payment_type', 'income')->sum('amount'),
+            'expense'          => (float) $event->payments->where('payment_type', 'expense')->sum('amount')
         ];
         $totals['net'] = $totals['income'] - $totals['expense'];
 
