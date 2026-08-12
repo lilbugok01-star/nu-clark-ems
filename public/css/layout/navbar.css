@@ -43,15 +43,19 @@
 /* Perfect centering for middle navbar items on desktop screens */
 @media (min-width: 992px) {
     .nu-navbar .container-fluid {
-        position: relative;
+        position: relative !important;
+    }
+    .nu-navbar .navbar-collapse {
+        position: static !important;
     }
     .nu-navbar .navbar-center-nav {
-        position: absolute;
-        left: 50%;
-        top: 50%;
-        transform: translate(-50%, -50%);
+        position: absolute !important;
+        left: 50% !important;
+        top: 50% !important;
+        transform: translate(-50%, -50%) !important;
         margin: 0 !important;
-        z-index: 10;
+        z-index: 1050 !important;
+        white-space: nowrap !important;
     }
 }
 
