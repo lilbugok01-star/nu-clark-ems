@@ -15,7 +15,7 @@
 </style>
 @endpush
 @section('content')
-<div class="container-fluid py-4">
+<div class="container-fluid">
     <div class="row">
         <div class="col-lg-2 col-md-3 p-0">
             @include('layouts.partials.sidebar-admin')
