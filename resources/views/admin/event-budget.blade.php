@@ -68,7 +68,7 @@
                             <i class="bi bi-plus-circle me-1"></i> Add Budget Item
                         </div>
                         <div class="card-body">
-                            <form action="{{ route('admin.financial.budget.store', $event->id) }}" method="POST">
+                            <form action="{{ route('admin.event.budget.store', $event->id) }}" method="POST">
                                 @csrf
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold">Category <span class="text-danger">*</span></label>
@@ -172,7 +172,7 @@
                                                     <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#editModal{{ $item->id }}">
                                                         <i class="bi bi-pencil"></i>
                                                     </button>
-                                                    <form action="{{ route('admin.financial.budget.destroy', [$event->id, $item->id]) }}" method="POST" class="d-inline-block" onsubmit="return confirm('Are you sure you want to delete this item?');">
+                                                    <form action="{{ route('admin.budget.delete', $item->id) }}" method="POST" class="d-inline-block" onsubmit="return confirm('Are you sure you want to delete this item?');">
                                                         @csrf
                                                         @method('DELETE')
                                                         <button type="submit" class="btn btn-sm btn-outline-danger">
@@ -186,7 +186,7 @@
                                             <div class="modal fade" id="editModal{{ $item->id }}" tabindex="-1" aria-hidden="true">
                                                 <div class="modal-dialog">
                                                     <div class="modal-content">
-                                                        <form action="{{ route('admin.financial.budget.update', [$event->id, $item->id]) }}" method="POST">
+                                                        <form action="{{ route('admin.budget.update', $item->id) }}" method="POST">
                                                             @csrf
                                                             @method('PUT')
                                                             <div class="modal-header bg-light">

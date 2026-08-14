@@ -13,6 +13,7 @@ use App\Http\Controllers\Web\ApprovalController;
 use App\Http\Controllers\Web\AnalyticsController;
 use App\Http\Controllers\Web\FinancialController;
 use App\Http\Controllers\Web\ProposalController;
+use App\Http\Controllers\Web\PredictiveAnalyticsController;
 
 // ── Public Routes ────────────────────────────────────────────────────────────
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -232,6 +233,13 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::post('/financial/event/{id}/payments', [FinancialController::class, 'storePayment'])->name('event.payments.store');
     Route::delete('/financial/payment/{id}', [FinancialController::class, 'deletePayment'])->name('payment.delete');
     Route::get('/financial/event/{id}/export-pdf', [FinancialController::class, 'exportPdf'])->name('financial.export-pdf');
+
+    // Predictive Analytics, Scheduling Optimization & Resource Planning
+    Route::get('/predictive', [PredictiveAnalyticsController::class, 'dashboard'])->name('predictive');
+    Route::get('/predictive/event/{id}', [PredictiveAnalyticsController::class, 'eventPrediction'])->name('predictive.event');
+    Route::get('/predictive/schedule-optimizer', [PredictiveAnalyticsController::class, 'scheduleOptimizer'])->name('predictive.schedule');
+    Route::get('/predictive/resource-planner/{id}', [PredictiveAnalyticsController::class, 'resourcePlanner'])->name('predictive.resource');
+    Route::get('/predictive/export-pdf', [PredictiveAnalyticsController::class, 'exportPdf'])->name('predictive.export-pdf');
 });
 
 // Approver Flow

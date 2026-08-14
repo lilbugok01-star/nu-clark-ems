@@ -67,7 +67,7 @@
                             <i class="bi bi-plus-circle me-1"></i> Record Transaction
                         </div>
                         <div class="card-body">
-                            <form action="{{ route('admin.financial.payments.store', $event->id) }}" method="POST" enctype="multipart/form-data">
+                            <form action="{{ route('admin.event.payments.store', $event->id) }}" method="POST" enctype="multipart/form-data">
                                 @csrf
                                 
                                 <div class="mb-3">
@@ -184,7 +184,7 @@
                                                 <td>{{ $payment->reference_number ?? '-' }}</td>
                                                 <td>{{ $payment->recorder->name ?? 'System' }}</td>
                                                 <td class="text-end">
-                                                    <form action="{{ route('admin.financial.payments.destroy', [$event->id, $payment->id]) }}" method="POST" class="d-inline-block" onsubmit="return confirm('Are you sure you want to delete this transaction?');">
+                                                    <form action="{{ route('admin.payment.delete', $payment->id) }}" method="POST" class="d-inline-block" onsubmit="return confirm('Are you sure you want to delete this transaction?');">
                                                         @csrf
                                                         @method('DELETE')
                                                         <button type="submit" class="btn btn-sm btn-outline-danger">

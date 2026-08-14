@@ -24,7 +24,7 @@ class ApprovalController extends Controller implements HasMiddleware
             'auth',
             new Middleware(function ($request, $next) {
                 $role = Auth::user()->role;
-                if (!in_array($role, ['adviser', 'department_head', 'dean', 'executive_director', 'student_development', 'program_chair'])) {
+                if (!in_array($role, ['adviser', 'department_head', 'dean', 'executive_director', 'student_development', 'program_chair', 'admin'])) {
                     abort(403, 'Access denied. Approver roles only.');
                 }
                 return $next($request);
