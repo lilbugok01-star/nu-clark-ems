@@ -267,7 +267,10 @@ class OrganizerController extends Controller implements HasMiddleware
     {
         $user = Auth::user();
         $events = Event::where('organizer_id', $user->id)
-            ->withCount(['registrations', 'attendances as verified_count' => fn($q) => $q->where('attendances.status', 'verified')])
+            ->withCount([
+                'registrations',
+                'registrations as verified_count' => fn($q) => $q->whereHas('attendance', fn($sq) => $sq->where('status', 'verified'))
+            ])
             ->orderByDesc('event_date')->get();
         return view('organizer.analytics', compact('events'));
     }

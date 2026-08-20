@@ -178,11 +178,12 @@ class ParticipationAnalyticsService
             
             if ($registered > 0) {
                 $results[] = [
-                    'event_id' => $event->id,
-                    'title' => $event->title,
-                    'score' => $score,
-                    'fill_rate' => round($fill_rate * 100, 1),
-                    'attendance_rate' => round($attendance_rate * 100, 1)
+                    'event_id'         => $event->id,
+                    'title'            => $event->title,
+                    'score'            => $score,
+                    'engagement_score' => $score,
+                    'fill_rate'        => round($fill_rate * 100, 1),
+                    'attendance_rate'  => round($attendance_rate * 100, 1)
                 ];
             }
         }
@@ -193,20 +194,20 @@ class ParticipationAnalyticsService
 
     public function peakParticipationTimes(): array
     {
-        $events = Event::whereNotNull('start_time')->get();
+        $events = Event::whereNotNull('start_time')->whereNotNull('event_date')->get();
         $times = [];
         
         foreach ($events as $event) {
             $registered = Registration::where('event_id', $event->id)->count();
             if ($registered > 0 && $event->event_date) {
-                $day = Carbon::parse($event->event_date)->format('l');
-                $hour = Carbon::parse($event->start_time)->format('G'); 
+                $day = Carbon::parse($event->event_date)->format('D'); // 'Mon', 'Tue', etc.
+                $hour = (int) Carbon::parse($event->start_time)->format('G'); 
                 
                 $key = $day . '_' . $hour;
                 if (!isset($times[$key])) {
                     $times[$key] = [
                         'day' => $day,
-                        'hour' => (int)$hour,
+                        'hour' => $hour,
                         'count' => 0
                     ];
                 }
@@ -272,12 +273,15 @@ class ParticipationAnalyticsService
             
             if ($registered > 0 && ($fillRate < 25 || $attendanceRate < 40)) {
                 $results[] = [
-                    'event_id' => $event->id,
-                    'title' => $event->title,
-                    'fill_rate' => round($fillRate, 1),
+                    'event_id'        => $event->id,
+                    'title'           => $event->title,
+                    'event_date'      => $event->event_date,
+                    'fill_rate'       => round($fillRate, 1),
                     'attendance_rate' => round($attendanceRate, 1),
-                    'registered' => $registered,
-                    'capacity' => $capacity
+                    'registered'      => $registered,
+                    'attended'        => $attended,
+                    'capacity'        => $capacity,
+                    'issue'           => $fillRate < 25 ? 'Low Registration' : 'Low Attendance'
                 ];
             }
         }
@@ -293,12 +297,21 @@ class ParticipationAnalyticsService
         $activeStudents = Registration::distinct('user_id')->count('user_id');
         
         $overallAttendanceRate = $totalRegistrations > 0 ? round(($totalAttendances / $totalRegistrations) * 100, 1) : 0.0;
+        $avgRegistrationsPerEvent = $totalEvents > 0 ? round($totalRegistrations / $totalEvents, 1) : 0.0;
+        $mostPopularCategory = Event::whereNotNull('category')
+            ->select('category', DB::raw('count(*) as count'))
+            ->groupBy('category')
+            ->orderByDesc('count')
+            ->value('category') ?? 'N/A';
         
         return [
-            'total_events' => $totalEvents,
-            'total_registrations' => $totalRegistrations,
-            'overall_attendance_rate' => $overallAttendanceRate,
-            'active_students' => $activeStudents
+            'total_events'                => $totalEvents,
+            'total_registrations'         => $totalRegistrations,
+            'total_attendances'           => $totalAttendances,
+            'overall_attendance_rate'     => $overallAttendanceRate,
+            'avg_registrations_per_event' => $avgRegistrationsPerEvent,
+            'most_popular_category'       => $mostPopularCategory,
+            'active_students'             => $activeStudents
         ];
     }
 }

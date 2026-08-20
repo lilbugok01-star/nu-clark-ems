@@ -361,23 +361,11 @@
                                 
                                 if(isset($peakTimes) && is_array($peakTimes)) {
                                     foreach($peakTimes as $pt) {
-                                        if($pt['count'] > $maxCount) {
+                                        if(($pt['count'] ?? 0) > $maxCount) {
                                             $maxCount = $pt['count'];
                                         }
-                                        $heatmapData[$pt['day']][$pt['hour']] = $pt['count'];
+                                        $heatmapData[$pt['day']][$pt['hour']] = $pt['count'] ?? 0;
                                     }
-                                }
-                                
-                                function getIntensityColor($count, $max) {
-                                    if($count == 0) return '#f1f5f9';
-                                    $intensity = $count / $max;
-                                    
-                                    // NU Blue base color (#003087) mapping to different opacities/lightness
-                                    if($intensity < 0.2) return 'rgba(0, 48, 135, 0.2)';
-                                    if($intensity < 0.4) return 'rgba(0, 48, 135, 0.4)';
-                                    if($intensity < 0.6) return 'rgba(0, 48, 135, 0.6)';
-                                    if($intensity < 0.8) return 'rgba(0, 48, 135, 0.8)';
-                                    return 'rgba(0, 48, 135, 1)';
                                 }
                             @endphp
                             
@@ -396,7 +384,18 @@
                                         @foreach($hours as $hour)
                                             @php
                                                 $count = $heatmapData[$day][$hour] ?? 0;
-                                                $color = getIntensityColor($count, $maxCount);
+                                                $intensity = $count / max($maxCount, 1);
+                                                if ($count == 0) {
+                                                    $color = '#f1f5f9';
+                                                } elseif ($intensity < 0.25) {
+                                                    $color = 'rgba(0, 48, 135, 0.25)';
+                                                } elseif ($intensity < 0.50) {
+                                                    $color = 'rgba(0, 48, 135, 0.50)';
+                                                } elseif ($intensity < 0.75) {
+                                                    $color = 'rgba(0, 48, 135, 0.75)';
+                                                } else {
+                                                    $color = 'rgba(0, 48, 135, 1)';
+                                                }
                                                 $tooltip = $count > 0 ? "{$day} {$hour}:00 - {$count} interactions" : "No interactions";
                                             @endphp
                                             <div class="heatmap-cell" style="background-color: {{ $color }}" title="{{ $tooltip }}"></div>
@@ -448,28 +447,29 @@
                                     @if(isset($engagementScores) && count($engagementScores) > 0)
                                         @foreach(array_slice($engagementScores, 0, 8) as $score)
                                             @php
-                                                $scoreColor = $score['engagement_score'] >= 70 ? '#16a34a' : ($score['engagement_score'] >= 40 ? '#f59e0b' : '#ef4444');
+                                                $engScore = $score['engagement_score'] ?? $score['score'] ?? 0;
+                                                $scoreColor = $engScore >= 70 ? '#16a34a' : ($engScore >= 40 ? '#f59e0b' : '#ef4444');
                                             @endphp
                                             <tr>
-                                                <td class="fw-medium">{{ Str::limit($score['title'], 30) }}</td>
+                                                <td class="fw-medium">{{ Str::limit($score['title'] ?? 'Event', 30) }}</td>
                                                 <td>
                                                     <div class="d-flex align-items-center gap-2">
-                                                        <span style="font-size: 0.75rem; width: 35px;">{{ number_format($score['fill_rate'], 0) }}%</span>
+                                                        <span style="font-size: 0.75rem; width: 35px;">{{ number_format($score['fill_rate'] ?? 0, 0) }}%</span>
                                                         <div class="progress-bar-custom flex-grow-1">
-                                                            <div class="progress-bar-fill" style="width: {{ min(100, $score['fill_rate']) }}%; background-color: #0ea5e9;"></div>
+                                                            <div class="progress-bar-fill" style="width: {{ min(100, $score['fill_rate'] ?? 0) }}%; background-color: #0ea5e9;"></div>
                                                         </div>
                                                     </div>
                                                 </td>
                                                 <td>
                                                     <div class="d-flex align-items-center gap-2">
-                                                        <span style="font-size: 0.75rem; width: 35px;">{{ number_format($score['attendance_rate'], 0) }}%</span>
+                                                        <span style="font-size: 0.75rem; width: 35px;">{{ number_format($score['attendance_rate'] ?? 0, 0) }}%</span>
                                                         <div class="progress-bar-custom flex-grow-1">
-                                                            <div class="progress-bar-fill" style="width: {{ min(100, $score['attendance_rate']) }}%; background-color: var(--nu-gold);"></div>
+                                                            <div class="progress-bar-fill" style="width: {{ min(100, $score['attendance_rate'] ?? 0) }}%; background-color: var(--nu-gold);"></div>
                                                         </div>
                                                     </div>
                                                 </td>
                                                 <td>
-                                                    <span class="badge" style="background-color: {{ $scoreColor }};">{{ number_format($score['engagement_score'], 1) }}</span>
+                                                    <span class="badge" style="background-color: {{ $scoreColor }};">{{ number_format($engScore, 1) }}</span>
                                                 </td>
                                             </tr>
                                         @endforeach
@@ -507,25 +507,29 @@
                         <tbody>
                             @if(isset($underparticipated) && count($underparticipated) > 0)
                                 @foreach($underparticipated as $event)
+                                    @php
+                                        $eventDateStr = isset($event['event_date']) && $event['event_date'] ? \Carbon\Carbon::parse($event['event_date'])->format('M d, Y') : '—';
+                                        $issue = $event['issue'] ?? 'Attention Needed';
+                                    @endphp
                                     <tr>
-                                        <td class="fw-medium text-dark">{{ $event['title'] }}</td>
-                                        <td>{{ \Carbon\Carbon::parse($event['event_date'])->format('M d, Y') }}</td>
+                                        <td class="fw-medium text-dark">{{ $event['title'] ?? 'Event' }}</td>
+                                        <td>{{ $eventDateStr }}</td>
                                         <td class="text-center">{{ $event['capacity'] ?? 'N/A' }}</td>
-                                        <td class="text-center">{{ $event['registered'] }}</td>
-                                        <td class="text-center">{{ $event['attended'] }}</td>
+                                        <td class="text-center">{{ $event['registered'] ?? 0 }}</td>
+                                        <td class="text-center">{{ $event['attended'] ?? 0 }}</td>
                                         <td class="text-center">
                                             <div class="small">
-                                                Fill: <span class="{{ $event['fill_rate'] < 50 ? 'text-danger fw-bold' : '' }}">{{ number_format($event['fill_rate'], 1) }}%</span><br>
-                                                Att: <span class="{{ $event['attendance_rate'] < 50 ? 'text-danger fw-bold' : '' }}">{{ number_format($event['attendance_rate'], 1) }}%</span>
+                                                Fill: <span class="{{ ($event['fill_rate'] ?? 0) < 50 ? 'text-danger fw-bold' : '' }}">{{ number_format($event['fill_rate'] ?? 0, 1) }}%</span><br>
+                                                Att: <span class="{{ ($event['attendance_rate'] ?? 0) < 50 ? 'text-danger fw-bold' : '' }}">{{ number_format($event['attendance_rate'] ?? 0, 1) }}%</span>
                                             </div>
                                         </td>
                                         <td>
-                                            @if($event['issue'] == 'Low Registration')
+                                            @if($issue === 'Low Registration')
                                                 <span class="badge badge-soft badge-soft-danger"><i class="bi bi-ticket-detailed me-1"></i>Low Registration</span>
-                                            @elseif($event['issue'] == 'Low Attendance')
+                                            @elseif($issue === 'Low Attendance')
                                                 <span class="badge badge-soft badge-soft-warning"><i class="bi bi-people-fill me-1"></i>Low Attendance</span>
                                             @else
-                                                <span class="badge badge-soft badge-soft-danger">{{ $event['issue'] }}</span>
+                                                <span class="badge badge-soft badge-soft-danger">{{ $issue }}</span>
                                             @endif
                                         </td>
                                     </tr>
