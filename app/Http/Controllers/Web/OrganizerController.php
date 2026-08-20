@@ -276,8 +276,9 @@ class OrganizerController extends Controller implements HasMiddleware
 
     /**
      * GET /organizer/scan/{token}
-     * Universal camera-based QR check-in. Scans the student's QR code URL
-     * and automatically marks attendance as verified.
+     * Universal camera-based QR check-in & check-out.
+     * 1st Scan: Time In (Check-in)
+     * 2nd Scan: Time Out (Check-out)
      */
     public function scanQr($token)
     {
@@ -314,10 +315,10 @@ class OrganizerController extends Controller implements HasMiddleware
                 return view('organizer.scan-result', ['status' => 'error', 'message' => 'This QR Code has expired. Please refresh the QR code on the student app.']);
             }
 
-            $registration = Registration::with(['event', 'user'])->find($registrationId);
+            $registration = Registration::with(['event', 'user', 'attendance'])->find($registrationId);
             $isRotating = true;
         } else {
-            $registration = Registration::with(['event', 'user'])->where('qr_token', $token)->first();
+            $registration = Registration::with(['event', 'user', 'attendance'])->where('qr_token', $token)->first();
         }
 
         if (!$registration) {
@@ -373,64 +374,88 @@ class OrganizerController extends Controller implements HasMiddleware
         $eventStartTime = \Carbon\Carbon::parse($eventDate . ' ' . $event->start_time, 'Asia/Manila');
         $eventEndTime   = \Carbon\Carbon::parse($eventDate . ' ' . $event->end_time, 'Asia/Manila');
 
-        if ($now->lt($eventStartTime) || $now->gt($eventEndTime)) {
-            \App\Models\AttendanceAuditLog::create([
-                'user_id' => $registration->user_id,
-                'event_id' => $registration->event_id,
-                'registration_id' => $registration->id,
-                'qr_token' => $token,
-                'action' => 'scan_qr',
-                'status' => 'outside_event_window',
-                'ip_address' => request()->ip(),
-                'device_info' => request()->userAgent(),
-            ]);
+        // Early check-in allowed 30 mins prior; check-out allowed up to 3 hours after event end (or entire event day)
+        $earlyWindow = $eventStartTime->copy()->subMinutes(30);
+        $lateWindow  = $eventEndTime->copy()->addHours(3);
+
+        if ($now->lt($earlyWindow)) {
             $start = $eventStartTime->format('h:i A');
-            $end   = $eventEndTime->format('h:i A');
             return view('organizer.scan-result', [
                 'status' => 'error',
-                'message' => "Attendance is only open during the event window ({$start} – {$end}).",
+                'message' => "Attendance scanner opens 30 minutes before event start ({$start}).",
             ]);
         }
 
-        if ($registration->attendance) {
+        // ── Case 1: First Scan -> Time In (Check-in) ─────────────────────
+        if (!$registration->attendance) {
+            $attendance = Attendance::create([
+                'registration_id' => $registration->id,
+                'checked_in_at'   => now(),
+                'status'          => 'verified',
+            ]);
+
             \App\Models\AttendanceAuditLog::create([
                 'user_id' => $registration->user_id,
                 'event_id' => $registration->event_id,
                 'registration_id' => $registration->id,
                 'qr_token' => $token,
-                'action' => 'scan_qr',
-                'status' => 'duplicate',
+                'action' => 'scan_time_in',
+                'status' => 'success',
                 'ip_address' => request()->ip(),
                 'device_info' => request()->userAgent(),
             ]);
+
             return view('organizer.scan-result', [
-                'status' => 'warning',
-                'message' => 'This student has already checked in.',
+                'status'       => 'time_in',
+                'message'      => 'Time In Recorded Successfully!',
                 'registration' => $registration,
+                'attendance'   => $attendance,
             ]);
         }
 
-        Attendance::create([
-            'registration_id' => $registration->id,
-            'checked_in_at'   => now(),
-            'status'          => 'verified',
-        ]);
+        // ── Case 2: Second Scan -> Time Out (Check-out) ──────────────────
+        $attendance = $registration->attendance;
+        if (!$attendance->checked_out_at) {
+            $attendance->update([
+                'checked_out_at' => now(),
+            ]);
 
+            \App\Models\AttendanceAuditLog::create([
+                'user_id' => $registration->user_id,
+                'event_id' => $registration->event_id,
+                'registration_id' => $registration->id,
+                'qr_token' => $token,
+                'action' => 'scan_time_out',
+                'status' => 'success',
+                'ip_address' => request()->ip(),
+                'device_info' => request()->userAgent(),
+            ]);
+
+            return view('organizer.scan-result', [
+                'status'       => 'time_out',
+                'message'      => 'Time Out Recorded Successfully!',
+                'registration' => $registration,
+                'attendance'   => $attendance->fresh(),
+            ]);
+        }
+
+        // ── Case 3: Subsequent Scans -> Already Completed Both In & Out ──
         \App\Models\AttendanceAuditLog::create([
             'user_id' => $registration->user_id,
             'event_id' => $registration->event_id,
             'registration_id' => $registration->id,
             'qr_token' => $token,
             'action' => 'scan_qr',
-            'status' => 'success',
+            'status' => 'already_completed',
             'ip_address' => request()->ip(),
             'device_info' => request()->userAgent(),
         ]);
 
         return view('organizer.scan-result', [
-            'status' => 'success',
-            'message' => 'Successfully Checked In!',
+            'status'       => 'already_completed',
+            'message'      => 'Student has already completed both Time In and Time Out.',
             'registration' => $registration,
+            'attendance'   => $attendance,
         ]);
     }
 }

@@ -110,18 +110,19 @@
                             </td>
                             <td class="px-3 small text-muted">{{ $reg->created_at->format('M d, Y') }}</td>
                             <td class="px-3">
-                                @if($attStatus === 'verified')
-                                    <span class="badge rounded-pill px-2 py-1" style="background:#dcfce7;color:#166534;font-size:.7rem">
-                                        <i class="bi bi-check-circle-fill me-1"></i>Verified
-                                    </span>
-                                @elseif($attStatus === 'pending')
-                                    <span class="badge rounded-pill px-2 py-1" style="background:#fef9c3;color:#854d0e;font-size:.7rem">
-                                        <i class="bi bi-clock me-1"></i>Pending
-                                    </span>
-                                @elseif($attStatus === 'rejected')
-                                    <span class="badge rounded-pill px-2 py-1" style="background:#fee2e2;color:#991b1b;font-size:.7rem">
-                                        <i class="bi bi-x-circle-fill me-1"></i>Rejected
-                                    </span>
+                                @if($att)
+                                    <div class="d-flex flex-column gap-1">
+                                        @if($att->checked_in_at)
+                                            <span class="badge rounded-pill px-2 py-1" style="background:#dcfce7;color:#166534;font-size:.7rem">
+                                                <i class="bi bi-box-arrow-in-right me-1"></i>In: {{ $att->checked_in_at->format('h:i A') }}
+                                            </span>
+                                        @endif
+                                        @if($att->checked_out_at)
+                                            <span class="badge rounded-pill px-2 py-1" style="background:#dbeafe;color:#1e40af;font-size:.7rem">
+                                                <i class="bi bi-box-arrow-right me-1"></i>Out: {{ $att->checked_out_at->format('h:i A') }}
+                                            </span>
+                                        @endif
+                                    </div>
                                 @else
                                     <span class="badge rounded-pill px-2 py-1" style="background:#f1f5f9;color:#64748b;font-size:.7rem">
                                         <i class="bi bi-dash-circle me-1"></i>No Record

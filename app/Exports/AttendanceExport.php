@@ -20,7 +20,7 @@ class AttendanceExport implements FromCollection, WithHeadings, WithMapping
 
     public function headings(): array
     {
-        return ['#', 'Student Name', 'Student ID', 'Email', 'Course', 'Section', 'Checked In At', 'Status', 'Verified By'];
+        return ['#', 'Student Name', 'Student ID', 'Email', 'Course', 'Section', 'Checked In At (Time In)', 'Checked Out At (Time Out)', 'Status', 'Verified By'];
     }
 
     public function map($row): array
@@ -33,6 +33,7 @@ class AttendanceExport implements FromCollection, WithHeadings, WithMapping
             $row->registration->user->course->name ?? '-',
             $row->registration->user->section->name ?? '-',
             $row->checked_in_at?->format('Y-m-d H:i') ?? '-',
+            $row->checked_out_at?->format('Y-m-d H:i') ?? '-',
             ucfirst($row->status),
             $row->verifiedBy->full_name ?? 'Not verified',
         ];

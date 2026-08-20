@@ -51,7 +51,8 @@
                 <th>Student Name</th>
                 <th>Student ID</th>
                 <th>Course / Section</th>
-                <th>Check-in Time</th>
+                <th>Time In</th>
+                <th>Time Out</th>
                 <th>Status</th>
             </tr>
         </thead>
@@ -62,11 +63,12 @@
                 <td>{{ $att->registration?->user?->full_name ?? '-' }}</td>
                 <td>{{ $att->registration?->user?->student_id ?? '-' }}</td>
                 <td>{{ $att->registration?->user?->course?->code ?? '' }} {{ $att->registration?->user?->section?->name ?? '' }}</td>
-                <td>{{ $att->checked_in_at?->format('H:i') ?? '-' }}</td>
+                <td>{{ $att->checked_in_at?->format('h:i A') ?? '-' }}</td>
+                <td>{{ $att->checked_out_at?->format('h:i A') ?? '--:--' }}</td>
                 <td><span class="badge {{ $att->status }}">{{ ucfirst($att->status) }}</span></td>
             </tr>
             @empty
-            <tr><td colspan="6" style="text-align:center;color:#999">No attendance records found.</td></tr>
+            <tr><td colspan="7" style="text-align:center;color:#999">No attendance records found.</td></tr>
             @endforelse
         </tbody>
     </table>

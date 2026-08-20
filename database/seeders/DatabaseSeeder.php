@@ -126,13 +126,27 @@ class DatabaseSeeder extends Seeder
             ]);
         }
 
-        // ── Sample Events ─────────────────────────
+        // ── Clean up any dummy test events ───────
+        Event::where('title', 'like', '%System Test Event%')->delete();
+
+        // ── Sample Events (2026 Academic Year) ───
         $events = [
             [
-                'title'       => 'NU Clark Acquaintance Party 2025',
+                'title'       => 'NU Clark Tech Expo & QR Summit 2026 (LIVE DEMO)',
+                'description' => 'Official technology showcase and live event management demo for National University Clark. Experience the live QR two-scan In & Out attendance system.',
+                'venue'       => 'NU Clark Auditorium',
+                'event_date'  => now()->toDateString(), // LIVE TODAY for instant defense demo
+                'start_time'  => '08:00',
+                'end_time'    => '20:00',
+                'capacity'    => 350,
+                'category'    => 'Academic',
+                'is_featured' => true,
+            ],
+            [
+                'title'       => 'NU Clark Acquaintance Party 2026',
                 'description' => 'Annual acquaintance party for all incoming freshmen students of National University Clark. Meet your professors, upperclassmen, and fellow new students.',
                 'venue'       => 'NU Clark Gymnasium',
-                'event_date'  => now()->addDays(10)->toDateString(),
+                'event_date'  => now()->addDays(5)->toDateString(),
                 'start_time'  => '10:00',
                 'end_time'    => '17:00',
                 'capacity'    => 500,
@@ -140,10 +154,10 @@ class DatabaseSeeder extends Seeder
                 'is_featured' => true,
             ],
             [
-                'title'       => 'IT Summit 2025: Future of AI',
+                'title'       => 'IT Summit 2026: Future of AI & Cloud Systems',
                 'description' => 'Join us for a full-day technology summit featuring speakers from the industry on the future of Artificial Intelligence, Machine Learning, and emerging technologies.',
                 'venue'       => 'NU Clark Auditorium',
-                'event_date'  => now()->addDays(20)->toDateString(),
+                'event_date'  => now()->addDays(12)->toDateString(),
                 'start_time'  => '08:00',
                 'end_time'    => '17:00',
                 'capacity'    => 300,
@@ -162,10 +176,10 @@ class DatabaseSeeder extends Seeder
                 'is_featured' => false,
             ],
             [
-                'title'       => 'NU Clark Sports Festival 2025',
+                'title'       => 'NU Clark Sports Festival 2026',
                 'description' => 'Annual intramural sports competition open to all departments. Compete in basketball, volleyball, badminton, and more!',
                 'venue'       => 'NU Clark Sports Complex',
-                'event_date'  => now()->addDays(30)->toDateString(),
+                'event_date'  => now()->addDays(20)->toDateString(),
                 'start_time'  => '07:00',
                 'end_time'    => '18:00',
                 'capacity'    => 1000,
@@ -184,10 +198,10 @@ class DatabaseSeeder extends Seeder
                 'is_featured' => false,
             ],
             [
-                'title'       => 'Seminar on Cyber Security',
+                'title'       => 'Seminar on Cyber Security & Ethical Hacking',
                 'description' => 'A seminar discussing the latest trends in cybersecurity and ethical hacking.',
                 'venue'       => 'NU Clark Auditorium',
-                'event_date'  => now()->addDays(5)->toDateString(),
+                'event_date'  => now()->addDays(18)->toDateString(),
                 'start_time'  => '13:00',
                 'end_time'    => '16:00',
                 'capacity'    => 200,
@@ -195,10 +209,10 @@ class DatabaseSeeder extends Seeder
                 'is_featured' => false,
             ],
             [
-                'title'       => 'NU Clark Foundation Day',
+                'title'       => 'NU Clark Foundation Day 2026',
                 'description' => 'Celebrate the founding anniversary of NU Clark with food, music, and activities.',
                 'venue'       => 'NU Clark Open Grounds',
-                'event_date'  => now()->addDays(40)->toDateString(),
+                'event_date'  => now()->addDays(30)->toDateString(),
                 'start_time'  => '08:00',
                 'end_time'    => '20:00',
                 'capacity'    => 2000,
@@ -206,10 +220,10 @@ class DatabaseSeeder extends Seeder
                 'is_featured' => true,
             ],
             [
-                'title'       => 'Job Fair 2025',
+                'title'       => 'Job Fair 2026',
                 'description' => 'Annual career and job fair with top companies in the region offering internships and fresh grad roles.',
                 'venue'       => 'NU Clark Function Hall',
-                'event_date'  => now()->addDays(45)->toDateString(),
+                'event_date'  => now()->addDays(25)->toDateString(),
                 'start_time'  => '09:00',
                 'end_time'    => '17:00',
                 'capacity'    => 1000,
@@ -217,159 +231,66 @@ class DatabaseSeeder extends Seeder
                 'is_featured' => true,
             ],
             [
-                'title'       => 'Mental Health Awareness Talk',
-                'description' => 'A psychological health seminar focusing on stress management for students.',
-                'venue'       => 'NU Clark Mini Theater',
-                'event_date'  => now()->addDays(2)->toDateString(),
-                'start_time'  => '10:00',
-                'end_time'    => '12:00',
-                'capacity'    => 100,
-                'category'    => 'Seminar',
-                'is_featured' => false,
-            ],
-            [
-                'title'       => 'Business Plan Pitching Competition',
-                'description' => 'BSBA students will pitch their innovative business plans to industry experts.',
-                'venue'       => 'NU Clark Auditorium',
-                'event_date'  => now()->addDays(25)->toDateString(),
-                'start_time'  => '13:00',
-                'end_time'    => '18:00',
-                'capacity'    => 250,
-                'category'    => 'Academic',
-                'is_featured' => true,
-            ],
-            [
-                'title'       => 'Hackathon 2025: Code for Good',
+                'title'       => 'Hackathon 2026: Code for Good',
                 'description' => 'A 24-hour coding competition where students build software solutions for social issues.',
                 'venue'       => 'IT Laboratories 1-3',
-                'event_date'  => now()->addDays(50)->toDateString(),
+                'event_date'  => now()->addDays(35)->toDateString(),
                 'start_time'  => '08:00',
                 'end_time'    => '17:00',
                 'capacity'    => 150,
                 'category'    => 'Academic',
                 'is_featured' => true,
             ],
-            [
-                'title'       => 'Tourism & Hospitality Expo',
-                'description' => 'Explore various cuisines and tourism exhibits managed by the BSHM department.',
-                'venue'       => 'NU Clark Function Hall',
-                'event_date'  => now()->addDays(12)->toDateString(),
-                'start_time'  => '10:00',
-                'end_time'    => '16:00',
-                'capacity'    => 400,
-                'category'    => 'Social',
-                'is_featured' => false,
-            ],
-            [
-                'title'       => 'Financial Literacy Masterclass',
-                'description' => 'Learn personal finance, investing, and wealth building from top financial advisors.',
-                'venue'       => 'NU Clark Auditorium',
-                'event_date'  => now()->addDays(8)->toDateString(),
-                'start_time'  => '13:00',
-                'end_time'    => '16:00',
-                'capacity'    => 300,
-                'category'    => 'Seminar',
-                'is_featured' => false,
-            ],
-            [
-                'title'       => 'Nursing Capping & Pinning Ceremony',
-                'description' => 'The traditional ceremony honoring our nursing students before their clinical deployment.',
-                'venue'       => 'NU Clark Gymnasium',
-                'event_date'  => now()->addDays(55)->toDateString(),
-                'start_time'  => '14:00',
-                'end_time'    => '18:00',
-                'capacity'    => 800,
-                'category'    => 'Academic',
-                'is_featured' => true,
-            ],
-            [
-                'title'       => 'English Proficiency Workshop',
-                'description' => 'A free workshop to enhance conversational and academic English skills.',
-                'venue'       => 'Room 302',
-                'event_date'  => now()->addDays(14)->toDateString(),
-                'start_time'  => '15:00',
-                'end_time'    => '17:00',
-                'capacity'    => 50,
-                'category'    => 'Academic',
-                'is_featured' => false,
-            ],
-            [
-                'title'       => 'Architecture Model Exhibit',
-                'description' => 'A showcase of scale models and design projects by architecture students.',
-                'venue'       => 'Main Lobby',
-                'event_date'  => now()->addDays(22)->toDateString(),
-                'start_time'  => '08:00',
-                'end_time'    => '17:00',
-                'capacity'    => 300,
-                'category'    => 'Arts',
-                'is_featured' => false,
-            ],
-            [
-                'title'       => 'Student Leaders Congress',
-                'description' => 'A gathering of all organization officers to draft the student activity calendar.',
-                'venue'       => 'NU Clark Conference Room',
-                'event_date'  => now()->addDays(6)->toDateString(),
-                'start_time'  => '09:00',
-                'end_time'    => '12:00',
-                'capacity'    => 60,
-                'category'    => 'Leadership',
-                'is_featured' => false,
-            ],
-            [
-                'title'       => 'E-Sports Tournament: Valorant',
-                'description' => 'The official inter-department Valorant tournament. Watch the best gamers compete!',
-                'venue'       => 'NU Clark Mini Theater',
-                'event_date'  => now()->addDays(18)->toDateString(),
-                'start_time'  => '10:00',
-                'end_time'    => '18:00',
-                'capacity'    => 200,
-                'category'    => 'Sports',
-                'is_featured' => true,
-            ],
-            [
-                'title'       => 'Environmental Awareness Drive',
-                'description' => 'Join the green revolution. Seminar followed by a tree-planting activity.',
-                'venue'       => 'NU Clark Open Grounds',
-                'event_date'  => now()->addDays(35)->toDateString(),
-                'start_time'  => '07:00',
-                'end_time'    => '12:00',
-                'capacity'    => 500,
-                'category'    => 'Social',
-                'is_featured' => false,
-            ],
-            [
-                'title'       => 'NU Clark Got Talent',
-                'description' => 'The ultimate talent search for singing, dancing, and unique performances.',
-                'venue'       => 'NU Clark Gymnasium',
-                'event_date'  => now()->addDays(60)->toDateString(),
-                'start_time'  => '18:00',
-                'end_time'    => '22:00',
-                'capacity'    => 1000,
-                'category'    => 'Arts',
-                'is_featured' => true,
-            ],
         ];
 
-        foreach ($events as $eData) {
-            $event = Event::firstOrCreate(
+        $students = User::where('role', 'student')->get();
+
+        foreach ($events as $index => $eData) {
+            $event = Event::updateOrCreate(
                 ['title' => $eData['title']],
                 [...$eData, 'organizer_id' => $org1->id, 'status' => 'published']
             );
 
-            // Register a few students for the first 2 events
-            if (in_array($event->title, ['NU Clark Acquaintance Party 2025', 'IT Summit 2025: Future of AI'])) {
-                $students = User::where('role', 'student')->get();
-                foreach ($students as $student) {
-                    if (!Registration::where('user_id', $student->id)->where('event_id', $event->id)->exists()) {
-                        Registration::create([
-                            'user_id'       => $student->id,
-                            'event_id'      => $event->id,
-                            'qr_token'      => Registration::generateQrToken($student->id, $event->id),
-                            'qr_expires_at' => \Carbon\Carbon::parse($eData['event_date'] . ' ' . substr((string)$event->end_time, 0, 5))->addDay(),
-                            'status'        => 'confirmed',
-                            'registered_at' => now(),
-                        ]);
+            // Register students for demo events
+            foreach ($students as $sIndex => $student) {
+                $reg = Registration::firstOrCreate(
+                    ['user_id' => $student->id, 'event_id' => $event->id],
+                    [
+                        'qr_token'      => Registration::generateQrToken($student->id, $event->id),
+                        'qr_expires_at' => \Carbon\Carbon::parse($eData['event_date'] . ' ' . substr((string)$event->end_time, 0, 5))->addDay(),
+                        'status'        => 'confirmed',
+                        'registered_at' => now(),
+                    ]
+                );
+
+                // For the LIVE event (index 0), seed realistic attendances
+                if ($index === 0) {
+                    if ($sIndex === 0) {
+                        // Student 1: Both Time In and Time Out completed
+                        \App\Models\Attendance::updateOrCreate(
+                            ['registration_id' => $reg->id],
+                            [
+                                'checked_in_at'  => now()->subHours(4),
+                                'checked_out_at' => now()->subHours(1),
+                                'status'         => 'verified',
+                                'verified_by'    => $org1->id,
+                                'verified_at'    => now()->subHours(4),
+                            ]
+                        );
+                    } elseif ($sIndex === 1) {
+                        // Student 2: Time In recorded, Time Out pending (active in event)
+                        \App\Models\Attendance::updateOrCreate(
+                            ['registration_id' => $reg->id],
+                            [
+                                'checked_in_at'  => now()->subHours(2),
+                                'checked_out_at' => null,
+                                'status'         => 'verified',
+                                'verified_by'    => $org1->id,
+                                'verified_at'    => now()->subHours(2),
+                            ]
+                        );
                     }
+                    // Remaining students: Registered, ready for live scanner demonstration!
                 }
             }
         }

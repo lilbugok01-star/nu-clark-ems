@@ -130,8 +130,9 @@ class AttendanceController extends Controller
 
         $eventStartTime = \Carbon\Carbon::parse($event->event_date->toDateString() . ' ' . $event->start_time, 'Asia/Manila');
         $eventEndTime   = \Carbon\Carbon::parse($event->event_date->toDateString() . ' ' . $event->end_time, 'Asia/Manila');
+        $earlyWindow    = $eventStartTime->copy()->subMinutes(30);
 
-        if ($now->lt($eventStartTime) || $now->gt($eventEndTime)) {
+        if ($now->lt($earlyWindow)) {
             \App\Models\AttendanceAuditLog::create([
                 'user_id' => $registration->user_id,
                 'event_id' => $registration->event_id,
@@ -143,29 +144,65 @@ class AttendanceController extends Controller
                 'device_info' => request()->userAgent(),
             ]);
             $start = $eventStartTime->format('h:i A');
-            $end   = $eventEndTime->format('h:i A');
-            \Illuminate\Support\Facades\Log::warning("Attendance Rejected (Time): User [{$registration->user->id}] attempted check-in for event [{$event->id}] at [{$now->format('H:i:s')}] but window is [{$event->start_time} - {$event->end_time}].");
+            \Illuminate\Support\Facades\Log::warning("Attendance Rejected (Time): User [{$registration->user->id}] attempted check-in for event [{$event->id}] at [{$now->format('H:i:s')}] but window starts at [{$event->start_time}].");
             return response()->json([
                 'status'  => 'error',
-                'message' => "Attendance is only open during the event window ({$start} – {$end}).",
+                'message' => "Attendance check-in opens 30 minutes before the event starts ({$start}).",
             ], 422);
         }
 
+        // ── Second Scan: Record Check-Out (Time Out) ─────────────────────
         if ($registration->attendance) {
+            $attendance = $registration->attendance;
+
+            if (!$attendance->checked_out_at) {
+                $attendance->update([
+                    'checked_out_at' => now(),
+                ]);
+
+                \App\Models\AttendanceAuditLog::create([
+                    'user_id' => $registration->user_id,
+                    'event_id' => $registration->event_id,
+                    'registration_id' => $registration->id,
+                    'qr_token' => $token,
+                    'action' => 'selfie_checkout',
+                    'status' => 'success',
+                    'ip_address' => request()->ip(),
+                    'device_info' => request()->userAgent(),
+                ]);
+
+                AppNotification::create([
+                    'user_id' => $registration->user_id,
+                    'type'    => 'attendance_checked_out',
+                    'title'   => 'Check-Out Recorded',
+                    'message' => "Your check-out (Time Out) for {$registration->event->title} has been recorded.",
+                    'data'    => ['event_id' => $registration->event_id, 'attendance_id' => $attendance->id],
+                ]);
+
+                return response()->json([
+                    'status'    => 'success',
+                    'scan_type' => 'time_out',
+                    'message'   => 'Check-out (Time Out) recorded successfully.',
+                    'data'      => $attendance->fresh(),
+                ], 200);
+            }
+
             \App\Models\AttendanceAuditLog::create([
                 'user_id' => $registration->user_id,
                 'event_id' => $registration->event_id,
                 'registration_id' => $registration->id,
                 'qr_token' => $token,
                 'action' => 'selfie_checkin',
-                'status' => 'duplicate',
+                'status' => 'already_completed',
                 'ip_address' => request()->ip(),
                 'device_info' => request()->userAgent(),
             ]);
+
             return response()->json([
-                'status'  => 'already_checked_in',
-                'message' => 'Attendance already recorded.',
-                'data'    => $registration->attendance,
+                'status'    => 'already_completed',
+                'scan_type' => 'completed',
+                'message'   => 'Attendance check-in and check-out already completed for this event.',
+                'data'      => $registration->attendance,
             ]);
         }
 
@@ -203,9 +240,10 @@ class AttendanceController extends Controller
         ]);
 
         return response()->json([
-            'status'  => 'success',
-            'message' => 'Attendance recorded',
-            'data'    => $attendance,
+            'status'    => 'success',
+            'scan_type' => 'time_in',
+            'message'   => 'Attendance (Time In) recorded successfully',
+            'data'      => $attendance,
         ], 201);
     }
 

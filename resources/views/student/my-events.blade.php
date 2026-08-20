@@ -53,13 +53,19 @@
                         </td>
                         <td>
                             @if($reg->attendance)
-                                @if($reg->attendance->status === 'verified')
-                                    <span class="badge-status-published"><i class="bi bi-check-circle me-1"></i>Verified</span>
-                                @elseif($reg->attendance->status === 'rejected')
-                                    <span class="badge-status-cancelled"><i class="bi bi-x-circle me-1"></i>Rejected</span>
-                                @else
-                                    <span class="badge-status-draft"><i class="bi bi-clock me-1"></i>Pending</span>
-                                @endif
+                                <div class="d-flex flex-column gap-1">
+                                    @if($reg->attendance->status === 'verified')
+                                        <span class="badge-status-published"><i class="bi bi-check-circle me-1"></i>Verified</span>
+                                    @elseif($reg->attendance->status === 'rejected')
+                                        <span class="badge-status-cancelled"><i class="bi bi-x-circle me-1"></i>Rejected</span>
+                                    @else
+                                        <span class="badge-status-draft"><i class="bi bi-clock me-1"></i>Pending</span>
+                                    @endif
+                                    <div class="d-flex gap-2 small">
+                                        <span class="text-success"><i class="bi bi-box-arrow-in-right me-1"></i>{{ $reg->attendance->checked_in_at?->format('h:i A') ?? '--:--' }}</span>
+                                        <span class="{{ $reg->attendance->checked_out_at ? 'text-primary' : 'text-muted' }}"><i class="bi bi-box-arrow-right me-1"></i>{{ $reg->attendance->checked_out_at?->format('h:i A') ?? '--:--' }}</span>
+                                    </div>
+                                </div>
                             @else
                                 <span class="text-muted small">Not checked in</span>
                             @endif

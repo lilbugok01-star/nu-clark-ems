@@ -26,13 +26,13 @@
             <div class="stat-card"><div class="stat-value">{{ $registrations->count() }}</div><div class="stat-label">Registered</div></div>
         </div>
         <div class="col-md-3 col-6">
-            <div class="stat-card" style="border-color:#28a745"><div class="stat-value" style="color:#28a745">{{ $attendances->count() }}</div><div class="stat-label">Checked In</div></div>
+            <div class="stat-card" style="border-color:#28a745"><div class="stat-value" style="color:#28a745">{{ $attendances->count() }}</div><div class="stat-label">Time In (Checked In)</div></div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="stat-card" style="border-color:#0d6efd"><div class="stat-value text-primary">{{ $attendances->whereNotNull('checked_out_at')->count() }}</div><div class="stat-label">Time Out (Checked Out)</div></div>
         </div>
         <div class="col-md-3 col-6">
             <div class="stat-card" style="border-color:var(--nu-gold)"><div class="stat-value text-gold">{{ $attendances->where('status','verified')->count() }}</div><div class="stat-label">Verified</div></div>
-        </div>
-        <div class="col-md-3 col-6">
-            <div class="stat-card" style="border-color:#dc3545"><div class="stat-value" style="color:#dc3545">{{ $attendances->where('status','pending')->count() }}</div><div class="stat-label">Pending</div></div>
         </div>
     </div>
 
@@ -49,7 +49,8 @@
                         <th>Student</th>
                         <th>Student ID</th>
                         <th>Course / Section</th>
-                        <th>Check-in Time</th>
+                        <th>Time In</th>
+                        <th>Time Out</th>
                         <th>Photo</th>
                         <th>Status</th>
                         <th>Action</th>
@@ -64,7 +65,24 @@
                             {{ $att->registration?->user?->course?->code ?? '' }}
                             {{ $att->registration?->user?->section?->name ?? '' }}
                         </td>
-                        <td class="small">{{ $att->checked_in_at?->format('M d, H:i') ?? '-' }}</td>
+                        <td class="small">
+                            @if($att->checked_in_at)
+                                <span class="badge bg-success-subtle text-success fw-600">
+                                    <i class="bi bi-box-arrow-in-right me-1"></i>{{ $att->checked_in_at->format('h:i A') }}
+                                </span>
+                            @else
+                                <span class="text-muted">-</span>
+                            @endif
+                        </td>
+                        <td class="small">
+                            @if($att->checked_out_at)
+                                <span class="badge bg-primary-subtle text-primary fw-600">
+                                    <i class="bi bi-box-arrow-right me-1"></i>{{ $att->checked_out_at->format('h:i A') }}
+                                </span>
+                            @else
+                                <span class="text-muted small">--:--</span>
+                            @endif
+                        </td>
                         <td>
                             @if($att->photo_path)
                                 <a href="{{ \App\Helpers\StorageUrl::url($att->photo_path) }}" target="_blank" data-bs-toggle="modal" data-bs-target="#photoModal{{ $att->id }}">
@@ -120,7 +138,7 @@
                     </tr>
                     @endforeach
                     @if($attendances->count() === 0)
-                    <tr><td colspan="7" class="text-center text-muted py-5">
+                    <tr><td colspan="8" class="text-center text-muted py-5">
                         <i class="bi bi-person-x" style="font-size:2rem;opacity:.3"></i>
                         <p class="small mt-2 mb-0">No check-ins recorded yet.</p>
                     </td></tr>
