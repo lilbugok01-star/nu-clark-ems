@@ -73,13 +73,21 @@
                         <td>
                             <div class="d-flex gap-1">
                                 @if($reg->status === 'confirmed')
-                                    <a href="{{ route('student.qr', $reg->id) }}"
-                                       class="btn {{ $reg->event->isLive() ? 'btn-gold' : 'btn-outline-gold' }} btn-sm"
-                                       title="{{ $reg->event->isLive() ? 'Attend Now!' : 'View QR Code' }}">
-                                        <i class="bi bi-qr-code"></i>
-                                        @if($reg->event->isLive()) <span class="ms-1">Now!</span>@endif
-                                    </a>
-                                    @if($reg->event->event_date >= now()->toDateString())
+                                    @if($reg->attendance && !$reg->attendance->checked_out_at)
+                                        <a href="{{ route('student.qr', $reg->id) }}"
+                                           class="btn btn-gold btn-sm fw-600"
+                                           title="Submit Time Out Selfie">
+                                            <i class="bi bi-box-arrow-right me-1"></i>Time Out
+                                        </a>
+                                    @else
+                                        <a href="{{ route('student.qr', $reg->id) }}"
+                                           class="btn {{ $reg->event->isLive() ? 'btn-gold' : 'btn-outline-gold' }} btn-sm"
+                                           title="{{ $reg->event->isLive() ? 'Attend Now!' : 'View QR Code' }}">
+                                            <i class="bi bi-qr-code"></i>
+                                            @if($reg->event->isLive()) <span class="ms-1">Now!</span>@endif
+                                        </a>
+                                    @endif
+                                    @if(!$reg->attendance && $reg->event->event_date >= now()->toDateString())
                                     <form action="{{ route('student.cancel', $reg->id) }}" method="POST" onsubmit="return confirm('Cancel your registration for this event?')">
                                         @csrf @method('DELETE')
                                         <button type="submit" class="btn btn-outline-danger btn-sm" title="Cancel Registration"><i class="bi bi-x"></i></button>

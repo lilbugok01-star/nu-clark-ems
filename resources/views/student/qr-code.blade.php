@@ -50,11 +50,22 @@
                         </div>
                     </div>
 
-                    @if($registration->attendance)
-                        <div class="alert alert-success text-center rounded-3">
-                            <i class="bi bi-check-circle-fill me-1"></i>
-                            Attendance already submitted.
-                            Status: <strong>{{ ucfirst($registration->attendance->status) }}</strong>
+                    @if($registration->attendance && $registration->attendance->checked_out_at)
+                        <div class="alert alert-success text-center rounded-3 p-3">
+                            <i class="bi bi-patch-check-fill fs-4 text-success d-block mb-1"></i>
+                            <strong>Attendance Completed!</strong>
+                            <div class="small mt-1 text-muted">
+                                <span class="text-success fw-semibold"><i class="bi bi-box-arrow-in-right me-1"></i>Time In: {{ $registration->attendance->checked_in_at?->format('h:i A') ?? 'Recorded' }}</span>
+                                &nbsp;·&nbsp;
+                                <span class="text-primary fw-semibold"><i class="bi bi-box-arrow-right me-1"></i>Time Out: {{ $registration->attendance->checked_out_at->format('h:i A') }}</span>
+                            </div>
+                            <div class="small mt-1">Verification Status: <strong class="text-capitalize">{{ $registration->attendance->status }}</strong></div>
+                        </div>
+                    @elseif($registration->attendance)
+                        <div class="alert text-center rounded-3 p-3" style="background:rgba(22,163,74,0.08);border:1px solid rgba(22,163,74,0.25);color:#166534">
+                            <i class="bi bi-check-circle-fill me-1 text-success"></i>
+                            <strong>Time-In Recorded ({{ $registration->attendance->checked_in_at?->format('h:i A') ?? 'Done' }})</strong>
+                            <div class="small text-muted mt-1">Ready for check-out. Scan your QR or submit a Time-Out selfie below when leaving the event.</div>
                         </div>
                     @else
                         <div class="alert text-center rounded-3"
@@ -64,56 +75,109 @@
                         </div>
                     @endif
 
-                    <p class="text-center text-muted small">Show this QR code at the event for check-in, or submit a photo
-                        below.</p>
+                    <p class="text-center text-muted small">
+                        @if($registration->attendance && $registration->attendance->checked_out_at)
+                            You have completed both Time In and Time Out for this event.
+                        @elseif($registration->attendance)
+                            Show this QR code for Time-Out scanning, or submit a Time-Out selfie below.
+                        @else
+                            Show this QR code at the event for check-in, or submit a Time-In selfie below.
+                        @endif
+                    </p>
                 </div>
 
-                <!-- Photo Check-in Form -->
-                @if(!$registration->attendance && !$registration->isExpired())
-                    <div class="nu-card p-4 mb-3">
-                        <h6 class="fw-700 mb-1"><i class="bi bi-camera me-2" style="color:var(--nu-gold)"></i>Submit Photo
-                            Attendance</h6>
-                        <p class="text-muted small mb-4">Take a selfie or upload a photo as proof of attendance. The organizer
-                            will verify it after the event.</p>
-
-                        <form action="{{ route('student.checkin') }}" method="POST" enctype="multipart/form-data"
-                            id="checkinForm">
-                            @csrf
-                            <input type="hidden" name="qr_token" value="{{ $registration->qr_token }}">
-
-                            <!-- Camera capture option -->
-                            <div class="mb-3">
-                                <label class="form-label fw-600">Take Photo (Camera)</label>
-                                <div id="cameraArea" class="text-center p-3 rounded-3"
-                                    style="background:var(--gray-50);border:2px dashed var(--gray-200)">
-                                    <video id="cameraPreview" class="d-none w-100 rounded-2" style="max-height:250px" autoplay
-                                        playsinline></video>
-                                    <canvas id="cameraCanvas" class="d-none"></canvas>
-                                    <img id="capturedPhoto" class="d-none w-100 rounded-2"
-                                        style="max-height:250px;object-fit:cover" alt="Captured">
-                                    <div id="cameraPlaceholder">
-                                        <i class="bi bi-camera" style="font-size:2.5rem;color:var(--gray-400)"></i>
-                                        <p class="text-muted small mt-2">Click button below to use camera</p>
-                                    </div>
-                                    <div class="mt-2 d-flex gap-2 justify-content-center flex-wrap">
-                                        <button type="button" class="btn btn-nu-blue btn-sm" id="startCameraBtn" onclick="startCamera()"><i
-                                                class="bi bi-camera me-1"></i>Start Camera</button>
-                                        <button type="button" class="btn btn-gold btn-sm d-none" id="captureBtn"
-                                            onclick="capturePhoto()"><i class="bi bi-camera-fill me-1"></i>Capture</button>
-                                        <button type="button" class="btn btn-outline-secondary btn-sm d-none" id="retakeBtn"
-                                            onclick="retakePhoto()">Retake</button>
-                                    </div>
-                                </div>
-                                <input type="hidden" name="photo_data" id="photoData">
+                <!-- Photo Attendance Forms -->
+                @if(!$registration->isExpired())
+                    @if(!$registration->attendance)
+                        <!-- 1. TIME-IN Photo Form -->
+                        <div class="nu-card p-4 mb-3">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <h6 class="fw-700 mb-0"><i class="bi bi-box-arrow-in-right me-2 text-success"></i>Submit Time-In Selfie</h6>
+                                <span class="badge bg-success-subtle text-success">Step 1: Check In</span>
                             </div>
+                            <p class="text-muted small mb-4">Take a selfie or upload a photo as proof of attendance for <strong>Time In</strong>. The organizer will verify it.</p>
 
-                            <div class="mb-4"></div>
+                            <form action="{{ route('student.checkin') }}" method="POST" enctype="multipart/form-data"
+                                id="checkinForm">
+                                @csrf
+                                <input type="hidden" name="qr_token" value="{{ $registration->qr_token }}">
 
-                            <button type="submit" class="btn btn-nu-blue w-100 fw-700 py-2">
-                                <i class="bi bi-send me-2"></i>Submit Attendance
-                            </button>
-                        </form>
-                    </div>
+                                <!-- Camera capture option -->
+                                <div class="mb-3">
+                                    <label class="form-label fw-600">Take Selfie (Camera)</label>
+                                    <div id="cameraArea" class="text-center p-3 rounded-3"
+                                        style="background:var(--gray-50);border:2px dashed var(--gray-200)">
+                                        <video id="cameraPreview" class="d-none w-100 rounded-2" style="max-height:250px" autoplay
+                                            playsinline></video>
+                                        <canvas id="cameraCanvas" class="d-none"></canvas>
+                                        <img id="capturedPhoto" class="d-none w-100 rounded-2"
+                                            style="max-height:250px;object-fit:cover" alt="Captured">
+                                        <div id="cameraPlaceholder">
+                                            <i class="bi bi-camera" style="font-size:2.5rem;color:var(--gray-400)"></i>
+                                            <p class="text-muted small mt-2">Click button below to open camera</p>
+                                        </div>
+                                        <div class="mt-2 d-flex gap-2 justify-content-center flex-wrap">
+                                            <button type="button" class="btn btn-nu-blue btn-sm" id="startCameraBtn" onclick="startCamera()"><i
+                                                    class="bi bi-camera me-1"></i>Start Camera</button>
+                                            <button type="button" class="btn btn-gold btn-sm d-none" id="captureBtn"
+                                                onclick="capturePhoto()"><i class="bi bi-camera-fill me-1"></i>Capture Photo</button>
+                                            <button type="button" class="btn btn-outline-secondary btn-sm d-none" id="retakeBtn"
+                                                onclick="retakePhoto()"><i class="bi bi-arrow-counterclockwise me-1"></i>Retake</button>
+                                        </div>
+                                    </div>
+                                    <input type="hidden" name="photo_data" id="photoData">
+                                </div>
+
+                                <button type="submit" class="btn btn-nu-blue w-100 fw-700 py-2">
+                                    <i class="bi bi-box-arrow-in-right me-2"></i>Submit Time-In Attendance
+                                </button>
+                            </form>
+                        </div>
+                    @elseif(!$registration->attendance->checked_out_at)
+                        <!-- 2. TIME-OUT Photo Form -->
+                        <div class="nu-card p-4 mb-3" style="border: 2px solid rgba(0,48,135,0.2);">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <h6 class="fw-700 mb-0" style="color:var(--nu-blue)"><i class="bi bi-box-arrow-right me-2 text-primary"></i>Submit Time-Out Selfie</h6>
+                                <span class="badge bg-primary-subtle text-primary">Step 2: Check Out</span>
+                            </div>
+                            <p class="text-muted small mb-4">You have checked in at <strong>{{ $registration->attendance->checked_in_at?->format('h:i A') }}</strong>. Please take a selfie to record your <strong>Time Out</strong>.</p>
+
+                            <form action="{{ route('student.checkout', $registration->id) }}" method="POST" enctype="multipart/form-data"
+                                id="checkoutForm">
+                                @csrf
+
+                                <!-- Camera capture option -->
+                                <div class="mb-3">
+                                    <label class="form-label fw-600">Take Time-Out Selfie (Camera)</label>
+                                    <div id="cameraArea" class="text-center p-3 rounded-3"
+                                        style="background:var(--gray-50);border:2px dashed var(--gray-200)">
+                                        <video id="cameraPreview" class="d-none w-100 rounded-2" style="max-height:250px" autoplay
+                                            playsinline></video>
+                                        <canvas id="cameraCanvas" class="d-none"></canvas>
+                                        <img id="capturedPhoto" class="d-none w-100 rounded-2"
+                                            style="max-height:250px;object-fit:cover" alt="Captured">
+                                        <div id="cameraPlaceholder">
+                                            <i class="bi bi-camera" style="font-size:2.5rem;color:var(--gray-400)"></i>
+                                            <p class="text-muted small mt-2">Click button below to open camera</p>
+                                        </div>
+                                        <div class="mt-2 d-flex gap-2 justify-content-center flex-wrap">
+                                            <button type="button" class="btn btn-nu-blue btn-sm" id="startCameraBtn" onclick="startCamera()"><i
+                                                    class="bi bi-camera me-1"></i>Start Camera</button>
+                                            <button type="button" class="btn btn-gold btn-sm d-none" id="captureBtn"
+                                                onclick="capturePhoto()"><i class="bi bi-camera-fill me-1"></i>Capture Photo</button>
+                                            <button type="button" class="btn btn-outline-secondary btn-sm d-none" id="retakeBtn"
+                                                onclick="retakePhoto()"><i class="bi bi-arrow-counterclockwise me-1"></i>Retake</button>
+                                        </div>
+                                    </div>
+                                    <input type="hidden" name="photo_data" id="photoData">
+                                </div>
+
+                                <button type="submit" class="btn btn-gold w-100 fw-700 py-2">
+                                    <i class="bi bi-box-arrow-right me-2"></i>Submit Time-Out & Complete
+                                </button>
+                            </form>
+                        </div>
+                    @endif
                 @endif
 
             </div>

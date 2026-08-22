@@ -1,0 +1,202 @@
+================================================================================
+NU CLARK CAMPUS EVENT MANAGEMENT SYSTEM
+ANALYTICS, FINANCIAL REPORTING & ALGORITHM TECHNICAL REFERENCE
+================================================================================
+
+--------------------------------------------------------------------------------
+1. FEATURES UNDER ANALYTICS & PREDICTIVE REPORTS
+--------------------------------------------------------------------------------
+
+A. General & Participation Analytics Module
+   1. Overview KPI Summary Card
+      - Real-time totals for events hosted, student registration count, overall
+        attendance verification percentage, and active unique student participants.
+   2. Category Popularity & Distribution Report
+      - Evaluates event categories (Academic, IT/Tech, Sports, Seminars, Cultural,
+        etc.) by registration volume, total capacity, verified attendances, and
+        attendance rates.
+   3. 12-Month Participation Trend Analysis
+      - Visualizes monthly participation trends comparing student registration
+        numbers against verified QR code attendance check-ins month-by-month.
+   4. Course vs. Category Interest Matrix
+      - Cross-tabulation mapping academic degree programs (e.g., BSIT, BSA, BSBA,
+        BSTM, BSP) against event categories to analyze department-level interest
+        patterns.
+   5. Registration vs. Attendance Conversion Report
+      - Per-event conversion breakdown measuring how many registered students
+        actually attended the event.
+   6. Composite Event Engagement Ranking
+      - Ranks campus events using an engagement index score based on capacity
+        fill rate and verified attendance rate.
+   7. Peak Participation Time Heatmap
+      - Identifies optimal days of the week and hours of the day (e.g., Wednesday
+        at 1:00 PM) with the highest student registration and attendance activity.
+   8. Underparticipated Event Identification
+      - Automatically flags events with low fill rates (< 25%) or poor attendance
+        conversion (< 40%) for organizer review.
+   9. Individual Student Analytics Profile
+      - Student-specific analytics tracking registered events, attendance rate,
+        primary interest category, and secondary interest area.
+  10. Executive Analytics PDF Export
+      - Downloads participation pattern analytics reports formatted for
+        administrative presentation.
+
+B. Predictive Analytics & Resource Planning Module
+   1. Event Attendance Forecasting
+      - Predicts expected attendance headcounts and capacity utilization
+        percentages for upcoming published events.
+   2. Schedule Optimization & Conflict-Free Recommendations
+      - Analyzes historic day/time performance and venue availability to suggest
+        optimal event dates and time slots (morning vs. afternoon) while filtering
+        out existing schedule overlaps.
+   3. Automated Resource Planning & Buffer Estimation
+      - Calculates required physical supplies (Seats, Catering/Food, Handouts,
+        Chairs, Registration Forms, Water Bottles) with buffer safety margins
+        based on predicted attendance.
+   4. Venue Capacity Alert System
+      - Generates automated warnings when predicted turnout exceeds venue
+        capacity limits.
+
+C. Smart Event Recommendation Engine (Student Discovery)
+   1. Personalized Event Discovery
+      - Recommends upcoming events tailored to a student's academic course
+        curriculum, past attendance history, featured status, date proximity, and
+        seat availability urgency.
+   2. Schedule Conflict Exclusion
+      - Automatically hides recommended events that conflict with a student's
+        existing registered schedule.
+
+
+--------------------------------------------------------------------------------
+2. FEATURES UNDER FINANCIAL REPORTING & BUDGET MANAGEMENT
+--------------------------------------------------------------------------------
+
+A. Financial Overview Dashboard
+   1. Executive Financial Summary KPIs
+      - High-level financial overview displaying total estimated budget, total
+        actual expenditure, total income/revenue, total expenses, net profit/loss,
+        and number of budgeted events.
+   2. Multi-Event Financial Tracking Table
+      - Comparative breakdown across all campus events showing estimated budgets,
+        actual costs, income, expense, and net financial standing.
+
+B. Event Budget Line-Item Management
+   1. Categorized Line-Item Budgeting
+      - Event budget breakdown organized into official categories:
+        * Venue & Equipment Rental
+        * Food & Catering
+        * Marketing & Materials
+        * Speaker & Honorarium
+        * Logistics & Transportation
+        * Supplies & Miscellaneous
+   2. Estimated vs. Actual Variance Analysis
+      - Real-time variance tracking per line item and total budget to highlight
+        budget surpluses or overspending.
+   3. Item Status Lifecycle
+      - Tracks each line item state (planned, approved, spent, cancelled).
+
+C. Cash Flow & Transaction Ledger
+   1. Dual-Entry Transaction Log
+      - Records both Event Income (sponsorships, registration fees, department
+        allocations) and Event Expenses (supplier payments, reimbursements).
+   2. Payment Method & Reference Tracking
+      - Tracks payment methods (Cash, GCash, Bank Transfer, Cheque, University
+        Voucher) alongside receipt numbers and reference codes.
+   3. Digital Receipt Upload & AWS S3 Storage
+      - Digital storage of physical receipt files (JPG, PNG, PDF) uploaded to AWS S3.
+
+D. Event Proposals & Financial Approvals
+   1. Formal Digital Proposals
+      - Standardized proposals capturing event overview, objectives, target
+        audience, estimated budget, venue requirements, and expected outcomes.
+   2. Proposal Approval Workflow
+      - Tracks proposal state (draft, submitted, approved, rejected) with
+        approval timestamps and formal PDF export.
+   3. Comprehensive Financial PDF Report Export
+      - Generates printable financial reports containing itemized budgets,
+        transaction logs, variance analysis, net profit/loss, and signature
+        approval lines.
+
+
+--------------------------------------------------------------------------------
+3. ALGORITHMS & STATISTICAL / MATHEMATICAL MODELS USED
+--------------------------------------------------------------------------------
+
+1. Multi-Factor Weighted Statistical Forecasting Algorithm (Attendance Prediction)
+   Formula: Predicted Rate (%) = Sum( Factor Rate_i * Normalized Weight_i )
+
+   Base Factors & Initial Weights:
+   - Category Historical Attendance Rate: 40%
+   - Venue Historical Attendance Rate: 20%
+   - System-wide Historical Attendance Rate: 20%
+   - Day-of-Week Attendance Pattern: 10%
+   - Current Registration Momentum: 10%
+
+   Dynamic Weight Redistribution:
+   - If historical data for any factor is unavailable (e.g., a newly added venue
+     or category), its assigned weight is dynamically redistributed evenly across
+     active factors to maintain 100% total weight normalization.
+
+   Expected Count Calculation:
+   - Predicted Count = Capacity * ( Predicted Rate / 100 )
+
+   Confidence Metric:
+   - High (>= 4 active factors), Medium (2-3 factors), or Low (< 2 factors / baseline
+     default of 70%).
+
+
+2. Composite Weighted Indexing Algorithm (Event Engagement Score)
+   Formula: Engagement Score = ( Fill Rate * 0.40 + Attendance Rate * 0.60 ) * 100
+
+   Where:
+   - Fill Rate = min( Registrations / Capacity, 1.0 )
+   - Attendance Rate = Verified Attendances / Registrations
+
+
+3. Multi-Factor Heuristic Recommendation Engine
+   Formula: Score = W_curriculum + W_text + W_behavior + W_featured + W_proximity + W_urgency - P_capacity
+
+   Factor Weights:
+   - Academic Curriculum Match (+15 pts): Mapped via degree program matrix
+     (e.g., BSIT -> IT, Software, AI, Cybersecurity).
+   - Keyword Text Match (+8 pts): Title/description keyword matching against course tags.
+   - Behavioral Interest Preference (+10 to +20 pts): Based on student's past
+     category participation frequency.
+   - Featured Campus Event (+5 pts): Administrative spotlight bonus.
+   - Date Proximity Urgency: +10 pts (<= 3 days), +6 pts (<= 7 days), +3 pts (<= 14 days).
+   - Seat Availability Urgency: +8 pts if 1-15 spots remaining; -20 penalty if event is full.
+
+   Interval Overlap Conflict Filter:
+   - Excludes events if ( Start_A < End_B ) AND ( End_A > Start_B ) on the same date.
+
+
+4. Safety Margin Buffer Estimation Algorithm (Resource Planning)
+   Formula: Recommended Quantity = ceil( Predicted Attendance * ( 1 + Buffer % ) )
+
+   Resource Buffer Margins:
+   - Seats / Handouts: +5% buffer (x 1.05)
+   - Food Servings / Chairs: +10% buffer (x 1.10)
+   - Registration Forms (Walk-in Backup): +15% buffer (x 1.15)
+   - Water Bottles / Hydration: +20% buffer (x 1.20)
+
+
+5. Schedule Optimization & Conflict Evaluation Algorithm
+   - Evaluates candidate time slots (Morning: 09:00, Afternoon: 13:00) across
+     target date ranges.
+   - Initial Score: Historical day-of-week attendance average.
+   - Conflict Penalty: -30 points per overlapping published event or approved
+     venue reservation.
+   - Output: Top 10 conflict-free slots sorted by confidence score.
+
+
+6. Financial Accounting & Variance Algorithms
+   - Budget Line-Item Variance = Estimated Amount - Actual Amount
+     (Positive = Under budget / Surplus; Negative = Over budget / Deficit)
+   - Net Profit / Loss = Sum( Income Transactions ) - Sum( Expense Transactions )
+
+
+7. Security Cryptography Algorithms
+   - QR Attendance Token = SHA-256( User ID + Event ID + Timestamp + Random Nonce )
+   - Password Hashing = bcrypt (Blowfish-based key derivation function)
+
+================================================================================

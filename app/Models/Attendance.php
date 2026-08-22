@@ -10,7 +10,7 @@ class Attendance extends Model
     use HasFactory;
 
     protected $fillable = [
-        'registration_id', 'photo_path', 'checked_in_at', 'checked_out_at',
+        'registration_id', 'photo_path', 'checkout_photo_path', 'checked_in_at', 'checked_out_at',
         'verified_by', 'verified_at', 'status', 'notes',
     ];
 

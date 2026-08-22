@@ -68,21 +68,34 @@
                         <div class="pending-verification-list" style="max-height: 400px; overflow-y: auto; padding-right: 5px;">
                             @forelse($pendingVerifications as $att)
                             <div class="d-flex align-items-center gap-2 mb-2 p-2 rounded" style="background:var(--gray-100)">
-                                @if($att->photo_path)
-                                    <a href="#" data-bs-toggle="modal" data-bs-target="#photoModal{{ $att->id }}">
-                                        <img src="{{ \App\Helpers\StorageUrl::url($att->photo_path) }}" class="attendance-photo" style="cursor:pointer;object-fit:cover;width:42px;height:42px;border-radius:50%;border:2px solid var(--nu-blue)" alt="photo">
+                                @if($att->photo_path || $att->checkout_photo_path)
+                                    <a href="#" data-bs-toggle="modal" data-bs-target="#photoModal{{ $att->id }}" title="View Attendance Selfie(s)">
+                                        <img src="{{ \App\Helpers\StorageUrl::url($att->photo_path ?: $att->checkout_photo_path) }}" class="attendance-photo" style="cursor:pointer;object-fit:cover;width:42px;height:42px;border-radius:50%;border:2px solid var(--nu-blue)" alt="photo">
                                     </a>
 
                                     <!-- Photo Modal -->
                                     <div class="modal fade" id="photoModal{{ $att->id }}" tabindex="-1">
-                                        <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-dialog modal-dialog-centered {{ ($att->photo_path && $att->checkout_photo_path) ? 'modal-lg' : '' }}">
                                             <div class="modal-content rounded-3 overflow-hidden">
                                                 <div class="modal-header border-0 pb-0">
-                                                    <strong class="small" style="color:var(--nu-blue)">{{ $att->registration->user->full_name }} — Pending Check-in</strong>
+                                                    <strong class="small" style="color:var(--nu-blue)">{{ $att->registration->user->full_name }} — Attendance Verification</strong>
                                                     <button class="btn-close" data-bs-dismiss="modal"></button>
                                                 </div>
-                                                <div class="modal-body p-2">
-                                                    <img src="{{ \App\Helpers\StorageUrl::url($att->photo_path) }}" class="w-100 rounded-2 bg-dark" style="object-fit:contain;max-height:450px" alt="Attendance Photo">
+                                                <div class="modal-body p-3">
+                                                    <div class="row g-2">
+                                                        @if($att->photo_path)
+                                                            <div class="{{ $att->checkout_photo_path ? 'col-md-6' : 'col-12' }} text-center">
+                                                                <div class="badge bg-success-subtle text-success mb-2 fw-semibold"><i class="bi bi-box-arrow-in-right me-1"></i>Time In: {{ $att->checked_in_at?->format('h:i A') ?? 'Recorded' }}</div>
+                                                                <img src="{{ \App\Helpers\StorageUrl::url($att->photo_path) }}" class="w-100 rounded-2 bg-dark shadow-sm" style="object-fit:contain;max-height:380px" alt="Time In Photo">
+                                                            </div>
+                                                        @endif
+                                                        @if($att->checkout_photo_path)
+                                                            <div class="{{ $att->photo_path ? 'col-md-6' : 'col-12' }} text-center">
+                                                                <div class="badge bg-primary-subtle text-primary mb-2 fw-semibold"><i class="bi bi-box-arrow-right me-1"></i>Time Out: {{ $att->checked_out_at?->format('h:i A') ?? 'Recorded' }}</div>
+                                                                <img src="{{ \App\Helpers\StorageUrl::url($att->checkout_photo_path) }}" class="w-100 rounded-2 bg-dark shadow-sm" style="object-fit:contain;max-height:380px" alt="Time Out Photo">
+                                                            </div>
+                                                        @endif
+                                                    </div>
                                                 </div>
                                                 <div class="modal-footer d-flex gap-2 border-0 pt-0">
                                                     <form action="{{ route('organizer.attendance.verify', $att->id) }}" method="POST" class="d-flex gap-2 w-100" style="margin:0">

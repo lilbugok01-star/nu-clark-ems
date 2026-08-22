@@ -25,6 +25,7 @@ class ParticipationAnalyticsService
         $results = [];
         foreach ($categories as $cat) {
             $regQuery = Registration::join('events', 'registrations.event_id', '=', 'events.id')
+                ->whereNull('events.deleted_at')
                 ->where('events.category', $cat->category);
             if ($dateFrom) $regQuery->whereDate('events.event_date', '>=', $dateFrom);
             if ($dateTo) $regQuery->whereDate('events.event_date', '<=', $dateTo);
@@ -32,6 +33,7 @@ class ParticipationAnalyticsService
             
             $attQuery = Attendance::join('registrations', 'attendances.registration_id', '=', 'registrations.id')
                 ->join('events', 'registrations.event_id', '=', 'events.id')
+                ->whereNull('events.deleted_at')
                 ->where('events.category', $cat->category);
             if ($dateFrom) $attQuery->whereDate('events.event_date', '>=', $dateFrom);
             if ($dateTo) $attQuery->whereDate('events.event_date', '<=', $dateTo);
@@ -61,12 +63,14 @@ class ParticipationAnalyticsService
             $label = $date->format('M Y');
             
             $registrations = Registration::join('events', 'registrations.event_id', '=', 'events.id')
+                ->whereNull('events.deleted_at')
                 ->whereYear('events.event_date', $date->year)
                 ->whereMonth('events.event_date', $date->month)
                 ->count();
                 
             $attendances = Attendance::join('registrations', 'attendances.registration_id', '=', 'registrations.id')
                 ->join('events', 'registrations.event_id', '=', 'events.id')
+                ->whereNull('events.deleted_at')
                 ->whereYear('events.event_date', $date->year)
                 ->whereMonth('events.event_date', $date->month)
                 ->count();
@@ -86,6 +90,7 @@ class ParticipationAnalyticsService
         $query = Registration::join('users', 'registrations.user_id', '=', 'users.id')
             ->join('courses', 'users.course_id', '=', 'courses.id')
             ->join('events', 'registrations.event_id', '=', 'events.id')
+            ->whereNull('events.deleted_at')
             ->select('courses.code as course', 'events.category', 
                      DB::raw('count(registrations.id) as registrations'));
                      
@@ -102,6 +107,7 @@ class ParticipationAnalyticsService
                 ->join('users', 'registrations.user_id', '=', 'users.id')
                 ->join('courses', 'users.course_id', '=', 'courses.id')
                 ->join('events', 'registrations.event_id', '=', 'events.id')
+                ->whereNull('events.deleted_at')
                 ->where('courses.code', $item->course)
                 ->where('events.category', $item->category);
                 
@@ -199,19 +205,25 @@ class ParticipationAnalyticsService
         
         foreach ($events as $event) {
             $registered = Registration::where('event_id', $event->id)->count();
-            if ($registered > 0 && $event->event_date) {
-                $day = Carbon::parse($event->event_date)->format('D'); // 'Mon', 'Tue', etc.
-                $hour = (int) Carbon::parse($event->start_time)->format('G'); 
-                
-                $key = $day . '_' . $hour;
-                if (!isset($times[$key])) {
-                    $times[$key] = [
-                        'day' => $day,
-                        'hour' => $hour,
-                        'count' => 0
-                    ];
+            if ($registered > 0 && $event->event_date && $event->start_time) {
+                try {
+                    $day = $event->event_date instanceof \DateTimeInterface
+                        ? $event->event_date->format('D')
+                        : Carbon::parse($event->event_date)->format('D');
+                    $hour = (int) Carbon::parse($event->start_time)->format('G'); 
+                    
+                    $key = $day . '_' . $hour;
+                    if (!isset($times[$key])) {
+                        $times[$key] = [
+                            'day' => $day,
+                            'hour' => $hour,
+                            'count' => 0
+                        ];
+                    }
+                    $times[$key]['count'] += $registered;
+                } catch (\Throwable $e) {
+                    continue;
                 }
-                $times[$key]['count'] += $registered;
             }
         }
         

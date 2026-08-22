@@ -156,8 +156,31 @@ class AttendanceController extends Controller
             $attendance = $registration->attendance;
 
             if (!$attendance->checked_out_at) {
+                $checkoutPhotoPath = null;
+                if ($request->hasFile('photo')) {
+                    $checkoutPhotoPath = $request->file('photo')->store('attendance-photos/' . $registration->event_id, 's3');
+                } elseif ($request->filled('photo_data')) {
+                    $image_parts = explode(';base64,', $request->photo_data);
+                    if (count($image_parts) >= 2) {
+                        $image_type_aux = explode('image/', $image_parts[0]);
+                        if (count($image_type_aux) >= 2) {
+                            $image_type = strtolower($image_type_aux[1]);
+                            $allowed = ['jpeg', 'jpg', 'png', 'webp'];
+                            if (in_array($image_type, $allowed)) {
+                                $image_base64 = base64_decode($image_parts[1]);
+                                if (strlen($image_base64) <= 5 * 1024 * 1024) {
+                                    $fileName = 'attendance-photos/' . $registration->event_id . '/checkout_' . uniqid() . '.' . $image_type;
+                                    \Illuminate\Support\Facades\Storage::disk('s3')->put($fileName, $image_base64);
+                                    $checkoutPhotoPath = $fileName;
+                                }
+                            }
+                        }
+                    }
+                }
+
                 $attendance->update([
-                    'checked_out_at' => now(),
+                    'checkout_photo_path' => $checkoutPhotoPath,
+                    'checked_out_at'      => now(),
                 ]);
 
                 \App\Models\AttendanceAuditLog::create([
@@ -211,6 +234,23 @@ class AttendanceController extends Controller
             $photoPath = $request->file('photo')->store(
                 'attendance-photos/' . $registration->event_id, 's3'
             );
+        } elseif ($request->filled('photo_data')) {
+            $image_parts = explode(';base64,', $request->photo_data);
+            if (count($image_parts) >= 2) {
+                $image_type_aux = explode('image/', $image_parts[0]);
+                if (count($image_type_aux) >= 2) {
+                    $image_type = strtolower($image_type_aux[1]);
+                    $allowed = ['jpeg', 'jpg', 'png', 'webp'];
+                    if (in_array($image_type, $allowed)) {
+                        $image_base64 = base64_decode($image_parts[1]);
+                        if (strlen($image_base64) <= 5 * 1024 * 1024) {
+                            $fileName = 'attendance-photos/' . $registration->event_id . '/' . uniqid() . '.' . $image_type;
+                            \Illuminate\Support\Facades\Storage::disk('s3')->put($fileName, $image_base64);
+                            $photoPath = $fileName;
+                        }
+                    }
+                }
+            }
         }
 
         $attendance = Attendance::create([

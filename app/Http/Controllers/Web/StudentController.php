@@ -296,7 +296,16 @@ class StudentController extends Controller implements HasMiddleware
 
     public function checkout(Request $request, $registrationId)
     {
-        $registration = Registration::with('attendance')
+        $request->validate([
+            'photo'      => 'nullable|image|max:5120',
+            'photo_data' => 'nullable|string',
+        ]);
+
+        if (!$request->hasFile('photo') && empty($request->photo_data)) {
+            return back()->with('error', 'A photo is required for attendance check-out (Time Out). Please take a selfie.');
+        }
+
+        $registration = Registration::with(['attendance', 'event'])
             ->where('user_id', Auth::id())
             ->findOrFail($registrationId);
 
@@ -308,10 +317,36 @@ class StudentController extends Controller implements HasMiddleware
             return back()->with('info', 'You have already checked out of this event.');
         }
 
+        $photoPath = null;
+        if ($request->hasFile('photo')) {
+            $photoPath = $request->file('photo')->store('attendance-photos/' . $registration->event_id, 's3');
+        } elseif ($request->filled('photo_data')) {
+            $image_parts = explode(';base64,', $request->photo_data);
+            if (count($image_parts) >= 2) {
+                $image_type_aux = explode('image/', $image_parts[0]);
+                if (count($image_type_aux) >= 2) {
+                    $image_type = strtolower($image_type_aux[1]);
+                    $allowed = ['jpeg', 'jpg', 'png', 'webp'];
+                    if (in_array($image_type, $allowed)) {
+                        $image_base64 = base64_decode($image_parts[1]);
+                        if (strlen($image_base64) > 5 * 1024 * 1024) {
+                            return back()->with('error', 'Photo is too large. Maximum size is 5MB.');
+                        }
+                        $fileName = 'attendance-photos/' . $registration->event_id . '/checkout_' . uniqid() . '.' . $image_type;
+                        \Illuminate\Support\Facades\Storage::disk('s3')->put($fileName, $image_base64);
+                        $photoPath = $fileName;
+                    } else {
+                        return back()->with('error', 'Invalid photo format. Only JPG, PNG, and WebP are allowed.');
+                    }
+                }
+            }
+        }
+
         $registration->attendance->update([
-            'checked_out_at' => now(),
+            'checkout_photo_path' => $photoPath,
+            'checked_out_at'      => now(),
         ]);
 
-        return back()->with('success', 'Successfully checked out. Thank you for attending!');
+        return redirect()->route('student.my-events')->with('success', 'Successfully checked out (Time Out recorded). Thank you for attending!');
     }
 }
