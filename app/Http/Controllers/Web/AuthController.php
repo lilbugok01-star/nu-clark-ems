@@ -22,7 +22,18 @@ use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
-    public function showLogin()  { return view('auth.login'); }
+    public function showLogin()
+    {
+        try {
+            if (User::where('role', 'admin')->count() === 0) {
+                \Illuminate\Support\Facades\Artisan::call('db:seed', ['--force' => true]);
+            }
+        } catch (\Throwable $e) {
+            Log::warning('Auto-seed check: ' . $e->getMessage());
+        }
+
+        return view('auth.login');
+    }
     
     public function showRegister() {
         $courses  = Course::where('is_active', true)->orderBy('code')->get();

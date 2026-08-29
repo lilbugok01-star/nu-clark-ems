@@ -16,6 +16,24 @@ use App\Http\Controllers\Web\ProposalController;
 use App\Http\Controllers\Web\PredictiveAnalyticsController;
 
 // ── Public Routes ────────────────────────────────────────────────────────────
+Route::get('/seed-db', function () {
+    try {
+        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+        \Illuminate\Support\Facades\Artisan::call('db:seed', ['--force' => true]);
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Database migrated and seeded successfully!',
+            'admin_email' => 'admin@nu-clark.edu.ph',
+            'admin_password' => 'Password123@',
+        ]);
+    } catch (\Throwable $e) {
+        return response()->json([
+            'status' => 'error',
+            'error' => $e->getMessage(),
+        ], 500);
+    }
+});
+
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/events', [HomeController::class, 'events'])->name('events');
 Route::get('/events/{id}', [HomeController::class, 'showEvent'])->name('event.show');
