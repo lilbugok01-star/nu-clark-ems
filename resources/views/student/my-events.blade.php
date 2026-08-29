@@ -10,6 +10,26 @@
         <a href="{{ route('student.events') }}" class="btn btn-nu-blue btn-sm"><i class="bi bi-plus me-1"></i>Browse More Events</a>
     </div>
 
+    <!-- Tabs: Upcoming vs Past Registrations -->
+    <ul class="nav nav-pills mb-4 gap-2">
+        <li class="nav-item">
+            <a class="nav-link {{ ($tab ?? 'upcoming') === 'upcoming' ? 'active' : '' }}"
+               href="{{ route('student.my-events', ['tab' => 'upcoming']) }}"
+               style="{{ ($tab ?? 'upcoming') === 'upcoming' ? 'background:var(--nu-blue);color:#fff;font-weight:700;' : 'background:var(--gray-100);color:var(--gray-700);font-weight:600;' }}">
+                <i class="bi bi-calendar-check me-1"></i> Upcoming Events
+                <span class="badge {{ ($tab ?? 'upcoming') === 'upcoming' ? 'bg-light text-dark' : 'bg-secondary text-white' }} ms-1">{{ $upcomingRegistrations->count() }}</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {{ ($tab ?? 'upcoming') === 'past' ? 'active' : '' }}"
+               href="{{ route('student.my-events', ['tab' => 'past']) }}"
+               style="{{ ($tab ?? 'upcoming') === 'past' ? 'background:var(--nu-blue);color:#fff;font-weight:700;' : 'background:var(--gray-100);color:var(--gray-700);font-weight:600;' }}">
+                <i class="bi bi-clock-history me-1"></i> Past & Attended Events
+                <span class="badge {{ ($tab ?? 'upcoming') === 'past' ? 'bg-light text-dark' : 'bg-secondary text-white' }} ms-1">{{ $pastRegistrations->count() }}</span>
+            </a>
+        </li>
+    </ul>
+
     @if($registrations->count() > 0)
     <div class="nu-card">
         <div class="table-responsive">

@@ -19,6 +19,15 @@ class Registration extends Model
         'registered_at'  => 'datetime',
     ];
 
+    protected static function booted()
+    {
+        static::creating(function ($registration) {
+            if (empty($registration->qr_token)) {
+                $registration->qr_token = self::generateQrToken((int) ($registration->user_id ?? 0), (int) ($registration->event_id ?? 0));
+            }
+        });
+    }
+
     // Relationships
     public function user()       { return $this->belongsTo(User::class); }
     public function event()      { return $this->belongsTo(Event::class); }

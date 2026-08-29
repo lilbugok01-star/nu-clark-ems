@@ -72,26 +72,65 @@
                     </div>
                 </div>
 
-                <!-- Recent Events -->
+                <!-- Upcoming & Recent Events -->
                 <div class="col-12">
                     <div class="nu-card p-4">
-                        <div class="d-flex justify-content-between mb-3">
-                            <h6 class="fw-bold mb-0"><i class="bi bi-calendar3 text-gold me-2"></i>Recent Events</h6>
-                            <a href="{{ route('admin.reports') }}" class="btn btn-outline-gold btn-sm">View Reports</a>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="fw-bold mb-0"><i class="bi bi-calendar-check text-gold me-2"></i>Upcoming & Active Events</h6>
+                            <div class="d-flex gap-2">
+                                <a href="{{ route('admin.events') }}" class="btn btn-nu-blue btn-sm"><i class="bi bi-calendar-event me-1"></i>Manage Events</a>
+                                <a href="{{ route('admin.reports') }}" class="btn btn-outline-gold btn-sm">View Reports</a>
+                            </div>
                         </div>
                         <div class="table-responsive">
-                        <table class="table nu-table">
-                            <thead><tr><th>Title</th><th>Date</th><th>Venue</th><th>Organizer</th><th>Status</th></tr></thead>
+                        <table class="table nu-table align-middle">
+                            <thead><tr><th>Title</th><th>Date</th><th>Venue</th><th>Organizer</th><th>Status</th><th class="text-end">Action</th></tr></thead>
                             <tbody>
-                                @foreach($recentEvents as $e)
+                                @forelse($recentEvents as $e)
                                 <tr>
                                     <td class="fw-semibold">{{ $e->title }}</td>
                                     <td>{{ $e->event_date ? $e->event_date->format('M d, Y') : 'N/A' }}</td>
                                     <td>{{ $e->venue }}</td>
                                     <td>{{ $e->organizer?->full_name ?? '-' }}</td>
                                     <td>@php $sl=match($e->status ?? ''){ 'pending_adviser','pending_dept_head','pending_dean','pending_director'=>'Pending Approval','published'=>'Published','draft'=>'Draft','cancelled'=>'Cancelled','completed'=>'Completed','rejected'=>'Rejected',default=>ucfirst($e->status ?? 'Unknown')};@endphp<span class="badge-status-{{ $e->status ?? 'draft' }}">{{ $sl }}</span></td>
+                                    <td class="text-end">
+                                        <div class="d-inline-flex gap-1">
+                                            <a href="{{ route('event.show', $e->id) }}" class="btn btn-outline-secondary btn-sm" title="View"><i class="bi bi-eye"></i></a>
+                                            <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#delEventModal{{ $e->id }}" title="Fast Delete"><i class="bi bi-trash"></i></button>
+                                        </div>
+
+                                        <!-- Fast Delete Modal -->
+                                        <div class="modal fade text-start" id="delEventModal{{ $e->id }}" tabindex="-1" aria-hidden="true">
+                                            <div class="modal-dialog modal-dialog-centered">
+                                                <div class="modal-content rounded-3">
+                                                    <div class="modal-header border-0 pb-0">
+                                                        <h5 class="modal-title fw-700 text-danger"><i class="bi bi-exclamation-triangle me-2"></i>Remove Event</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                    </div>
+                                                    <form action="{{ route('admin.events.delete', $e->id) }}" method="POST">
+                                                        @csrf @method('DELETE')
+                                                        <div class="modal-body py-3">
+                                                            <p class="mb-2">Are you sure you want to remove <strong>"{{ $e->title }}"</strong>?</p>
+                                                            <div class="alert alert-warning small py-2 mb-3">
+                                                                <i class="bi bi-info-circle me-1"></i>
+                                                                This will cancel all student registrations, notify registered students, and remove the event immediately.
+                                                            </div>
+                                                            <label class="form-label small fw-600">Reason (Optional):</label>
+                                                            <input type="text" name="reason" class="form-control form-control-sm" placeholder="e.g. Professor resigned, cancelled">
+                                                        </div>
+                                                        <div class="modal-footer border-0 pt-0">
+                                                            <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">Cancel</button>
+                                                            <button type="submit" class="btn btn-danger btn-sm fw-700"><i class="bi bi-trash me-1"></i>Confirm Removal</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
                                 </tr>
-                                @endforeach
+                                @empty
+                                <tr><td colspan="6" class="text-center py-4 text-muted">No upcoming events found.</td></tr>
+                                @endforelse
                             </tbody>
                         </table>
                         </div>

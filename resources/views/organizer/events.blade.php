@@ -2,10 +2,30 @@
 @section('title', 'My Events — Organizer')
 @section('content')
 <div class="container py-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4 class="fw-bold" style="color:var(--nu-blue)"><i class="bi bi-calendar3 me-2"></i>My Events</h4>
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <h4 class="fw-bold mb-0" style="color:var(--nu-blue)"><i class="bi bi-calendar3 me-2"></i>My Events</h4>
         <a href="{{ route('organizer.event.create') }}" class="btn btn-gold"><i class="bi bi-plus me-1"></i>Create Event</a>
     </div>
+
+    <!-- Tabs: Upcoming vs Past Events -->
+    <ul class="nav nav-pills mb-4 gap-2">
+        <li class="nav-item">
+            <a class="nav-link {{ ($tab ?? 'upcoming') === 'upcoming' ? 'active' : '' }}"
+               href="{{ route('organizer.events', ['tab' => 'upcoming']) }}"
+               style="{{ ($tab ?? 'upcoming') === 'upcoming' ? 'background:var(--nu-blue);color:#fff;font-weight:700;' : 'background:var(--gray-100);color:var(--gray-700);font-weight:600;' }}">
+                <i class="bi bi-calendar-check me-1"></i> Upcoming Events
+                <span class="badge {{ ($tab ?? 'upcoming') === 'upcoming' ? 'bg-light text-dark' : 'bg-secondary text-white' }} ms-1">{{ $upcomingCount ?? 0 }}</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {{ ($tab ?? 'upcoming') === 'past' ? 'active' : '' }}"
+               href="{{ route('organizer.events', ['tab' => 'past']) }}"
+               style="{{ ($tab ?? 'upcoming') === 'past' ? 'background:var(--nu-blue);color:#fff;font-weight:700;' : 'background:var(--gray-100);color:var(--gray-700);font-weight:600;' }}">
+                <i class="bi bi-clock-history me-1"></i> Past / Completed Events
+                <span class="badge {{ ($tab ?? 'upcoming') === 'past' ? 'bg-light text-dark' : 'bg-secondary text-white' }} ms-1">{{ $pastCount ?? 0 }}</span>
+            </a>
+        </li>
+    </ul>
 
     @if($events->count() > 0)
     <div class="row g-4 mb-4">

@@ -35,7 +35,7 @@ class OrganizerController extends Controller implements HasMiddleware
     public function dashboard()
     {
         $user       = Auth::user();
-        $myEvents   = Event::where('organizer_id', $user->id)->orderByDesc('event_date')->take(5)->get()
+        $myEvents   = Event::where('organizer_id', $user->id)->upcoming()->take(5)->get()
             ->map(function ($e) { $e->reg_count = $e->registeredCount(); return $e; });
         $stats = [
             'total_events'    => Event::where('organizer_id', $user->id)->count(),
@@ -51,13 +51,23 @@ class OrganizerController extends Controller implements HasMiddleware
         return view('organizer.dashboard', compact('user', 'myEvents', 'stats', 'pendingVerifications'));
     }
 
-    public function events()
+    public function events(Request $request)
     {
         $user = Auth::user();
-        $events = Event::where('organizer_id', $user->id)
-            ->withCount('registrations')
-            ->orderByDesc('event_date')->paginate(10);
-        return view('organizer.events', compact('events'));
+        $tab  = $request->query('tab', 'upcoming');
+
+        $query = Event::where('organizer_id', $user->id)->withCount('registrations');
+        if ($tab === 'past') {
+            $query->where('event_date', '<', now()->toDateString())->orderByDesc('event_date');
+        } else {
+            $query->where('event_date', '>=', now()->toDateString())->orderBy('event_date', 'asc');
+        }
+
+        $events = $query->paginate(9)->withQueryString();
+        $upcomingCount = Event::where('organizer_id', $user->id)->where('event_date', '>=', now()->toDateString())->count();
+        $pastCount     = Event::where('organizer_id', $user->id)->where('event_date', '<', now()->toDateString())->count();
+
+        return view('organizer.events', compact('events', 'tab', 'upcomingCount', 'pastCount'));
     }
 
     public function createEvent()
@@ -73,7 +83,20 @@ class OrganizerController extends Controller implements HasMiddleware
             'venue'       => 'required|string',
             'event_date'  => 'required|date|after_or_equal:today',
             'start_time'  => 'required|date_format:H:i',
-            'end_time'    => 'required|date_format:H:i|after:start_time',
+            'end_time'    => [
+                'required',
+                'date_format:H:i',
+                'after:start_time',
+                function ($attribute, $value, $fail) use ($request) {
+                    if ($request->filled('start_time') && $value) {
+                        $start = \Carbon\Carbon::parse($request->input('start_time'));
+                        $end   = \Carbon\Carbon::parse($value);
+                        if ($start->diffInMinutes($end, false) < 60) {
+                            $fail('The event duration must be at least 1 hour (60 minutes).');
+                        }
+                    }
+                },
+            ],
             'capacity'    => 'required|integer|min:1',
             'category'    => 'nullable|string',
             'is_featured' => 'boolean',
@@ -155,7 +178,20 @@ class OrganizerController extends Controller implements HasMiddleware
             'venue'       => 'required|string',
             'event_date'  => 'required|date|after_or_equal:today',
             'start_time'  => 'required|date_format:H:i',
-            'end_time'    => 'required|date_format:H:i|after:start_time',
+            'end_time'    => [
+                'required',
+                'date_format:H:i',
+                'after:start_time',
+                function ($attribute, $value, $fail) use ($request) {
+                    if ($request->filled('start_time') && $value) {
+                        $start = \Carbon\Carbon::parse($request->input('start_time'));
+                        $end   = \Carbon\Carbon::parse($value);
+                        if ($start->diffInMinutes($end, false) < 60) {
+                            $fail('The event duration must be at least 1 hour (60 minutes).');
+                        }
+                    }
+                },
+            ],
             'capacity'    => 'required|integer|min:1',
             'status'      => $allowedStatuses,
             'category'    => 'nullable|string',

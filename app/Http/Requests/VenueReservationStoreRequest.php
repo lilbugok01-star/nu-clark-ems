@@ -26,7 +26,21 @@ class VenueReservationStoreRequest extends FormRequest
             'rooms.*'            => 'required|string',
             'reserved_date'      => 'required|date|after_or_equal:today',
             'start_time'         => 'required|date_format:H:i:s,H:i|after_or_equal:08:00',
-            'end_time'           => 'required|date_format:H:i:s,H:i|after:start_time|before_or_equal:22:00',
+            'end_time'           => [
+                'required',
+                'date_format:H:i:s,H:i',
+                'after:start_time',
+                'before_or_equal:22:00',
+                function ($attribute, $value, $fail) {
+                    if ($this->filled('start_time') && $value) {
+                        $start = \Carbon\Carbon::parse($this->input('start_time'));
+                        $end   = \Carbon\Carbon::parse($value);
+                        if ($start->diffInMinutes($end, false) < 60) {
+                            $fail('The reservation duration must be at least 1 hour (60 minutes).');
+                        }
+                    }
+                },
+            ],
             'expected_attendees' => 'nullable|integer|min:1',
             'purpose'            => 'nullable|string',
         ];

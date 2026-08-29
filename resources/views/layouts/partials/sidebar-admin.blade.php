@@ -3,6 +3,9 @@
     <a href="{{ route('admin.dashboard') }}" class="sidebar-link @if(request()->routeIs('admin.dashboard')) active @endif">
         <i class="bi bi-speedometer2"></i> Dashboard
     </a>
+    <a href="{{ route('admin.events') }}" class="sidebar-link @if(request()->routeIs('admin.events*')) active @endif">
+        <i class="bi bi-calendar-event"></i> Manage Events
+    </a>
     <a href="{{ route('admin.users') }}" class="sidebar-link @if(request()->routeIs('admin.users*')) active @endif">
         <i class="bi bi-people"></i> Users
     </a>

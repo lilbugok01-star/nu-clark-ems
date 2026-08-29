@@ -57,26 +57,42 @@ class StudentController extends Controller implements HasMiddleware
 
     public function events(Request $request, EventRecommendationService $recommendationService)
     {
-        $query = Event::with('organizer')->upcoming();
+        $tab = $request->query('tab', 'upcoming');
+
+        if ($tab === 'past') {
+            $query = Event::with('organizer')->published()
+                ->where('event_date', '<', now()->toDateString())
+                ->orderByDesc('event_date');
+        } else {
+            $query = Event::with('organizer')->upcoming();
+        }
+
         if ($request->search)   $query->search($request->search);
         if ($request->category) $query->where('category', $request->category);
 
-        $events     = $query->paginate(12);
+        $events     = $query->paginate(12)->withQueryString();
         $categories = Event::published()->whereNotNull('category')->distinct()->pluck('category');
+
+        $upcomingCount = Event::published()->where('event_date', '>=', now()->toDateString())->count();
+        $pastCount     = Event::published()->where('event_date', '<', now()->toDateString())->count();
 
         // Check which ones the student is already registered for
         $registeredIds = Registration::where('user_id', Auth::id())
             ->where('status', '!=', 'cancelled')->pluck('event_id');
 
-        // Personalized recommendations
-        $recommended = $recommendationService->getRecommendedEvents(Auth::user()->load('course'), 4);
+        // Personalized recommendations (only for upcoming tab)
+        $recommended = ($tab === 'upcoming')
+            ? $recommendationService->getRecommendedEvents(Auth::user()->load('course'), 4)
+            : collect();
 
-        return view('student.events', compact('events', 'categories', 'registeredIds', 'recommended'));
+        return view('student.events', compact('events', 'categories', 'registeredIds', 'recommended', 'tab', 'upcomingCount', 'pastCount'));
     }
 
-    public function myEvents()
+    public function myEvents(Request $request)
     {
-        $registrations = Registration::with(['event', 'attendance'])
+        $tab = $request->query('tab', 'upcoming');
+
+        $allRegistrations = Registration::with(['event', 'attendance'])
             ->where('registrations.user_id', Auth::id())
             ->join('events', 'registrations.event_id', '=', 'events.id')
             ->select('registrations.*')
@@ -84,7 +100,13 @@ class StudentController extends Controller implements HasMiddleware
             ->orderBy('events.start_time', 'asc')
             ->get();
 
-        return view('student.my-events', compact('registrations'));
+        $today = now()->toDateString();
+        $upcomingRegistrations = $allRegistrations->filter(fn($r) => $r->event && $r->event->event_date->format('Y-m-d') >= $today);
+        $pastRegistrations     = $allRegistrations->filter(fn($r) => $r->event && $r->event->event_date->format('Y-m-d') < $today);
+
+        $registrations = ($tab === 'past') ? $pastRegistrations : $upcomingRegistrations;
+
+        return view('student.my-events', compact('registrations', 'upcomingRegistrations', 'pastRegistrations', 'tab'));
     }
 
     public function qrCode($registrationId)

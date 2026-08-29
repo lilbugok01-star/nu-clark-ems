@@ -205,6 +205,11 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/analytics/student/{id}', [AnalyticsController::class, 'studentProfile'])->name('analytics.student');
     Route::get('/notifications',     [AdminController::class, 'notifications'])->name('notifications');
     Route::post('/notifications/send',[AdminController::class, 'sendNotification'])->name('notifications.send');
+    
+    // Event Management (Admin)
+    Route::get('/events',            [AdminController::class, 'events'])->name('events');
+    Route::delete('/events/{id}',    [AdminController::class, 'deleteEvent'])->name('events.delete');
+    Route::put('/events/{id}/status',[AdminController::class, 'updateEventStatus'])->name('events.status');
     // Venue management
     Route::get('/venues',            [AdminController::class, 'venues'])->name('venues');
     Route::put('/venues/{id}/status',[AdminController::class, 'updateVenueStatus'])->name('venues.status');

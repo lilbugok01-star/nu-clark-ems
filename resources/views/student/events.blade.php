@@ -10,13 +10,34 @@
         </div>
     </div>
 
+    <!-- Tabs: Upcoming vs Past Events -->
+    <ul class="nav nav-pills mb-4 gap-2">
+        <li class="nav-item">
+            <a class="nav-link {{ ($tab ?? 'upcoming') === 'upcoming' ? 'active' : '' }}"
+               href="{{ route('student.events', array_merge(request()->except('page'), ['tab' => 'upcoming'])) }}"
+               style="{{ ($tab ?? 'upcoming') === 'upcoming' ? 'background:var(--nu-blue);color:#fff;font-weight:700;' : 'background:var(--gray-100);color:var(--gray-700);font-weight:600;' }}">
+                <i class="bi bi-calendar-check me-1"></i> Upcoming Events
+                <span class="badge {{ ($tab ?? 'upcoming') === 'upcoming' ? 'bg-light text-dark' : 'bg-secondary text-white' }} ms-1">{{ $upcomingCount ?? 0 }}</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {{ ($tab ?? 'upcoming') === 'past' ? 'active' : '' }}"
+               href="{{ route('student.events', array_merge(request()->except('page'), ['tab' => 'past'])) }}"
+               style="{{ ($tab ?? 'upcoming') === 'past' ? 'background:var(--nu-blue);color:#fff;font-weight:700;' : 'background:var(--gray-100);color:var(--gray-700);font-weight:600;' }}">
+                <i class="bi bi-clock-history me-1"></i> Past / Completed Events
+                <span class="badge {{ ($tab ?? 'upcoming') === 'past' ? 'bg-light text-dark' : 'bg-secondary text-white' }} ms-1">{{ $pastCount ?? 0 }}</span>
+            </a>
+        </li>
+    </ul>
+
     <!-- Search/Filter -->
     <form method="GET" class="mb-4">
+        <input type="hidden" name="tab" value="{{ $tab ?? 'upcoming' }}">
         <div class="row g-2">
             <div class="col-md-6">
                 <div class="input-group">
                     <span class="input-group-text"><i class="bi bi-search"></i></span>
-                    <input type="text" name="search" class="form-control" placeholder="Search events…" value="{{ request('search') }}">
+                    <input type="text" name="search" class="form-control" placeholder="Search {{ ($tab ?? 'upcoming') === 'past' ? 'past' : 'upcoming' }} events…" value="{{ request('search') }}">
                 </div>
             </div>
             <div class="col-md-3">
@@ -31,7 +52,7 @@
                 <button type="submit" class="btn btn-nu-blue w-100"><i class="bi bi-funnel me-1"></i>Filter</button>
             </div>
             <div class="col-md-1">
-                <a href="{{ route('student.events') }}" class="btn btn-outline-secondary w-100" title="Clear"><i class="bi bi-x"></i></a>
+                <a href="{{ route('student.events', ['tab' => $tab ?? 'upcoming']) }}" class="btn btn-outline-secondary w-100" title="Clear"><i class="bi bi-x"></i></a>
             </div>
         </div>
     </form>
@@ -121,15 +142,23 @@
                     </div>
                     <div class="d-flex gap-1">
                         <a href="{{ route('event.show', $ev->id) }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-eye"></i></a>
-                        @if($registeredIds->contains($ev->id))
-                            <button class="btn btn-sm" style="background:#dcfce7;color:#166534;border:none;font-weight:600" disabled><i class="bi bi-check-circle me-1"></i>Registered</button>
-                        @elseif($ev->isFull())
-                            <button class="btn btn-outline-danger btn-sm" disabled>Full</button>
+                        @if(($tab ?? 'upcoming') === 'past')
+                            @if($registeredIds->contains($ev->id))
+                                <span class="badge bg-success-subtle text-success py-1.5 px-2.5 fw-600"><i class="bi bi-check-circle me-1"></i>Attended / Registered</span>
+                            @else
+                                <span class="badge bg-secondary-subtle text-secondary py-1.5 px-2.5 fw-600"><i class="bi bi-clock-history me-1"></i>Completed</span>
+                            @endif
                         @else
-                            <form action="{{ route('student.register', $ev->id) }}" method="POST">
-                                @csrf
-                                <button class="btn btn-gold btn-sm fw-600"><i class="bi bi-plus me-1"></i>Register</button>
-                            </form>
+                            @if($registeredIds->contains($ev->id))
+                                <button class="btn btn-sm" style="background:#dcfce7;color:#166534;border:none;font-weight:600" disabled><i class="bi bi-check-circle me-1"></i>Registered</button>
+                            @elseif($ev->isFull())
+                                <button class="btn btn-outline-danger btn-sm" disabled>Full</button>
+                            @else
+                                <form action="{{ route('student.register', $ev->id) }}" method="POST">
+                                    @csrf
+                                    <button class="btn btn-gold btn-sm fw-600"><i class="bi bi-plus me-1"></i>Register</button>
+                                </form>
+                            @endif
                         @endif
                     </div>
                 </div>

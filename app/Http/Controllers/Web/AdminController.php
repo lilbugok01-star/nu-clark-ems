@@ -48,8 +48,11 @@ class AdminController extends Controller implements HasMiddleware
             'total_attendances'   => Attendance::where('status', 'verified')->count(),
         ];
 
-        $recentUsers  = User::latest()->take(5)->get();
-        $recentEvents = Event::with('organizer')->latest()->take(5)->get();
+        $recentUsers    = User::latest()->take(5)->get();
+        $upcomingEvents = Event::with('organizer')->upcoming()->take(5)->get();
+        $recentEvents   = $upcomingEvents->isNotEmpty()
+            ? $upcomingEvents
+            : Event::with('organizer')->latest()->take(5)->get();
 
         // Monthly registrations for chart
         $monthlyData = [];
@@ -61,7 +64,7 @@ class AdminController extends Controller implements HasMiddleware
             ];
         }
 
-        return view('admin.dashboard', compact('stats', 'recentUsers', 'recentEvents', 'monthlyData'));
+        return view('admin.dashboard', compact('stats', 'recentUsers', 'recentEvents', 'upcomingEvents', 'monthlyData'));
     }
 
     public function auditLogs(Request $request)
@@ -393,6 +396,113 @@ class AdminController extends Controller implements HasMiddleware
         User::log('send_broadcast_notification', null, null, ['title' => $v['title'], 'role' => $v['role']]);
 
         return back()->with('success', "Notification sent to {$userIds->count()} users.");
+    }
+
+    // ─── Event Management (Admin) ────────────────
+    public function events(Request $request)
+    {
+        $tab = $request->query('tab', 'upcoming');
+        $query = Event::with('organizer')->withCount([
+            'registrations as registrations_count' => fn($q) => $q->where('status', '!=', 'cancelled'),
+            'registrations as verified_count' => fn($q) => $q->whereHas('attendance', fn($aq) => $aq->where('status', 'verified'))
+        ]);
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('title', 'like', '%' . $search . '%')
+                  ->orWhere('venue', 'like', '%' . $search . '%')
+                  ->orWhereHas('organizer', fn($oq) => $oq->where('first_name', 'like', '%' . $search . '%')->orWhere('surname', 'like', '%' . $search . '%'));
+            });
+        }
+
+        if ($request->filled('category')) {
+            $query->where('category', $request->category);
+        }
+
+        if ($request->filled('organizer_id')) {
+            $query->where('organizer_id', $request->organizer_id);
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $today = now()->toDateString();
+        if ($tab === 'past') {
+            $query->where(function($q) use ($today) {
+                $q->where('event_date', '<', $today)
+                  ->orWhereIn('status', ['completed', 'cancelled', 'rejected']);
+            })->orderByDesc('event_date');
+        } else {
+            $query->where('event_date', '>=', $today)
+                  ->whereNotIn('status', ['cancelled', 'rejected'])
+                  ->orderBy('event_date', 'asc')
+                  ->orderBy('start_time', 'asc');
+        }
+
+        $events = $query->paginate(15)->withQueryString();
+
+        $upcomingCount = Event::where('event_date', '>=', $today)
+            ->whereNotIn('status', ['cancelled', 'rejected'])->count();
+        $pastCount = Event::where(function($q) use ($today) {
+            $q->where('event_date', '<', $today)
+              ->orWhereIn('status', ['completed', 'cancelled', 'rejected']);
+        })->count();
+
+        $organizers = User::whereIn('role', ['organizer', 'student_development', 'admin'])->orderBy('first_name')->get();
+        $categories = Event::whereNotNull('category')->distinct()->pluck('category');
+
+        return view('admin.events', compact('events', 'tab', 'upcomingCount', 'pastCount', 'organizers', 'categories'));
+    }
+
+    public function deleteEvent(Request $request, $id)
+    {
+        $event = Event::with('registrations.user')->findOrFail($id);
+        $eventTitle = $event->title;
+        $registeredUsers = $event->registrations->pluck('user_id')->filter()->unique();
+
+        // 1. Cancel all registrations for this event so it immediately clears from student dashboards
+        $event->registrations()->where('status', '!=', 'cancelled')->update(['status' => 'cancelled']);
+
+        // 2. Notify all registered students immediately
+        if ($registeredUsers->isNotEmpty()) {
+            $notifs = $registeredUsers->map(fn($uid) => [
+                'user_id'    => $uid,
+                'type'       => 'event_cancelled',
+                'title'      => 'Event Cancelled: ' . $eventTitle,
+                'message'    => "The event '{$eventTitle}' scheduled for " . ($event->event_date ? $event->event_date->format('M d, Y') : '') . " has been removed by the administration. Your registration has been cancelled.",
+                'created_at' => now(),
+                'updated_at' => now(),
+            ])->toArray();
+            AppNotification::insert($notifs);
+        }
+
+        // 3. Log the system audit
+        User::log('admin_delete_event', $event, $event->toArray(), [
+            'action' => 'deleted_by_admin',
+            'reason' => $request->input('reason', 'Administrative removal')
+        ]);
+
+        // 4. Soft delete the event
+        $event->delete();
+
+        return back()->with('success', "Event '{$eventTitle}' was successfully removed and all registered students have been notified.");
+    }
+
+    public function updateEventStatus(Request $request, $id)
+    {
+        $request->validate([
+            'status' => 'required|in:draft,published,cancelled,completed',
+        ]);
+
+        $event = Event::findOrFail($id);
+        $old = $event->toArray();
+        $event->update(['status' => $request->status]);
+
+        User::log('admin_update_event_status', $event, $old, $event->toArray());
+
+        return back()->with('success', "Status for '{$event->title}' updated to " . ucfirst($request->status) . ".");
     }
 
     // ─── Venue Management (Admin) ────────────────

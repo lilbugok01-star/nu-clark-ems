@@ -37,7 +37,20 @@ class EventController extends Controller
             'venue'       => 'required|string',
             'event_date'  => 'required|date|after_or_equal:today',
             'start_time'  => 'required|date_format:H:i',
-            'end_time'    => 'required|date_format:H:i|after:start_time',
+            'end_time'    => [
+                'required',
+                'date_format:H:i',
+                'after:start_time',
+                function ($attribute, $value, $fail) use ($request) {
+                    if ($request->filled('start_time') && $value) {
+                        $start = \Carbon\Carbon::parse($request->input('start_time'));
+                        $end   = \Carbon\Carbon::parse($value);
+                        if ($start->diffInMinutes($end, false) < 60) {
+                            $fail('The event duration must be at least 1 hour (60 minutes).');
+                        }
+                    }
+                },
+            ],
             'capacity'    => 'required|integer|min:1',
             'category'    => 'nullable|string',
             'tags'        => 'nullable|string',

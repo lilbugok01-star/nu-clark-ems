@@ -202,9 +202,9 @@
                                 data-bs-toggle="dropdown" style="font-size:.83rem">
                                 <div class="rounded-circle d-flex align-items-center justify-content-center fw-800"
                                     style="width:22px;height:22px;background:rgba(0,48,135,.18);color:var(--nu-blue);font-size:.68rem;flex-shrink:0">
-                                    {{ strtoupper(substr(Auth::user()->first_name, 0, 1)) }}
+                                    {{ strtoupper(substr(Auth::user()->first_name ?? Auth::user()->name ?? 'U', 0, 1)) }}
                                 </div>
-                                <span class="d-none d-sm-inline">{{ Auth::user()->first_name }}</span>
+                                <span class="d-none d-sm-inline">{{ Auth::user()->first_name ?? Auth::user()->name ?? 'User' }}</span>
                             </button>
 
                             <ul class="dropdown-menu dropdown-menu-lg-end shadow-lg rounded-3 mt-1 p-0"
@@ -243,6 +243,9 @@
                                     <li><a class="dropdown-item small py-2 px-3 d-flex align-items-center gap-2"
                                             href="{{ route('admin.dashboard') }}"><i class="bi bi-speedometer2"
                                                 style="color:var(--nu-blue)"></i> Admin Dashboard</a></li>
+                                    <li><a class="dropdown-item small py-2 px-3 d-flex align-items-center gap-2"
+                                            href="{{ route('admin.events') }}"><i class="bi bi-calendar-event"
+                                                style="color:var(--nu-blue)"></i> Manage Events</a></li>
                                     <li><a class="dropdown-item small py-2 px-3 d-flex align-items-center gap-2"
                                             href="{{ route('admin.venues') }}"><i class="bi bi-building"
                                                 style="color:var(--nu-blue)"></i> Venue Management</a></li>

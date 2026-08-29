@@ -106,13 +106,15 @@
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Start Time *</label>
-                            <input type="time" name="start_time" class="form-control" required
-                                   value="{{ old('start_time', $event ? substr($event->start_time,0,5) : '') }}">
+                            <input type="time" name="start_time" id="startTimeInput" class="form-control" required
+                                   value="{{ old('start_time', $event ? substr($event->start_time,0,5) : '') }}" onchange="handleStartTimeChange()">
+                            <div class="form-text text-muted" style="font-size:0.75rem;"><i class="bi bi-info-circle me-1"></i>Min. 1 hr event duration</div>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">End Time *</label>
-                            <input type="time" name="end_time" class="form-control" required
+                            <input type="time" name="end_time" id="endTimeInput" class="form-control" required
                                    value="{{ old('end_time', $event ? substr($event->end_time,0,5) : '') }}">
+                            <div class="form-text text-muted" style="font-size:0.75rem;"><i class="bi bi-clock me-1"></i>Must be ≥ 1 hr after start</div>
                         </div>
                     </div>
                 </div>
@@ -228,5 +230,50 @@ function previewPoster(e) {
     };
     r.readAsDataURL(f);
 }
+function handleStartTimeChange() {
+    const startInput = document.getElementById('startTimeInput');
+    const endInput   = document.getElementById('endTimeInput');
+    if (!startInput.value) return;
+
+    const [hours, minutes] = startInput.value.split(':').map(Number);
+    let endHours = hours + 1;
+    let endMinutes = minutes;
+    if (endHours >= 24) endHours = 23;
+
+    const formattedEnd = String(endHours).padStart(2, '0') + ':' + String(endMinutes).padStart(2, '0');
+    
+    // If end time is empty or less than start + 1hr, set to start + 1hr
+    if (!endInput.value || endInput.value <= startInput.value) {
+        endInput.value = formattedEnd;
+    } else {
+        const [currentEndH, currentEndM] = endInput.value.split(':').map(Number);
+        const durationMin = (currentEndH * 60 + currentEndM) - (hours * 60 + minutes);
+        if (durationMin < 60) {
+            endInput.value = formattedEnd;
+        }
+    }
+}
+
+// Client-side form submit check
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const startInput = document.getElementById('startTimeInput');
+            const endInput   = document.getElementById('endTimeInput');
+            if (startInput && endInput && startInput.value && endInput.value) {
+                const [sh, sm] = startInput.value.split(':').map(Number);
+                const [eh, em] = endInput.value.split(':').map(Number);
+                const diff = (eh * 60 + em) - (sh * 60 + sm);
+                if (diff < 60) {
+                    e.preventDefault();
+                    alert('Event duration must be at least 1 hour (60 minutes). Please adjust the End Time.');
+                    endInput.focus();
+                    return false;
+                }
+            }
+        });
+    }
+});
 </script>
 @endpush
