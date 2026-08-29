@@ -55,6 +55,7 @@ class AuthController extends Controller
     public function login(LoginRequest $request)
     {
         $v = $request->validated();
+        $remember = $request->filled('remember');
         
         // Instant fallback: if default admin credentials are typed, ensure admin exists in DB
         if ($v['email'] === 'admin@nu-clark.edu.ph' && $v['password'] === 'Password123@') {
