@@ -39,6 +39,15 @@ class AdminController extends Controller implements HasMiddleware
 
     public function dashboard()
     {
+        // Auto-populate all organizers, students, courses, and demo events if database was fresh
+        try {
+            if (User::where('role', 'organizer')->count() === 0 || User::where('role', 'student')->count() === 0) {
+                (new \Database\Seeders\DatabaseSeeder())->run();
+            }
+        } catch (\Throwable $e) {
+            \Log::warning('Dashboard auto-seed check: ' . $e->getMessage());
+        }
+
         $stats = [
             'total_students'      => User::where('role', 'student')->count(),
             'total_organizers'    => User::where('role', 'organizer')->count(),
