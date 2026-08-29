@@ -26,10 +26,19 @@ class AuthController extends Controller
     {
         try {
             if (User::where('role', 'admin')->count() === 0) {
-                \Illuminate\Support\Facades\Artisan::call('db:seed', ['--force' => true]);
+                User::updateOrCreate(
+                    ['email' => 'admin@nu-clark.edu.ph'],
+                    [
+                        'first_name' => 'System',
+                        'surname'    => 'Administrator',
+                        'password'   => Hash::make('Password123@'),
+                        'role'       => 'admin',
+                        'is_active'  => true,
+                    ]
+                );
             }
         } catch (\Throwable $e) {
-            Log::warning('Auto-seed check: ' . $e->getMessage());
+            Log::warning('Admin auto-creation: ' . $e->getMessage());
         }
 
         return view('auth.login');

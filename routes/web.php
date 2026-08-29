@@ -17,6 +17,8 @@ use App\Http\Controllers\Web\PredictiveAnalyticsController;
 
 // ── Public Routes ────────────────────────────────────────────────────────────
 Route::get('/seed-db', function () {
+    set_time_limit(300);
+    ini_set('max_execution_time', '300');
     try {
         \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
         \Illuminate\Support\Facades\Artisan::call('db:seed', ['--force' => true]);
@@ -25,11 +27,14 @@ Route::get('/seed-db', function () {
             'message' => 'Database migrated and seeded successfully!',
             'admin_email' => 'admin@nu-clark.edu.ph',
             'admin_password' => 'Password123@',
+            'total_users' => \App\Models\User::count(),
+            'total_events' => \App\Models\Event::count(),
         ]);
     } catch (\Throwable $e) {
         return response()->json([
             'status' => 'error',
             'error' => $e->getMessage(),
+            'trace' => $e->getFile() . ':' . $e->getLine(),
         ], 500);
     }
 });

@@ -14,65 +14,7 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // ── Courses ──────────────────────────────
-        $courses = [
-            ['code' => 'BSIT-MWA', 'name' => 'Bachelor of Science in Information Technology with specialization in Mobile and Web Applications'],
-            ['code' => 'BSA',      'name' => 'Bachelor of Science in Accountancy'],
-            ['code' => 'BSTM',     'name' => 'Bachelor of Science in Tourism Management'],
-            ['code' => 'BSIT',     'name' => 'Bachelor of Science in Information Technology'],
-            ['code' => 'BSP',      'name' => 'Bachelor of Science in Psychology'],
-            ['code' => 'BACOMM',   'name' => 'Bachelor of Arts in Communication'],
-            ['code' => 'BAPOLSCI', 'name' => 'Bachelor of Arts in Political Science'],
-            ['code' => 'BSCPE',    'name' => 'Bachelor of Science in Computer Engineering'],
-            ['code' => 'BSCE',     'name' => 'Bachelor of Science in Civil Engineering'],
-            ['code' => 'BSMA',     'name' => 'Bachelor of Science in Management Accounting'],
-            ['code' => 'BSBA-MM',  'name' => 'Bachelor of Science in Business Administration Major in Marketing Management'],
-            ['code' => 'BSARCH',   'name' => 'Bachelor of Science in Architecture'],
-        ];
-
-        // Force-deactivate all courses first to ensure old ones are hidden
-        Course::query()->update(['is_active' => false]);
-
-        foreach ($courses as $c) {
-            Course::updateOrCreate(
-                ['code' => $c['code']],
-                array_merge($c, ['is_active' => true])
-            );
-        }
-
-        // ── Sections ─────────────────────────────
-        // Deactivate all sections first, then re-activate the valid ones
-        Section::query()->update(['is_active' => false]);
-
-        $courseMap = [
-            'BSIT-MWA' => ['prefix' => 'MWA', 'years' => 4, 'sections_per_year' => 5],
-            'BSA'      => ['prefix' => 'ACC', 'years' => 4, 'sections_per_year' => 5],
-            'BSTM'     => ['prefix' => 'TRM', 'years' => 4, 'sections_per_year' => 5],
-            'BSIT'     => ['prefix' => 'ITE', 'years' => 4, 'sections_per_year' => 5],
-            'BSP'      => ['prefix' => 'PSY', 'years' => 4, 'sections_per_year' => 5],
-            'BACOMM'   => ['prefix' => 'COM', 'years' => 4, 'sections_per_year' => 5],
-            'BAPOLSCI' => ['prefix' => 'POL', 'years' => 4, 'sections_per_year' => 5],
-            'BSCPE'    => ['prefix' => 'CPE', 'years' => 4, 'sections_per_year' => 5],
-            'BSCE'     => ['prefix' => 'CVE', 'years' => 4, 'sections_per_year' => 5],
-            'BSMA'     => ['prefix' => 'MAC', 'years' => 4, 'sections_per_year' => 5],
-            'BSBA-MM'  => ['prefix' => 'MKT', 'years' => 4, 'sections_per_year' => 5],
-            'BSARCH'   => ['prefix' => 'ARE', 'years' => 4, 'sections_per_year' => 5],
-        ];
-
-        foreach ($courseMap as $code => $config) {
-            $course = Course::where('code', $code)->first();
-            if (!$course) continue;
-            for ($year = 1; $year <= $config['years']; $year++) {
-                for ($sec = 1; $sec <= $config['sections_per_year']; $sec++) {
-                    $sectionName = $config['prefix'] . '-' . $year . str_pad($sec, 2, '0', STR_PAD_LEFT);
-                    Section::updateOrCreate(
-                        ['course_id' => $course->id, 'name' => $sectionName],
-                        ['year_level' => $year, 'is_active' => true]
-                    );
-                }
-            }
-        }
-
+        // 1. ── System Admin FIRST ──────────────────────────────
         $admin = User::updateOrCreate(
             ['email' => 'admin@nu-clark.edu.ph'],
             [
@@ -84,10 +26,10 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        // Create Approvers/Staff FIRST before doing heavy tasks
+        // 2. ── Approvers & Department Staff ─────────────────────
         $this->call(VenueApproversSeeder::class);
 
-        // ── Organizers ────────────────────────────
+        // 3. ── Organizers ───────────────────────────────────────
         $org1 = User::firstOrCreate(['email' => 'organizer@nu-clark.edu.ph'], [
             'first_name'  => 'Maria',
             'middle_name' => null,
@@ -104,9 +46,62 @@ class DatabaseSeeder extends Seeder
             'role'     => 'organizer',
         ]);
 
-        // ── Sample Students ───────────────────────
-        $course  = Course::where('code', 'BSIT')->first();
-        $section = Section::where('name', 'ITE-201')->first();
+        // 4. ── Courses ──────────────────────────────────────────
+        $courses = [
+            ['code' => 'BSIT-MWA', 'name' => 'Bachelor of Science in Information Technology with specialization in Mobile and Web Applications'],
+            ['code' => 'BSA',      'name' => 'Bachelor of Science in Accountancy'],
+            ['code' => 'BSTM',     'name' => 'Bachelor of Science in Tourism Management'],
+            ['code' => 'BSIT',     'name' => 'Bachelor of Science in Information Technology'],
+            ['code' => 'BSP',      'name' => 'Bachelor of Science in Psychology'],
+            ['code' => 'BACOMM',   'name' => 'Bachelor of Arts in Communication'],
+            ['code' => 'BAPOLSCI', 'name' => 'Bachelor of Arts in Political Science'],
+            ['code' => 'BSCPE',    'name' => 'Bachelor of Science in Computer Engineering'],
+            ['code' => 'BSCE',     'name' => 'Bachelor of Science in Civil Engineering'],
+            ['code' => 'BSMA',     'name' => 'Bachelor of Science in Management Accounting'],
+            ['code' => 'BSBA-MM',  'name' => 'Bachelor of Science in Business Administration Major in Marketing Management'],
+            ['code' => 'BSARCH',   'name' => 'Bachelor of Science in Architecture'],
+        ];
+
+        foreach ($courses as $c) {
+            Course::updateOrCreate(
+                ['code' => $c['code']],
+                array_merge($c, ['is_active' => true])
+            );
+        }
+
+        // 5. ── Sections (Top sections for sample students) ──────
+        $courseMap = [
+            'BSIT-MWA' => ['prefix' => 'MWA', 'years' => 4, 'sections_per_year' => 3],
+            'BSA'      => ['prefix' => 'ACC', 'years' => 4, 'sections_per_year' => 3],
+            'BSTM'     => ['prefix' => 'TRM', 'years' => 4, 'sections_per_year' => 3],
+            'BSIT'     => ['prefix' => 'ITE', 'years' => 4, 'sections_per_year' => 3],
+            'BSP'      => ['prefix' => 'PSY', 'years' => 4, 'sections_per_year' => 3],
+            'BACOMM'   => ['prefix' => 'COM', 'years' => 4, 'sections_per_year' => 3],
+            'BAPOLSCI' => ['prefix' => 'POL', 'years' => 4, 'sections_per_year' => 3],
+            'BSCPE'    => ['prefix' => 'CPE', 'years' => 4, 'sections_per_year' => 3],
+            'BSCE'     => ['prefix' => 'CVE', 'years' => 4, 'sections_per_year' => 3],
+            'BSMA'     => ['prefix' => 'MAC', 'years' => 4, 'sections_per_year' => 3],
+            'BSBA-MM'  => ['prefix' => 'MKT', 'years' => 4, 'sections_per_year' => 3],
+            'BSARCH'   => ['prefix' => 'ARE', 'years' => 4, 'sections_per_year' => 3],
+        ];
+
+        foreach ($courseMap as $code => $config) {
+            $course = Course::where('code', $code)->first();
+            if (!$course) continue;
+            for ($year = 1; $year <= $config['years']; $year++) {
+                for ($sec = 1; $sec <= $config['sections_per_year']; $sec++) {
+                    $sectionName = $config['prefix'] . '-' . $year . str_pad($sec, 2, '0', STR_PAD_LEFT);
+                    Section::updateOrCreate(
+                        ['course_id' => $course->id, 'name' => $sectionName],
+                        ['year_level' => $year, 'is_active' => true]
+                    );
+                }
+            }
+        }
+
+        // 6. ── Sample Students ──────────────────────────────────
+        $bsitCourse  = Course::where('code', 'BSIT')->first();
+        $iteSection  = Section::where('name', 'ITE-201')->first();
 
         $studentData = [
             ['first_name' => 'Ana',    'surname' => 'Reyes',    'email' => 'ana.reyes@students.nu-clark.edu.ph',      'student_id' => '2022-00001'],
@@ -121,8 +116,9 @@ class DatabaseSeeder extends Seeder
                 ...$sd,
                 'password'   => Hash::make('password'),
                 'role'       => 'student',
-                'course_id'  => $course->id,
-                'section_id' => $section->id,
+                'course_id'  => $bsitCourse ? $bsitCourse->id : null,
+                'section_id' => $iteSection ? $iteSection->id : null,
+                'is_active'  => true,
             ]);
         }
 
