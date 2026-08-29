@@ -1,7 +1,6 @@
-﻿# Multi-stage Dockerfile for Laravel 11 on Render / Cloud Container Platforms
-FROM php:8.2-cli-alpine
+﻿FROM php:8.2-cli-alpine
 
-# Install system dependencies and PHP extensions
+# Install system dependencies and build libraries
 RUN apk add --no-cache \
     curl \
     libpng-dev \
@@ -14,33 +13,36 @@ RUN apk add --no-cache \
     libzip-dev \
     freetype-dev \
     libjpeg-turbo-dev \
+    icu-dev \
+    oniguruma-dev \
     mariadb-client
 
+# Configure and install PHP extensions needed by Laravel, DomPDF, Excel, and QR
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install pdo pdo_mysql gd bcmath zip pcntl
+    && docker-php-ext-install -j$(nproc) pdo pdo_mysql gd bcmath zip intl pcntl
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Set working directory
 WORKDIR /var/www
 
-# Copy project files
+# Copy codebase
 COPY . .
 
-# Install PHP dependencies
-RUN composer install --no-dev --optimize-autoloader --no-interaction
+# Install PHP dependencies with --no-scripts to prevent premature artisan execution
+RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
 
-# Install Node dependencies and build Vite assets
+# Generate optimized autoload dump
+RUN composer dump-autoload --optimize
+
+# Install NPM dependencies and build Vite frontend assets
 RUN npm install && npm run build
 
-# Set permissions
+# Fix folder permissions for storage and cache
 RUN chmod -R 775 storage bootstrap/cache
 
-# Expose port
 EXPOSE 8080
 
-# Start Laravel
 CMD php artisan storage:link --force && \
     php artisan config:cache && \
     php artisan route:cache && \
