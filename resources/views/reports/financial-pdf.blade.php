@@ -114,7 +114,7 @@
     <div class="header">
         <h1>Financial Report</h1>
         <h2>{{ $event->title }}</h2>
-        <p>Event Date: {{ \Carbon\Carbon::parse($event->start_date)->format('F d, Y') }} - {{ \Carbon\Carbon::parse($event->end_date)->format('F d, Y') }}</p>
+        <p>Event Date: {{ $event->event_date ? \Carbon\Carbon::parse($event->event_date)->format('F d, Y') : 'N/A' }}</p>
     </div>
 
     <div class="section-title">1. Financial Summary</div>
@@ -194,14 +194,14 @@
         <tbody>
             @forelse($payments as $payment)
                 @php
-                    $isIncome = $payment->type === 'income';
+                    $isIncome = $payment->payment_type === 'income';
                     $amountColor = $isIncome ? 'text-success' : 'text-danger';
                     $sign = $isIncome ? '+' : '-';
                 @endphp
                 <tr>
                     <td>{{ \Carbon\Carbon::parse($payment->payment_date)->format('Y-m-d') }}</td>
                     <td class="text-center">
-                        <span class="badge {{ $isIncome ? 'bg-income' : 'bg-expense' }}">{{ ucfirst($payment->type) }}</span>
+                        <span class="badge {{ $isIncome ? 'bg-income' : 'bg-expense' }}">{{ ucfirst($payment->payment_type) }}</span>
                     </td>
                     <td>{{ $payment->description }}</td>
                     <td>{{ $payment->payment_method }}</td>

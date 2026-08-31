@@ -30,7 +30,7 @@ class AnalyticsController extends Controller implements HasMiddleware
         $dateFrom = $request->input('date_from');
         $dateTo = $request->input('date_to');
         
-        $overview = $analytics->overviewStats();
+        $overview = $analytics->overviewStats($dateFrom, $dateTo);
         $categoryPopularity = $analytics->categoryPopularity($dateFrom, $dateTo);
         $trends = $analytics->participationTrends();
         $courseVsCategory = $analytics->courseVsCategory($dateFrom, $dateTo);
@@ -58,7 +58,7 @@ class AnalyticsController extends Controller implements HasMiddleware
         $dateFrom = $request->input('date_from');
         $dateTo = $request->input('date_to');
 
-        $overview = $analytics->overviewStats();
+        $overview = $analytics->overviewStats($dateFrom, $dateTo);
         $categoryPopularity = $analytics->categoryPopularity($dateFrom, $dateTo);
         $courseVsCategory = $analytics->courseVsCategory($dateFrom, $dateTo);
         $engagementScores = $analytics->eventEngagementScores($dateFrom, $dateTo);

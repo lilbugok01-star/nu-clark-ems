@@ -72,7 +72,7 @@
                                 </div>
                                 <div class="mb-4">
                                     <label class="form-label small fw-bold">Duration (Hours)</label>
-                                    <input type="number" name="duration" class="form-control" value="{{ $params['duration'] ?? 2 }}" required min="1" max="8">
+                                    <input type="number" name="duration_hours" class="form-control" value="{{ $params['duration_hours'] ?? 2 }}" required min="1" max="8">
                                 </div>
                                 <button type="submit" class="btn btn-nu-blue w-100 fw-bold" style="background-color: var(--nu-blue); color: white;">
                                     <i class="bi bi-search me-2"></i>Find Optimal Slots
@@ -103,22 +103,22 @@
                                     <tr>
                                         <td>
                                             <div class="fw-bold text-dark">{{ \Carbon\Carbon::parse($rec['date'])->format('M d, Y') }}</div>
-                                            <div class="small text-muted">{{ $rec['day'] }} • {{ $rec['time'] }}</div>
+                                            <div class="small text-muted">{{ $rec['day_name'] }} • {{ $rec['suggested_start'] }} - {{ $rec['suggested_end'] }}</div>
                                         </td>
                                         <td class="text-center">
-                                            @if($rec['conflicts'] == 0)
+                                            @if($rec['conflict_count'] == 0)
                                                 <span class="badge bg-success-subtle text-success border border-success">None</span>
                                             @else
-                                                <span class="badge bg-warning-subtle text-warning border border-warning">{{ $rec['conflicts'] }} Found</span>
+                                                <span class="badge bg-warning-subtle text-warning border border-warning">{{ $rec['conflict_count'] }} Found</span>
                                             @endif
                                         </td>
                                         <td>
                                             <div class="d-flex justify-content-between small fw-bold mb-1">
-                                                <span>{{ number_format($rec['score'], 0) }}%</span>
-                                                <span class="text-muted">{{ $rec['score'] > 85 ? 'Excellent' : ($rec['score'] > 70 ? 'Good' : 'Fair') }}</span>
+                                                <span>{{ number_format($rec['confidence_score'], 0) }}%</span>
+                                                <span class="text-muted">{{ $rec['confidence_score'] > 85 ? 'Excellent' : ($rec['confidence_score'] > 70 ? 'Good' : 'Fair') }}</span>
                                             </div>
                                             <div class="score-bar">
-                                                <div class="score-fill bg-{{ $rec['score'] > 85 ? 'success' : ($rec['score'] > 70 ? 'primary' : 'warning') }}" style="width: {{ $rec['score'] }}%"></div>
+                                                <div class="score-fill bg-{{ $rec['confidence_score'] > 85 ? 'success' : ($rec['confidence_score'] > 70 ? 'primary' : 'warning') }}" style="width: {{ $rec['confidence_score'] }}%"></div>
                                             </div>
                                         </td>
                                         <td class="small text-muted">

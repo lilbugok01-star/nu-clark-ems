@@ -45,7 +45,8 @@ class FinancialController extends Controller implements HasMiddleware
             $query->where('organizer_id', Auth::id());
         }
 
-        $events = $query->orderByDesc('event_date')->paginate(15);
+        // Compute grand totals from ALL events (before pagination)
+        $allEvents = $query->clone()->get();
 
         $totalEstimatedBudget = 0;
         $totalActualSpent = 0;
@@ -53,16 +54,11 @@ class FinancialController extends Controller implements HasMiddleware
         $totalExpenses = 0;
         $eventsWithBudgetCount = 0;
 
-        foreach ($events as $event) {
-            $eventEst = ($hasBudgetTable && $event->relationLoaded('budgets')) ? (float) $event->budgets->sum('estimated_amount') : 0;
-            $eventAct = ($hasBudgetTable && $event->relationLoaded('budgets')) ? (float) $event->budgets->sum('actual_amount') : 0;
-            $eventInc = ($hasPaymentTable && $event->relationLoaded('payments')) ? (float) $event->payments->where('payment_type', 'income')->sum('amount') : 0;
-            $eventExp = ($hasPaymentTable && $event->relationLoaded('payments')) ? (float) $event->payments->where('payment_type', 'expense')->sum('amount') : 0;
-
-            $event->total_estimated_budget = $eventEst;
-            $event->total_actual_spent = $eventAct;
-            $event->total_income = $eventInc;
-            $event->total_expenses = $eventExp;
+        foreach ($allEvents as $ev) {
+            $eventEst = ($hasBudgetTable && $ev->relationLoaded('budgets')) ? (float) $ev->budgets->sum('estimated_amount') : 0;
+            $eventAct = ($hasBudgetTable && $ev->relationLoaded('budgets')) ? (float) $ev->budgets->sum('actual_amount') : 0;
+            $eventInc = ($hasPaymentTable && $ev->relationLoaded('payments')) ? (float) $ev->payments->where('payment_type', 'income')->sum('amount') : 0;
+            $eventExp = ($hasPaymentTable && $ev->relationLoaded('payments')) ? (float) $ev->payments->where('payment_type', 'expense')->sum('amount') : 0;
 
             if ($eventEst > 0 || $eventAct > 0) {
                 $eventsWithBudgetCount++;
@@ -84,6 +80,17 @@ class FinancialController extends Controller implements HasMiddleware
             'net_profit_loss'          => $netProfitLoss,
             'total_events_with_budget' => $eventsWithBudgetCount,
         ];
+
+        // Now paginate for display
+        $events = $query->orderByDesc('event_date')->paginate(15);
+
+        // Attach per-event computed properties for the table
+        foreach ($events as $event) {
+            $event->total_estimated_budget = ($hasBudgetTable && $event->relationLoaded('budgets')) ? (float) $event->budgets->sum('estimated_amount') : 0;
+            $event->total_actual_spent = ($hasBudgetTable && $event->relationLoaded('budgets')) ? (float) $event->budgets->sum('actual_amount') : 0;
+            $event->total_income = ($hasPaymentTable && $event->relationLoaded('payments')) ? (float) $event->payments->where('payment_type', 'income')->sum('amount') : 0;
+            $event->total_expenses = ($hasPaymentTable && $event->relationLoaded('payments')) ? (float) $event->payments->where('payment_type', 'expense')->sum('amount') : 0;
+        }
 
         return view('admin.financial-dashboard', compact(
             'events', 
@@ -299,15 +306,22 @@ class FinancialController extends Controller implements HasMiddleware
 
         $event = $query->findOrFail($eventId);
 
+        $budgetItems = $event->budgets;
+        $payments = $event->payments;
+
         $totals = [
-            'estimated_budget' => (float) $event->budgets->sum('estimated_amount'),
-            'actual_spent'     => (float) $event->budgets->sum('actual_amount'),
-            'income'           => (float) $event->payments->where('payment_type', 'income')->sum('amount'),
-            'expense'          => (float) $event->payments->where('payment_type', 'expense')->sum('amount')
+            'estimated_budget' => (float) $budgetItems->sum('estimated_amount'),
+            'actual_spent'     => (float) $budgetItems->sum('actual_amount'),
+            'total_estimated'  => (float) $budgetItems->sum('estimated_amount'),
+            'total_actual'     => (float) $budgetItems->sum('actual_amount'),
+            'income'           => (float) $payments->where('payment_type', 'income')->sum('amount'),
+            'expense'          => (float) $payments->where('payment_type', 'expense')->sum('amount'),
+            'total_income'     => (float) $payments->where('payment_type', 'income')->sum('amount'),
+            'total_expense'    => (float) $payments->where('payment_type', 'expense')->sum('amount'),
         ];
         $totals['net'] = $totals['income'] - $totals['expense'];
 
-        $pdf = Pdf::loadView('reports.financial-pdf', compact('event', 'totals'));
+        $pdf = Pdf::loadView('reports.financial-pdf', compact('event', 'totals', 'budgetItems', 'payments'));
         
         User::log('exported_financial_pdf', $event, null, null);
 

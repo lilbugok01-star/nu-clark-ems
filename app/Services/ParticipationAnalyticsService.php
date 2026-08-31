@@ -12,6 +12,68 @@ use Carbon\Carbon;
 
 class ParticipationAnalyticsService
 {
+    /**
+     * Overview statistics — now accepts optional date range.
+     */
+    public function overviewStats(?string $dateFrom = null, ?string $dateTo = null): array
+    {
+        $eventQuery = Event::query();
+        if ($dateFrom) $eventQuery->whereDate('event_date', '>=', $dateFrom);
+        if ($dateTo)   $eventQuery->whereDate('event_date', '<=', $dateTo);
+        $totalEvents = $eventQuery->count();
+
+        // Count only non-cancelled registrations
+        $regQuery = Registration::join('events', 'registrations.event_id', '=', 'events.id')
+            ->whereNull('events.deleted_at')
+            ->where('registrations.status', '!=', 'cancelled');
+        if ($dateFrom) $regQuery->whereDate('events.event_date', '>=', $dateFrom);
+        if ($dateTo)   $regQuery->whereDate('events.event_date', '<=', $dateTo);
+        $totalRegistrations = $regQuery->count();
+
+        // Count only verified attendances
+        $attQuery = Attendance::where('attendances.status', 'verified')
+            ->join('registrations', 'attendances.registration_id', '=', 'registrations.id')
+            ->join('events', 'registrations.event_id', '=', 'events.id')
+            ->whereNull('events.deleted_at')
+            ->where('registrations.status', '!=', 'cancelled');
+        if ($dateFrom) $attQuery->whereDate('events.event_date', '>=', $dateFrom);
+        if ($dateTo)   $attQuery->whereDate('events.event_date', '<=', $dateTo);
+        $totalAttendances = $attQuery->count();
+
+        // Active students (distinct users with non-cancelled registrations)
+        $activeQuery = Registration::join('events', 'registrations.event_id', '=', 'events.id')
+            ->whereNull('events.deleted_at')
+            ->where('registrations.status', '!=', 'cancelled');
+        if ($dateFrom) $activeQuery->whereDate('events.event_date', '>=', $dateFrom);
+        if ($dateTo)   $activeQuery->whereDate('events.event_date', '<=', $dateTo);
+        $activeStudents = $activeQuery->distinct('registrations.user_id')->count('registrations.user_id');
+
+        $overallAttendanceRate = $totalRegistrations > 0 ? round(($totalAttendances / $totalRegistrations) * 100, 1) : 0.0;
+        $avgRegistrationsPerEvent = $totalEvents > 0 ? round($totalRegistrations / $totalEvents, 1) : 0.0;
+
+        // Most popular category within the date range
+        $popQuery = Event::whereNotNull('category')
+            ->select('category', DB::raw('count(*) as count'))
+            ->groupBy('category')
+            ->orderByDesc('count');
+        if ($dateFrom) $popQuery->whereDate('event_date', '>=', $dateFrom);
+        if ($dateTo)   $popQuery->whereDate('event_date', '<=', $dateTo);
+        $mostPopularCategory = $popQuery->value('category') ?? 'N/A';
+
+        return [
+            'total_events'                => $totalEvents,
+            'total_registrations'         => $totalRegistrations,
+            'total_attendances'           => $totalAttendances,
+            'overall_attendance_rate'     => $overallAttendanceRate,
+            'avg_registrations_per_event' => $avgRegistrationsPerEvent,
+            'most_popular_category'       => $mostPopularCategory,
+            'active_students'             => $activeStudents
+        ];
+    }
+
+    /**
+     * Category popularity — excludes cancelled registrations, counts only verified attendances.
+     */
     public function categoryPopularity(?string $dateFrom = null, ?string $dateTo = null): array
     {
         $query = Event::select('category', DB::raw('count(id) as events_count'), DB::raw('sum(capacity) as total_capacity'))
@@ -26,14 +88,17 @@ class ParticipationAnalyticsService
         foreach ($categories as $cat) {
             $regQuery = Registration::join('events', 'registrations.event_id', '=', 'events.id')
                 ->whereNull('events.deleted_at')
+                ->where('registrations.status', '!=', 'cancelled')
                 ->where('events.category', $cat->category);
             if ($dateFrom) $regQuery->whereDate('events.event_date', '>=', $dateFrom);
             if ($dateTo) $regQuery->whereDate('events.event_date', '<=', $dateTo);
             $registrations = $regQuery->count();
             
-            $attQuery = Attendance::join('registrations', 'attendances.registration_id', '=', 'registrations.id')
+            $attQuery = Attendance::where('attendances.status', 'verified')
+                ->join('registrations', 'attendances.registration_id', '=', 'registrations.id')
                 ->join('events', 'registrations.event_id', '=', 'events.id')
                 ->whereNull('events.deleted_at')
+                ->where('registrations.status', '!=', 'cancelled')
                 ->where('events.category', $cat->category);
             if ($dateFrom) $attQuery->whereDate('events.event_date', '>=', $dateFrom);
             if ($dateTo) $attQuery->whereDate('events.event_date', '<=', $dateTo);
@@ -54,6 +119,9 @@ class ParticipationAnalyticsService
         return $results;
     }
 
+    /**
+     * Participation trends — excludes cancelled registrations, counts only verified attendances.
+     */
     public function participationTrends(int $months = 12): array
     {
         $results = [];
@@ -64,13 +132,16 @@ class ParticipationAnalyticsService
             
             $registrations = Registration::join('events', 'registrations.event_id', '=', 'events.id')
                 ->whereNull('events.deleted_at')
+                ->where('registrations.status', '!=', 'cancelled')
                 ->whereYear('events.event_date', $date->year)
                 ->whereMonth('events.event_date', $date->month)
                 ->count();
                 
-            $attendances = Attendance::join('registrations', 'attendances.registration_id', '=', 'registrations.id')
+            $attendances = Attendance::where('attendances.status', 'verified')
+                ->join('registrations', 'attendances.registration_id', '=', 'registrations.id')
                 ->join('events', 'registrations.event_id', '=', 'events.id')
                 ->whereNull('events.deleted_at')
+                ->where('registrations.status', '!=', 'cancelled')
                 ->whereYear('events.event_date', $date->year)
                 ->whereMonth('events.event_date', $date->month)
                 ->count();
@@ -85,12 +156,16 @@ class ParticipationAnalyticsService
         return $results;
     }
 
+    /**
+     * Course vs Category — excludes cancelled registrations, counts only verified attendances.
+     */
     public function courseVsCategory(?string $dateFrom = null, ?string $dateTo = null): array
     {
         $query = Registration::join('users', 'registrations.user_id', '=', 'users.id')
             ->join('courses', 'users.course_id', '=', 'courses.id')
             ->join('events', 'registrations.event_id', '=', 'events.id')
             ->whereNull('events.deleted_at')
+            ->where('registrations.status', '!=', 'cancelled')
             ->select('courses.code as course', 'events.category', 
                      DB::raw('count(registrations.id) as registrations'));
                      
@@ -103,11 +178,13 @@ class ParticipationAnalyticsService
         foreach ($data as $item) {
             if (!$item->category) continue;
             
-            $attQuery = Attendance::join('registrations', 'attendances.registration_id', '=', 'registrations.id')
+            $attQuery = Attendance::where('attendances.status', 'verified')
+                ->join('registrations', 'attendances.registration_id', '=', 'registrations.id')
                 ->join('users', 'registrations.user_id', '=', 'users.id')
                 ->join('courses', 'users.course_id', '=', 'courses.id')
                 ->join('events', 'registrations.event_id', '=', 'events.id')
                 ->whereNull('events.deleted_at')
+                ->where('registrations.status', '!=', 'cancelled')
                 ->where('courses.code', $item->course)
                 ->where('events.category', $item->category);
                 
@@ -127,6 +204,9 @@ class ParticipationAnalyticsService
         return $results;
     }
 
+    /**
+     * Registration vs Attendance per event — excludes cancelled registrations, counts only verified attendances.
+     */
     public function registrationVsAttendance(?string $dateFrom = null, ?string $dateTo = null): array
     {
         $query = Event::select('id', 'title', 'capacity', 'event_date');
@@ -138,9 +218,14 @@ class ParticipationAnalyticsService
         
         $results = [];
         foreach ($events as $event) {
-            $registered = Registration::where('event_id', $event->id)->count();
-            $attended = Attendance::join('registrations', 'attendances.registration_id', '=', 'registrations.id')
+            $registered = Registration::where('event_id', $event->id)
+                ->where('status', '!=', 'cancelled')
+                ->count();
+
+            $attended = Attendance::where('attendances.status', 'verified')
+                ->join('registrations', 'attendances.registration_id', '=', 'registrations.id')
                 ->where('registrations.event_id', $event->id)
+                ->where('registrations.status', '!=', 'cancelled')
                 ->count();
                 
             $rate = $registered > 0 ? round(($attended / $registered) * 100, 1) : 0.0;
@@ -160,6 +245,9 @@ class ParticipationAnalyticsService
         return $results;
     }
 
+    /**
+     * Event engagement scores — excludes cancelled registrations, counts only verified attendances.
+     */
     public function eventEngagementScores(?string $dateFrom = null, ?string $dateTo = null): array
     {
         $query = Event::select('id', 'title', 'capacity', 'event_date');
@@ -172,9 +260,15 @@ class ParticipationAnalyticsService
         $results = [];
         foreach ($events as $event) {
             $capacity = $event->capacity ?: 1;
-            $registered = Registration::where('event_id', $event->id)->count();
-            $attended = Attendance::join('registrations', 'attendances.registration_id', '=', 'registrations.id')
+
+            $registered = Registration::where('event_id', $event->id)
+                ->where('status', '!=', 'cancelled')
+                ->count();
+
+            $attended = Attendance::where('attendances.status', 'verified')
+                ->join('registrations', 'attendances.registration_id', '=', 'registrations.id')
                 ->where('registrations.event_id', $event->id)
+                ->where('registrations.status', '!=', 'cancelled')
                 ->count();
                 
             $fill_rate = min($registered / $capacity, 1.0);
@@ -198,13 +292,19 @@ class ParticipationAnalyticsService
         return $results;
     }
 
+    /**
+     * Peak participation times — excludes cancelled registrations.
+     */
     public function peakParticipationTimes(): array
     {
         $events = Event::whereNotNull('start_time')->whereNotNull('event_date')->get();
         $times = [];
         
         foreach ($events as $event) {
-            $registered = Registration::where('event_id', $event->id)->count();
+            $registered = Registration::where('event_id', $event->id)
+                ->where('status', '!=', 'cancelled')
+                ->count();
+
             if ($registered > 0 && $event->event_date && $event->start_time) {
                 try {
                     $day = $event->event_date instanceof \DateTimeInterface
@@ -230,13 +330,22 @@ class ParticipationAnalyticsService
         return array_values($times);
     }
 
+    /**
+     * Student profile analytics.
+     */
     public function studentProfile(int $userId): array
     {
-        $registrations = Registration::with('event')->where('user_id', $userId)->get();
+        $registrations = Registration::with('event')
+            ->where('user_id', $userId)
+            ->where('status', '!=', 'cancelled')
+            ->get();
         
         $eventsCount = $registrations->count();
-        $attendedCount = Attendance::join('registrations', 'attendances.registration_id', '=', 'registrations.id')
+
+        $attendedCount = Attendance::where('attendances.status', 'verified')
+            ->join('registrations', 'attendances.registration_id', '=', 'registrations.id')
             ->where('registrations.user_id', $userId)
+            ->where('registrations.status', '!=', 'cancelled')
             ->count();
             
         $categories = [];
@@ -268,6 +377,9 @@ class ParticipationAnalyticsService
         ];
     }
 
+    /**
+     * Under-participated events — excludes cancelled registrations, counts only verified attendances.
+     */
     public function underparticipatedEvents(): array
     {
         $events = Event::where('status', '!=', 'cancelled')->get();
@@ -275,9 +387,15 @@ class ParticipationAnalyticsService
         
         foreach ($events as $event) {
             $capacity = $event->capacity ?: 1;
-            $registered = Registration::where('event_id', $event->id)->count();
-            $attended = Attendance::join('registrations', 'attendances.registration_id', '=', 'registrations.id')
+
+            $registered = Registration::where('event_id', $event->id)
+                ->where('status', '!=', 'cancelled')
+                ->count();
+
+            $attended = Attendance::where('attendances.status', 'verified')
+                ->join('registrations', 'attendances.registration_id', '=', 'registrations.id')
                 ->where('registrations.event_id', $event->id)
+                ->where('registrations.status', '!=', 'cancelled')
                 ->count();
                 
             $fillRate = ($registered / $capacity) * 100;
@@ -299,31 +417,5 @@ class ParticipationAnalyticsService
         }
         
         return $results;
-    }
-
-    public function overviewStats(): array
-    {
-        $totalEvents = Event::count();
-        $totalRegistrations = Registration::count();
-        $totalAttendances = Attendance::count();
-        $activeStudents = Registration::distinct('user_id')->count('user_id');
-        
-        $overallAttendanceRate = $totalRegistrations > 0 ? round(($totalAttendances / $totalRegistrations) * 100, 1) : 0.0;
-        $avgRegistrationsPerEvent = $totalEvents > 0 ? round($totalRegistrations / $totalEvents, 1) : 0.0;
-        $mostPopularCategory = Event::whereNotNull('category')
-            ->select('category', DB::raw('count(*) as count'))
-            ->groupBy('category')
-            ->orderByDesc('count')
-            ->value('category') ?? 'N/A';
-        
-        return [
-            'total_events'                => $totalEvents,
-            'total_registrations'         => $totalRegistrations,
-            'total_attendances'           => $totalAttendances,
-            'overall_attendance_rate'     => $overallAttendanceRate,
-            'avg_registrations_per_event' => $avgRegistrationsPerEvent,
-            'most_popular_category'       => $mostPopularCategory,
-            'active_students'             => $activeStudents
-        ];
     }
 }
