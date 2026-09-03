@@ -3,6 +3,25 @@
         Options -MultiViews -Indexes
     </IfModule>
 
+    # Block access to hidden files and dotfiles (.htaccess, .env, .git)
+    <FilesMatch "^\.">
+        Order allow,deny
+        Deny from all
+    </FilesMatch>
+
+    <Files ".ht*">
+        Require all denied
+    </Files>
+
+    <IfModule mod_headers.c>
+        Header set X-Content-Type-Options "nosniff"
+        Header set Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        Header set X-Frame-Options "DENY"
+        Header set Referrer-Policy "strict-origin-when-cross-origin"
+        Header unset X-Powered-By
+        Header unset Server
+    </IfModule>
+
     RewriteEngine On
 
     # Handle Authorization Header

@@ -226,30 +226,32 @@ class AuthController extends Controller
     public function forgotPassword(Request $request)
     {
         $request->validate([
-            'email' => 'required|email|exists:users,email',
+            'email' => ['required', 'string', 'email:rfc', 'max:255'],
         ]);
 
         $user = User::where('email', $request->email)->first();
-        $token = Str::random(60);
 
-        DB::table('password_reset_tokens')->updateOrInsert(
-            ['email' => $request->email],
-            ['token' => hash('sha256', $token), 'created_at' => now()]
-        );
+        if ($user) {
+            $token = Str::random(60);
 
-        User::log('request_password_reset', $user);
+            DB::table('password_reset_tokens')->updateOrInsert(
+                ['email' => $user->email],
+                ['token' => hash('sha256', $token), 'created_at' => now()]
+            );
 
-        $resetLink = route('password.reset', ['token' => $token, 'email' => $request->email]);
+            User::log('request_password_reset', $user);
 
-        // Send password reset email
-        try {
-            Mail::to($user->email)->send(new PasswordResetMail($user, $resetLink));
-        } catch (\Exception $e) {
-            Log::error('Failed to send password reset email: ' . $e->getMessage());
-            return back()->with('error', 'Failed to send the reset email. Please try again later.');
+            $resetLink = route('password.reset', ['token' => $token, 'email' => $user->email]);
+
+            // Send password reset email
+            try {
+                Mail::to($user->email)->send(new PasswordResetMail($user, $resetLink));
+            } catch (\Exception $e) {
+                Log::error('Failed to send password reset email: ' . $e->getMessage());
+            }
         }
 
-        return back()->with('success', 'A password reset link has been sent to your email address!');
+        return back()->with('success', 'If your email is registered with us, a password reset link has been sent to your email address.');
     }
 
     public function showReset(Request $request)

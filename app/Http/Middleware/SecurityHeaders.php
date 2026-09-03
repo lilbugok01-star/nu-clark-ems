@@ -15,21 +15,31 @@ class SecurityHeaders
      */
     public function handle(Request $request, Closure $next): Response
     {
+        // Block direct access to hidden dotfiles (.htaccess, .env, .git)
+        $path = $request->path();
+        if (preg_match('#(?:^|/)\.#', $path) || stripos($path, '.htaccess') !== false || stripos($path, '.env') !== false) {
+            return response("404 Not Found\n", 404, [
+                'Content-Type' => 'text/plain; charset=utf-8',
+                'X-Content-Type-Options' => 'nosniff',
+            ]);
+        }
+
         $response = $next($request);
 
         // 1. Strict-Transport-Security (HSTS) - Force HTTPS
-        if ($request->isSecure()) {
+        if ($request->isSecure() || $request->header('X-Forwarded-Proto') === 'https' || app()->environment('production')) {
             $response->headers->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
         }
 
-        // 2. Content-Security-Policy (CSP) - Whitelist trusted sources
-        // Note: Allowing 'unsafe-inline' for now to ensure compatibility with existing scripts/styles
+        // 2. Content-Security-Policy (CSP) - Hardened Level 3 policy
         $csp = "default-src 'self'; " .
-               "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; " .
+               "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; " .
                "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; " .
                "font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; " .
-               "img-src 'self' data: https:; " .
-               "connect-src 'self' https:; " .
+               "img-src 'self' data: https://*.amazonaws.com https://*.railway.app; " .
+               "connect-src 'self' https://cdn.jsdelivr.net; " .
+               "form-action 'self'; " .
+               "base-uri 'self'; " .
                "frame-ancestors 'none'; " .
                "object-src 'none';";
         
@@ -47,7 +57,46 @@ class SecurityHeaders
         // 6. Permissions-Policy - Limit access to browser features
         $response->headers->set('Permissions-Policy', 'camera=(self), microphone=(), geolocation=()');
 
-        // 7. Remove information-leaking headers
+        // 7. Cache-Control for sensitive / dynamic routes
+        if ($request->isMethodSafe()) {
+            if (!$response->headers->has('Cache-Control') || str_contains((string)$response->headers->get('Cache-Control'), 'private') || str_contains((string)$response->headers->get('Cache-Control'), 'no-cache')) {
+                $response->headers->set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+                $response->headers->set('Pragma', 'no-cache');
+                $response->headers->set('Expires', '0');
+            }
+        }
+
+        // 8. Minimize Redirect Body (prevents ZAP "Big Redirect" / sensitive leak heuristic)
+        if ($response->isRedirection()) {
+            $location = htmlspecialchars((string)$response->headers->get('Location'), ENT_QUOTES, 'UTF-8');
+            $response->setContent('<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0;url=' . $location . '" /></head></html>');
+        }
+
+        // 9. Enforce HttpOnly on XSRF-TOKEN cookie
+        foreach ($response->headers->getCookies() as $cookie) {
+            if ($cookie->getName() === 'XSRF-TOKEN' && !$cookie->isHttpOnly()) {
+                $response->headers->setCookie(
+                    new \Symfony\Component\HttpFoundation\Cookie(
+                        $cookie->getName(),
+                        $cookie->getValue(),
+                        $cookie->getExpiresTime(),
+                        $cookie->getPath(),
+                        $cookie->getDomain(),
+                        $cookie->isSecure(),
+                        true, // HttpOnly enabled
+                        $cookie->isRaw(),
+                        $cookie->getSameSite(),
+                        $cookie->isPartitioned()
+                    )
+                );
+            }
+        }
+
+        // 10. Remove information-leaking headers
+        if (!headers_sent()) {
+            header_remove('X-Powered-By');
+            header_remove('Server');
+        }
         $response->headers->remove('X-Powered-By');
         $response->headers->remove('Server');
 
