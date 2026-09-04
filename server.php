@@ -1,6 +1,6 @@
 <?php
 
-$publicPath = getcwd();
+$publicPath = is_dir(__DIR__ . '/public') ? __DIR__ . '/public' : getcwd();
 
 $uri = urldecode(
     parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?? ''

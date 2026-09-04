@@ -16,18 +16,34 @@ class RegisterRequest extends FormRequest
     }
 
     /**
+     * Sanitize input before validation.
+     */
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'first_name'  => trim(str_replace(["\0", "\r", "\n"], '', (string) $this->input('first_name'))),
+            'middle_name' => $this->filled('middle_name') ? trim(str_replace(["\0", "\r", "\n"], '', (string) $this->input('middle_name'))) : null,
+            'surname'     => trim(str_replace(["\0", "\r", "\n"], '', (string) $this->input('surname'))),
+            'email'       => trim(str_replace(["\0", "\r", "\n"], '', (string) $this->input('email'))),
+            'student_id'  => trim((string) $this->input('student_id')),
+        ]);
+    }
+
+    /**
      * Get the validation rules that apply to the request.
      */
     public function rules(): array
     {
         return [
-            'first_name'  => 'required|string|max:255',
-            'middle_name' => 'nullable|string|max:255',
-            'surname'     => 'required|string|max:255',
+            'first_name'  => 'required|string|max:100',
+            'middle_name' => 'nullable|string|max:100',
+            'surname'     => 'required|string|max:100',
             'email'      => [
                 'required',
-                'email',
-                'unique:users',
+                'string',
+                'email:rfc',
+                'max:255',
+                'unique:users,email',
                 function ($attribute, $value, $fail) {
                     if (!str_ends_with(strtolower($value), '@students.nu-clark.edu.ph')) {
                         $fail('Only official NU Clark student emails (@students.nu-clark.edu.ph) are allowed.');

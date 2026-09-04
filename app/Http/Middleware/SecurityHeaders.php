@@ -15,9 +15,17 @@ class SecurityHeaders
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // Block direct access to hidden dotfiles (.htaccess, .env, .git)
+        // Block direct access to hidden dotfiles, null bytes, and path traversal sequences
         $path = $request->path();
-        if (preg_match('#(?:^|/)\.#', $path) || stripos($path, '.htaccess') !== false || stripos($path, '.env') !== false) {
+        $rawUri = $request->getRequestUri();
+        if (
+            preg_match('#(?:^|/)\.#', $path) || 
+            stripos($path, '.htaccess') !== false || 
+            stripos($path, '.env') !== false ||
+            str_contains($rawUri, "\0") || 
+            str_contains($rawUri, '%00') || 
+            preg_match('#(?:\.\./|\.\.\\\\)#', $rawUri)
+        ) {
             return response("404 Not Found\n", 404, [
                 'Content-Type' => 'text/plain; charset=utf-8',
                 'X-Content-Type-Options' => 'nosniff',
@@ -31,11 +39,11 @@ class SecurityHeaders
             $response->headers->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
         }
 
-        // 2. Content-Security-Policy (CSP) - Hardened Level 3 policy
+        // 2. Content-Security-Policy (CSP) - Hardened Level 3 policy (Self-hosted fonts)
         $csp = "default-src 'self'; " .
                "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; " .
-               "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; " .
-               "font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; " .
+               "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; " .
+               "font-src 'self' https://cdn.jsdelivr.net; " .
                "img-src 'self' data: https://*.amazonaws.com https://*.railway.app; " .
                "connect-src 'self' https://cdn.jsdelivr.net; " .
                "form-action 'self'; " .

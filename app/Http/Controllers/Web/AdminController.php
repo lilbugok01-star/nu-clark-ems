@@ -81,7 +81,8 @@ class AdminController extends Controller implements HasMiddleware
         $sysQuery = \App\Models\SystemAuditLog::with('user')->orderByDesc('created_at');
         
         if ($request->filled('action')) {
-            $sysQuery->where('action', 'like', '%' . $request->action . '%');
+            $escapedAction = str_replace(['%', '_'], ['\\%', '\\_'], $request->action);
+            $sysQuery->where('action', 'like', '%' . $escapedAction . '%');
         }
         if ($request->filled('user_id')) {
             $sysQuery->where('user_id', $request->user_id);
@@ -417,7 +418,7 @@ class AdminController extends Controller implements HasMiddleware
         ]);
 
         if ($request->filled('search')) {
-            $search = $request->search;
+            $search = str_replace(['%', '_'], ['\\%', '\\_'], (string) $request->search);
             $query->where(function($q) use ($search) {
                 $q->where('title', 'like', '%' . $search . '%')
                   ->orWhere('venue', 'like', '%' . $search . '%')
